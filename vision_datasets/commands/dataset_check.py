@@ -56,7 +56,7 @@ def main():
     if is_sas_url:
         for usage in [Usages.TRAIN_PURPOSE, Usages.TEST_PURPOSE]:
             logger.info(f'{prefix} Check azure dataset, usage: {usage}')
-            dataset = vision_datasets.create_manifest_dataset(args.sas_or_dir, local_dir=str(None), name=dataset_info.name, usage=usage)
+            dataset = vision_datasets.create_manifest_dataset(args.sas_or_dir, local_dir=None, name=dataset_info.name, usage=usage)
             show_dataset_stats(dataset)
             show_img(dataset[0])
     else:
@@ -76,7 +76,7 @@ def main():
     else:
         for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
             logger.info(f'{prefix} Check {ManifestDataset.__name__}, usage: {usage}')
-            dataset = vision_datasets.create_manifest_dataset(container_sas=str(None), local_dir=args.sas_or_dir, name=dataset_info.name, usage=usage)
+            dataset = vision_datasets.create_manifest_dataset(container_sas=None, local_dir=args.sas_or_dir, name=dataset_info.name, usage=usage)
             if dataset:
                 check_dataset(dataset)
             dataset.close()

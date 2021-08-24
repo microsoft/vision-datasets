@@ -30,7 +30,7 @@ def main():
         if not os.path.exists(img_folder):
             os.mkdir(img_folder)
         print('download dataset manifest...')
-        az_dataset = dataset_resources.create_manifest_dataset(args.sas, str(None), args.name, usage=phase, coordinates='absolute')
+        az_dataset = dataset_resources.create_manifest_dataset(args.sas, None, args.name, usage=phase, coordinates='absolute')
         print('start conversion...')
         with open(img_index_file, 'w') as index_file_out:
             for img, labels, idx in az_dataset:
