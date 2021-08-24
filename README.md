@@ -31,7 +31,7 @@ task name to that task's labels.
 In addition to loading a serialized `DatasetManifest` for instantiation, this repo currently supports two formats of data that can instantiates `DatasetManifest`,
 using `DatasetManifest.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)`: `IRIS` and `COCO`.
 
-`dataset_info` as the first arg in the arg list wraps the metainfo about the dataset like the name of the dataset, locations of the images, annotation files, etc. See examples in the sections below
+`DatasetInfo` as the first arg in the arg list wraps the metainfo about the dataset like the name of the dataset, locations of the images, annotation files, etc. See examples in the sections below
 for different data formats.
 
 Once a `DatasetManifest` is created, you can create a `ManifestDataset` for accessing the dataset:
@@ -42,7 +42,7 @@ dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates='relative'
 
 #### Coco format
 
-Here is an example with explanation of what a `dataset_info` looks like for coco format:
+Here is an example with explanation of what a `DatasetInfo` looks like for coco format, when it is serialized into json:
 
 ```{json}
     {
@@ -108,7 +108,7 @@ bbox format should be absolute pixel position following `[left, top, right, bott
 
 #### Iris format
 
-Here is an example with explanation of what a `dataset_info` looks like for `iris` format:
+Here is an example with explanation of what a `DatasetInfo` looks like for `iris` format:
 
 ```{json}
     {
@@ -190,7 +190,7 @@ class_index left top right bottom
 
 #### Multitask DatasetInfo
 
-The `dataset_info` for multitask is not very different from single task. A `'tasks'` section will be found in the json and the `'type'` of the dataset is `'multitask'`. Within each task, it wraps the
+The `DatasetInfo` for multitask is not very different from single task. A `'tasks'` section will be found in the json and the `'type'` of the dataset is `'multitask'`. Within each task, it wraps the
 info specific to that task.
 
 Below is an example for `'iris'` format, but the general idea applies to `'coco'` format as well.
@@ -241,7 +241,7 @@ Below is an example for `'iris'` format, but the general idea applies to `'coco'
 
 ## Dataset management and access
 
-Once you have multiple datasets, it is more convenient to have all the `dataset_info` in one place and instantiate `DatasetManifest` or even `ManifestDataset` by just using the dataset name, usage (
+Once you have multiple datasets, it is more convenient to have all the `DatasetInfo` in one place and instantiate `DatasetManifest` or even `ManifestDataset` by just using the dataset name, usage (
 train, val ,test) and version.
 
 This repo offers the class `DatasetHub` for this purpose. Once instantiated with a json including the `DatasetInfo` for all datasets, you can retrieve a `ManifestDataset` by
