@@ -75,6 +75,8 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
 
 ##### Coco JSON - Image classification
 
+Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, starting either from 0 or 1.
+
 ``` {json}
 {
   "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@siberian-kitten.jpg"},
@@ -152,6 +154,8 @@ Each rows in the index file (`index_path`) is:
 <image_filepath> <comma-separated-label-indices>
 ```
 
+Note that the class/label index should start from zero.
+
 Example:
 
 ``` {txt}
@@ -167,6 +171,8 @@ The index file for OD is slightly different from IC. Each rows in the index file
 ``` {txt}
 <image_filepath> <label_filepath>
 ```
+
+Same with classification, the class/label index should start from zero.
 
 Example for `train_images.txt`:
 

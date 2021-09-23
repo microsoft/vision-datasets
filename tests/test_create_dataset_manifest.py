@@ -211,6 +211,31 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             self.assertEqual(dataset_manifest.images[0].labels, [0])
             self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
 
+    def test_index_can_start_from_zero(self):
+        manifest_dict = {
+            "images": [{"id": 0, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 1, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 0, "category_id": 0, "image_id": 0},
+                {"id": 1, "category_id": 0, "image_id": 1},
+                {"id": 2, "category_id": 1, "image_id": 1}
+            ], "categories": [{"id": 0, "name": "cat"}, {"id": 1, "name": "dog"}]
+        }
+        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
+        with tempfile.TemporaryDirectory() as tempdir:
+            dataset_dict['root_folder'] = ''
+            dataset_dict['type'] = 'classification_multilabel'
+            coco_file_path = os.path.join(tempdir, 'test.json')
+            with open(coco_file_path, 'w') as f:
+                json.dump(manifest_dict, f)
+
+            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.IC_MULTILABEL)
+            self.assertIsInstance(dataset_manifest, DatasetManifest)
+            self.assertEqual(len(dataset_manifest.images), 2)
+            self.assertEqual(len(dataset_manifest.labelmap), 2)
+            self.assertEqual(dataset_manifest.images[0].labels, [0])
+            self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
+
     def test_object_detection(self):
         manifest_dict = {
             "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
