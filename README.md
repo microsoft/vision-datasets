@@ -75,7 +75,7 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
 
 ##### Coco JSON - Image classification
 
-Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, starting either from 1 (or 0). Note that it is recommended to make the id start with 1, as many open-sourced tools such as CVAT does not accept id starting from 0.
+Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, **starting from 1**. Note that our lib might work with id starting from 0, but many tools like [CVAT](https://github.com/openvinotoolkit/cvat/issues/2085) and official [COCOAPI](https://github.com/cocodataset/cocoapi/issues/507) will fail.
 
 ``` {json}
 {
