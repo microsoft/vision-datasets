@@ -75,7 +75,7 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
 
 ##### Coco JSON - Image classification
 
-Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, starting either from 0 or 1.
+Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, starting either from 1 (or 0). Note that it is recommended to make the id start with 1, as many open-sourced tools such as CVAT does not accept id starting from 0.
 
 ``` {json}
 {
@@ -172,7 +172,7 @@ The index file for OD is slightly different from IC. Each rows in the index file
 <image_filepath> <label_filepath>
 ```
 
-Same with classification, the class/label index should start from zero.
+Same with classification, the class/label index should start from 0.
 
 Example for `train_images.txt`:
 
