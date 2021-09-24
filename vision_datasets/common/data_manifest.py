@@ -439,8 +439,12 @@ class CocoManifestAdaptor:
 
         images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
 
+        label_dict_by_id = {cate['id']: cate['name'] for cate in coco_manifest['categories']}
+        label_starting_idx = min(label_dict_by_id.keys())
+        labelmap = [label_dict_by_id[i + label_starting_idx] for i in range(len(label_dict_by_id))]
+
         for annotation in coco_manifest['annotations']:
-            c_id = annotation['category_id'] - 1
+            c_id = annotation['category_id'] - label_starting_idx
             if 'bbox' in annotation:
                 label = [c_id] + annotation['bbox']
             else:
@@ -448,8 +452,5 @@ class CocoManifestAdaptor:
             images_by_id[annotation['image_id']].labels.append(label)
         images = [x for x in images_by_id.values()]
         images.sort(key=lambda x: x.id)
-
-        label_dict_by_id = {cate['id']: cate['name'] for cate in coco_manifest['categories']}
-        labelmap = [label_dict_by_id[i + 1] for i in range(len(label_dict_by_id))]
 
         return DatasetManifest(images, labelmap, data_type)
