@@ -2,29 +2,25 @@
 
 ## Introduction
 
-This repo 
+This repo
+
 - defines the contract for dataset for purposes such as training, visualization, and exploration
 - provides API for organizing and accessing datasets: `DatasetHub`
-
 
 ## Dataset Contracts
 
 - `DatasetManifest` wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. `ImageDataManifest` encapsulates information about each image.
 - `ImageDataManifest` encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be
-    1. a local path (`c:\images\1.jpg`)
-    2. a local path in a **non-compressed** zip file (`c:\images.zip@1.jpg`) or
+    1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
+    2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
     3. an url
 - `ManifestDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
 
+`ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
-`ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if
-you have the data in azure storage.
+Currently, three basic types of data are supported: `classification_multilabel`, `classification_multiclass`, and `object_detection`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of the three basic types.
 
-Currently, three basic types of data are supported: `classification_multilabel`, `classification_multiclass`, and `object_detection`. `multitask` type is a composition type, where one set of images
-has multiple sets of annotations available for different tasks, where each task can be of the three basic types.
-
-For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from
-task name to that task's labels.
+For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
 
 ### Creating DatasetManifest
 
@@ -269,15 +265,27 @@ Note that this hub class works with data saved in both Azure Blob container and 
 
 If `local_dir`:
 
-1. is provided, the hub will look for the resources locally and download the data (files included in "files_for_local_usage", the index files, metadata (iris format), labelmap (iris format))
+1. is provided, the hub will look for the resources locally and **download the data** (files included in "
+   files_for_local_usage", the index files, metadata (if iris format), labelmap (if iris format))
    from `blob_container_sas` if not present locally
-2. is NOT provided (i.e. `None`), the hub will create a manifest dataset that directly consumes data from the blob indicated by `blob_container_sas`. Note that this does not work, if data are stored
-   in zipped files. You will have to unzip your data in the azure blob. (Index files requires no update, if image paths are for zip files: "a.zip@1.jpg"). This kind of azure-based dataset is good for
-   large dataset exploration, but can be slow for training.
+2. is NOT provided (i.e. `None`), the hub will create a manifest dataset that directly consumes data from the blob
+   indicated by `blob_container_sas`. Note that this does not work, if data are stored in zipped files. You will have to
+   unzip your data in the azure blob. (Index files requires no update, if image paths are for zip files: "a.zip@1.jpg").
+   This kind of azure-based dataset is good for large dataset exploration, but can be slow for training.
 
 When data exists on local disk, `blob_container_sas` can be `None`.
 
 ### Training with PyTorch
 
-Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go
-with the PyTorch DataLoader for training.
+Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
+
+### Managing datasets with DatasetHub on cloud storage
+
+If you are using `DatasetHub` to manage datasets in cloud storage, we recommend zipping (with uncompressed mode) the images into one or multiple zip files before uploading it and update the file path in index files to be like `train.zip@1.jpg` from `train\1.jpg`. You can do it with `7zip` (set compression level to 'store') on Windows or [zip](https://superuser.com/questions/411394/zip-files-without-compression) command on Linux.
+
+If you upload folders of images directly to cloud storage:
+
+- you will have to list all images in `"files_for_local_usage"`, which can be millions of entries
+- downloading images one by one (even with multithreading) is much slower than downloading a few zip files
+
+One more thing is that sometimes when you create a zip file `train.zip`, you might find out that there is only one `train` folder in the zip. This will fail the file loading if the path is `train.zip@1.jpg`, as the image is actually at `train.zip@train\1.jpg`. It is usually a good idea to avoid this extra layer of folder when zipping and double-confirm this does not happen by mistake.
