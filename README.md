@@ -281,8 +281,7 @@ Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply p
 
 ### Managing datasets with DatasetHub on cloud storage
 
-If you are using `DatasetHub` to manage datasets in cloud storage, we recommend zipping the images into one or multiple
-zip files before uploading it and update the file path in index files to be like `train.zip@1.jpg` from `train\1.jpg`.
+If you are using `DatasetHub` to manage datasets in cloud storage, we recommend zipping (with uncompressed mode) the images into one or multiple zip files before uploading it and update the file path in index files to be like `train.zip@1.jpg` from `train\1.jpg`. You can do it with `7zip` (set compression level to 'store') on Windows or [zip](https://superuser.com/questions/411394/zip-files-without-compression) command on Linux.  
 
 If you upload folders of images directly to cloud storage:
 
