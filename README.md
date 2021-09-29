@@ -288,4 +288,4 @@ If you upload folders of images directly to cloud storage:
 - you will have to list all images in `"files_for_local_usage"`, which can be millions of entries
 - downloading images one by one (even with multithreading) is much slower than downloading a few zip files
 
-One more thing is that once sometimes when you create a zip file `train.zip`, you might find out that there is only one `train` folder in the zip. This will fail the file loading if the path is `train.zip@1.jpg`, as the image is actually at `train.zip@train\1.jpg`. It is usually a good idea to avoid this extra layer of folder.
+One more thing is that sometimes when you create a zip file `train.zip`, you might find out that there is only one `train` folder in the zip. This will fail the file loading if the path is `train.zip@1.jpg`, as the image is actually at `train.zip@train\1.jpg`. It is usually a good idea to avoid this extra layer of folder when zipping and double-confirm this does not happen by mistake.
