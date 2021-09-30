@@ -86,7 +86,6 @@ class ImageDataManifest:
 
     def __init__(self, id, img_path, width, height, labels):
         """
-
         Args:
             id (int or str): image id
             img_path (str): path to image
