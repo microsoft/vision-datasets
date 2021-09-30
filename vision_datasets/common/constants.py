@@ -25,3 +25,9 @@ class Formats:
 class BBoxFormat:
     LTRB = 'ltrb'
     LTWH = 'ltwh'
+
+    VALID_TYPES = [LTRB, LTWH]
+
+    @staticmethod
+    def validate(bbox_format):
+        assert bbox_format in BBoxFormat.VALID_TYPES, f'Invalid bbox_format: {bbox_format}. Must be {BBoxFormat.VALID_TYPES}'

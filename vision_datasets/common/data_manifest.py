@@ -453,6 +453,8 @@ class CocoManifestAdaptor:
         labelmap = [label_dict_by_id[i + label_starting_idx] for i in range(len(label_dict_by_id))]
 
         bbox_format = coco_manifest.get('bbox_format', BBoxFormat.LTWH)
+        BBoxFormat.validate(bbox_format)
+
         for annotation in coco_manifest['annotations']:
             c_id = annotation['category_id'] - label_starting_idx
             if 'bbox' in annotation:
