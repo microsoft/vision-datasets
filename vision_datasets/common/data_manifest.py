@@ -6,7 +6,7 @@ import random
 from typing import List, Dict
 from urllib import parse as urlparse
 
-from .constants import DatasetTypes, Formats
+from .constants import DatasetTypes, Formats, BBoxFormat
 from .dataset_info import MultiTaskDatasetInfo
 from .util import is_url, FileReader
 
@@ -85,6 +85,15 @@ class ImageDataManifest:
     """
 
     def __init__(self, id, img_path, width, height, labels):
+        """
+
+        Args:
+            id (int or str): image id
+            img_path (str): path to image
+            width (int): image width
+            height (int): image height
+            labels (list or dict): classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel; detection: [c_id, left, top, right, bottom]; dict[task, labels] for multitask dataset
+        """
         self.id = id
         self.img_path = img_path
         self.width = width
@@ -443,10 +452,14 @@ class CocoManifestAdaptor:
         label_starting_idx = min(label_dict_by_id.keys())
         labelmap = [label_dict_by_id[i + label_starting_idx] for i in range(len(label_dict_by_id))]
 
+        bbox_format = coco_manifest.get('bbox_format', BBoxFormat.LTWH)
         for annotation in coco_manifest['annotations']:
             c_id = annotation['category_id'] - label_starting_idx
             if 'bbox' in annotation:
-                label = [c_id] + annotation['bbox']
+                bbox = annotation['bbox']
+                if bbox_format == BBoxFormat.LTWH:
+                    bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+                label = [c_id] + bbox
             else:
                 label = c_id
             images_by_id[annotation['image_id']].labels.append(label)

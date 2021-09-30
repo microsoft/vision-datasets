@@ -102,7 +102,12 @@ Here is one example of the train.json, val.json, or test.json in the `DatasetInf
 }
 ```
 
-bbox format should be absolute pixel position following `[left, top, right, bottom]`.
+bbox format should be **absolute** pixel position following either `ltwh: [left, top, width, height]` or `ltrb: [left, top, right, bottom]`. `ltwh` is the default format. To work with `ltrb`, please specify `bbox_format` to be `ltrb` in coco json file.
+
+Note that
+
+- Note that we used to use `ltrb` as default. If your coco annotations were prepared to work with this repo before version 0.1.2. Please add `"bbox_format": "ltrb"` to your coco file.
+- Regardless of what format bboxes are stored in Coco file, when annotations are transformed into `ImageDataManifest`, the bbox will be unified into `ltrb: [left, top, right, bottom]`.
 
 #### Iris format
 
