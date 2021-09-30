@@ -236,8 +236,34 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             self.assertEqual(dataset_manifest.images[0].labels, [0])
             self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
 
-    def test_object_detection(self):
+    def test_object_detection_bbox_format_LTWH(self):
         manifest_dict = {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 90, 90]},
+                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 100, 100]},
+                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
+            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+        }
+        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
+        with tempfile.TemporaryDirectory() as tempdir:
+            dataset_dict['root_folder'] = ''
+            dataset_dict['type'] = 'object_detection'
+            coco_file_path = os.path.join(tempdir, 'test.json')
+            with open(coco_file_path, 'w') as f:
+                json.dump(manifest_dict, f)
+
+            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.OD)
+            self.assertIsInstance(dataset_manifest, DatasetManifest)
+            self.assertEqual(len(dataset_manifest.images), 2)
+            self.assertEqual(len(dataset_manifest.labelmap), 2)
+            self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 100, 100]])
+            self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
+
+    def test_object_detection_bbox_format_LTRB(self):
+        manifest_dict = {
+            "bbox_format": "ltrb",
             "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
                        {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
             "annotations": [
