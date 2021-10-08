@@ -54,11 +54,14 @@ def main():
     vision_datasets = DatasetHub(args.reg_json)
     is_sas_url = is_url(args.sas_or_dir)
     if is_sas_url:
-        for usage in [Usages.TRAIN_PURPOSE, Usages.TEST_PURPOSE]:
+        for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
             logger.info(f'{prefix} Check azure dataset, usage: {usage}')
             dataset = vision_datasets.create_manifest_dataset(args.sas_or_dir, local_dir=None, name=dataset_info.name, usage=usage)
-            show_dataset_stats(dataset)
-            show_img(dataset[0])
+            if dataset:
+                show_dataset_stats(dataset)
+                show_img(dataset[0])
+            else:
+                logger.info(f'No split for {usage} available')
     else:
         logger.info(f'{prefix} local dir provided, skipping Azure-based dataset check.')
 
@@ -79,7 +82,9 @@ def main():
             dataset = vision_datasets.create_manifest_dataset(container_sas=None, local_dir=args.sas_or_dir, name=dataset_info.name, usage=usage)
             if dataset:
                 check_dataset(dataset)
-            dataset.close()
+                dataset.close()
+            else:
+                logger.info(f'No split for {usage} available')
 
 
 if __name__ == '__main__':

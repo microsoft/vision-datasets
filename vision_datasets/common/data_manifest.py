@@ -360,12 +360,18 @@ class IrisManifestAdaptor:
                 if line == '':
                     continue
                 parts = line.split(' ')
-                img_path = parts[0]
+                if len(parts) >= 2:  # assumption: only the image file path can have spaces
+                    img_path = ' '.join(parts[0:-1])
+                    label_or_label_file = parts[-1]
+                else:
+                    img_path = parts[0]
+                    label_or_label_file = None
+
                 w, h = img_wh[img_path] if img_wh else (None, None)
                 if DatasetTypes.is_classification(dataset_info.type):
-                    img_labels = [] if len(parts) == 1 else [int(x) for x in parts[1].split(',')]
+                    img_labels = [int(x) for x in label_or_label_file.split(',')] if label_or_label_file else []
                 else:
-                    img_labels = IrisManifestAdaptor._load_detection_labels_from_file(file_reader, get_full_sas_or_path(parts[1]))
+                    img_labels = IrisManifestAdaptor._load_detection_labels_from_file(file_reader, get_full_sas_or_path(label_or_label_file)) if label_or_label_file else []
 
                 if not labelmap and img_labels:
                     c_indices = [x[0] for x in img_labels] if isinstance(img_labels[0], list) else img_labels
