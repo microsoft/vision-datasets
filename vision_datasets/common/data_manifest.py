@@ -359,7 +359,7 @@ class IrisManifestAdaptor:
                 line = purge_line(line)
                 if not line:
                     continue
-                parts = line.rsplit(' ', maxsplit=1) # assumption: only the image file path can have spaces
+                parts = line.rsplit(' ', maxsplit=1)  # assumption: only the image file path can have spaces
                 img_path = parts[0]
                 label_or_label_file = parts[1] if len(parts) == 2 else None
 
