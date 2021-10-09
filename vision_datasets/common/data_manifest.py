@@ -357,15 +357,11 @@ class IrisManifestAdaptor:
         with file_reader.open(get_full_sas_or_path(dataset_info.index_files[usage])) as file_in:
             for line in file_in:
                 line = purge_line(line)
-                if line == '':
+                if not line:
                     continue
-                parts = line.split(' ')
-                if len(parts) >= 2:  # assumption: only the image file path can have spaces
-                    img_path = ' '.join(parts[0:-1])
-                    label_or_label_file = parts[-1]
-                else:
-                    img_path = parts[0]
-                    label_or_label_file = None
+                parts = line.rsplit(' ', maxsplit=1) # assumption: only the image file path can have spaces
+                img_path = parts[0]
+                label_or_label_file = parts[1] if len(parts) == 2 else None
 
                 w, h = img_wh[img_path] if img_wh else (None, None)
                 if DatasetTypes.is_classification(dataset_info.type):

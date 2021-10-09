@@ -21,14 +21,14 @@ def zipdir(path, ziph):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser('Prepare the annoation files, data reg json, and zip files for vision-datasets following iris format.')
+    parser = argparse.ArgumentParser('Prepare the annotation files, data reg json, and zip files for vision-datasets following iris format.')
     parser.add_argument('name', type=str, help="Dataset name.")
-    parser.add_argument('--type', '-c', type=str, default=DatasetTypes.IC_MULTICLASS, help="type of dataset.", choices=[DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL])
+    parser.add_argument('--type', '-t', type=str, default=DatasetTypes.IC_MULTICLASS, help="type of dataset.", choices=[DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL])
     parser.add_argument('--description', '-d', type=str, help="Dataset description.", required=True)
     parser.add_argument('--contact', '-c', type=str, help="contact person.", required=False)
-    parser.add_argument('--train_folder', '-tr', type=str, help="Folder including training images.")
-    parser.add_argument('--val_folder', '-v', type=str, help="Folder including validation images.")
-    parser.add_argument('--test_folder', '-te', type=str, help="Folder including test images.")
+    parser.add_argument('--train_folder', '-tr', type=pathlib.Path, help="Folder including training images.")
+    parser.add_argument('--val_folder', '-v', type=pathlib.Path, help="Folder including validation images.")
+    parser.add_argument('--test_folder', '-te', type=pathlib.Path, help="Folder including test images.")
     return parser
 
 
@@ -67,10 +67,9 @@ def main():
 
         with open(f'{usage}.txt', 'w') as index_file:
             for i, c in enumerate(classes):
-                for img_file in os.listdir(os.path.join(folder, c)):
-                    img_path = os.path.join(folder, c, img_file)
-                    img_path = img_path.replace(
-                        f'{folder}\\', f'{folder}.zip@').replace('\\', '/')
+                for img_file in (folder / c).iterdir():
+                    img_path = img_file.as_posix()
+                    img_path = str(img_path).replace(f'{folder}/', f'{folder}.zip@')
                     index_file.write(f'{img_path} {i}\n')
                     n_images[usage] += 1
 

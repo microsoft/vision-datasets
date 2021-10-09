@@ -69,6 +69,19 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
                 IrisManifestAdaptor.create_dataset_manifest(DatasetInfo(dataset_dict), Usages.TEST_PURPOSE)
                 m.assert_called_once()
 
+    def test_space_in_image_path(self):
+        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
+        with tempfile.TemporaryDirectory() as tempdir:
+            with open(os.path.join(tempdir, 'test.txt'), 'w') as f:
+                f.write("test folder/0.jpg 0\n")
+            dataset_dict['root_folder'] = str(tempdir)
+            dataset_manifest = IrisManifestAdaptor.create_dataset_manifest(DatasetInfo(dataset_dict), Usages.TEST_PURPOSE)
+            self.assertIsInstance(dataset_manifest, DatasetManifest)
+            self.assertEqual(len(dataset_manifest.images), 1)
+            self.assertEqual(len(dataset_manifest.labelmap), 1)
+            self.assertEqual(dataset_manifest.images[0].id, 'test folder/0.jpg')
+            self.assertEqual(dataset_manifest.images[0].labels, [0])
+
     def test_multiclass(self):
         dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
         with tempfile.TemporaryDirectory() as tempdir:
