@@ -39,6 +39,13 @@ class MultiProcessZipFile:
             z.close()
         self.zipfiles = {}
 
+    def __getstate__(self):
+        return {'filename': self.filename}
+
+    def __setstate__(self, state):
+        self.filename = state['filename']
+        self.zipfiles = {}
+
 
 class FileReader:
     """Reader to support <zip_filename>@<entry_name> style filename."""

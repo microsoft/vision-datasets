@@ -1,5 +1,8 @@
+import contextlib
 import multiprocessing
 import os
+import pathlib
+import pickle
 import tempfile
 import unittest
 import zipfile
@@ -13,20 +16,15 @@ def open_zipfile(zip_file, filename, queue):
 
 class TestMultiProcessZipFile(unittest.TestCase):
     def test_single_process(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            with zipfile.ZipFile(os.path.join(tempdir, 'test.zip'), 'w') as f:
-                f.writestr('test.txt', b'contents')
-            zip_file = MultiProcessZipFile(os.path.join(tempdir, 'test.zip'))
+        with self._with_test_zip({'test.txt': b'contents'}) as zip_filepath:
+            zip_file = MultiProcessZipFile(zip_filepath)
             with zip_file.open('test.txt') as z:
                 self.assertEqual(z.read(), b'contents')
             zip_file.close()
 
     def test_access_from_multiple_process(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            with zipfile.ZipFile(os.path.join(tempdir, 'test.zip'), 'w') as f:
-                f.writestr('test.txt', b'contents')
-
-            zip_file = MultiProcessZipFile(os.path.join(tempdir, 'test.zip'))
+        with self._with_test_zip({'test.txt': b'contents'}) as zip_filepath:
+            zip_file = MultiProcessZipFile(zip_filepath)
             queue = multiprocessing.Queue()
             processes = [multiprocessing.Process(target=open_zipfile, args=(zip_file, 'test.txt', queue)) for i in
                          range(5)]
@@ -39,6 +37,37 @@ class TestMultiProcessZipFile(unittest.TestCase):
             self.assertEqual(queue.get(False), b'contents')
             self.assertEqual(queue.get(False), b'contents')
             self.assertTrue(queue.empty())
+
+    def test_pickle(self):
+        with self._with_test_zip({'test.txt': b'contents'}) as zip_filepath:
+            zip_file = MultiProcessZipFile(zip_filepath)
+            with zip_file.open('test.txt') as z:
+                self.assertEqual(z.read(), b'contents')
+
+            serialized = pickle.dumps(zip_file)
+            deserialized = pickle.loads(serialized)
+
+            with deserialized.open('test.txt') as z:
+                self.assertEqual(z.read(), b'contents')
+
+            deserialized.close()
+            zip_file.close()
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _with_test_zip(contents):
+        """
+        Args:
+            contents: {filename: binary_contents} Files to be put in the test zip file.
+        """
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            zip_filepath = pathlib.Path(tempdir) / 'test.zip'
+            with zipfile.ZipFile(zip_filepath, 'w') as f:
+                for filename, bin_contents in contents.items():
+                    f.writestr(filename, bin_contents)
+
+            yield zip_filepath
 
 
 class TestFileReader(unittest.TestCase):
