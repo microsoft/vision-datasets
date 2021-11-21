@@ -3,8 +3,9 @@ class DatasetTypes:
     IC_MULTICLASS = 'classification_multiclass'
     OD = 'object_detection'
     MULTITASK = 'multitask'
+    IMCAP = 'image_caption'
 
-    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK]
+    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK, IMCAP]
 
     @staticmethod
     def is_classification(dataset_type):
@@ -20,7 +21,7 @@ class Usages:
 class Formats:
     IRIS = 'iris'
     COCO = 'coco'
-
+    IMCAP = 'imcap'
 
 class BBoxFormat:
     LTRB = 'ltrb'
