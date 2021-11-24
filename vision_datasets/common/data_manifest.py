@@ -1,3 +1,4 @@
+import collections
 import copy
 import json
 import logging
@@ -286,6 +287,41 @@ class DatasetManifest:
             if min(n_imgs_by_class) >= num_samples_per_class:
                 break
 
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
+    def sample_subset_by_ratio(self, sampling_ratio):
+        """
+        Sample a dataset so that each labels appears by at least the given sampling_ratio. In case of multiclass dataset, the number of sampled images will be N * sampling_ratio.
+        For multilabel or object detection datasets, the total number of images will be bigger than that.
+
+        Args:
+            sampling_ratio (float): sampling raito. must be 0 < x < 1.
+
+        Returns:
+            A sampled dataset (DatasetManifest)
+        """
+        assert 0 < sampling_ratio < 1
+
+        if self.is_multitask:
+            labels = [[self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels] for image in self.images]
+        else:
+            labels = [[self._get_cid(c) for c in image.labels] for image in self.images]
+
+        # Create a dict {label_id: [image_id, ...], ...}
+        # Note that image_id can be included multiple times if the dataset is multilabel, objectdetection, or multitask.
+        label_image_map = collections.defaultdict(list)
+        for i, image_labels in enumerate(labels):
+            if not image_labels:
+                label_image_map[-1].append(i)
+            for label in image_labels:
+                label_image_map[label].append(i)
+
+        # From each lists, sample max(1, N * ratio) images.
+        sampled_image_ids = set()
+        for image_ids in label_image_map.values():
+            sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
+
+        sampled_images = [self.images[i] for i in sampled_image_ids]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
 
