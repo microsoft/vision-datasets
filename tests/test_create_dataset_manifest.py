@@ -346,6 +346,37 @@ class TestManifestFewShotSample(unittest.TestCase):
         assert _get_instance_count_per_class(few_shot_manifest) == {2: 13, 3: 13, 0: 11, 4: 11, 1: 10, 5: 10}
 
 
+class TestManifestSubsetByRatio(unittest.TestCase):
+    def test_multiclass_sample(self):
+        num_classes = 10
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i]) for i in range(num_classes)] * 100
+        dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTICLASS)
+
+        sampled = dataset_manifest.sample_subset_by_ratio(0.5)
+        self.assertEqual(len(sampled.images), 500)
+        self.assertEqual(_get_instance_count_per_class(sampled), {i: 50 for i in range(num_classes)})
+
+    def test_multilabel(self):
+        num_classes = 10
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i, i + 1]) for i in range(num_classes-1)] * 100
+        dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTILABEL)
+
+        sampled = dataset_manifest.sample_subset_by_ratio(0.5)
+        self.assertGreaterEqual(len(sampled.images), 500)
+        for n in _get_instance_count_per_class(sampled).values():
+            self.assertGreaterEqual(n, 50)
+
+    def test_multitask(self):
+        num_classes = 10
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i+1]}) for i in range(num_classes-1)] * 100
+        dataset_manifest = DatasetManifest(images, {'a': _generate_labelmap(num_classes), 'b': _generate_labelmap(num_classes)}, {'a': DatasetTypes.IC_MULTICLASS, 'b': DatasetTypes.IC_MULTICLASS})
+
+        sampled = dataset_manifest.sample_subset_by_ratio(0.5)
+        self.assertGreaterEqual(len(sampled.images), 500)
+        for n in _get_instance_count_per_class(sampled).values():
+            self.assertGreaterEqual(n, 50)
+
+
 class TestManifestSplit(unittest.TestCase):
     def test_one_image_multiclass(self):
         n_classes = 1
