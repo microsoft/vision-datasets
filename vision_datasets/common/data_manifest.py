@@ -210,9 +210,9 @@ class DatasetManifest:
         if int(len(self.images) * train_ratio) == len(self.images):
             return DatasetManifest(self.images, self.labelmap, self.data_type), DatasetManifest([], self.labelmap, self.data_type)
 
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
         images = list(self.images)
-        random.shuffle(images)
+        rng.shuffle(images)
 
         train_imgs = []
         val_imgs = []
@@ -263,9 +263,9 @@ class DatasetManifest:
         assert num_samples_per_class > 0
 
         sampled_images = []
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
         images = list(self.images)
-        random.shuffle(images)
+        rng.shuffle(images)
         n_imgs_by_class = [0] * len(self.labelmap) if not self.is_multitask else [0] * sum([len(x) for x in self.labelmap.values()])
         neg_img_cnt = 0
         for image in images:
