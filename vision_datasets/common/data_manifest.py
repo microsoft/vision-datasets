@@ -100,6 +100,24 @@ class ImageDataManifest:
         self.height = height
         self.labels = labels
 
+    def extract_labels_by_class(self, class_id):
+        """
+        Return a copy of the instance with only the specified class_id.
+        """
+        copied_self = copy.deepcopy(self)
+        if not self.labels:
+            return copied_self
+
+        first_label = self.labels[0]
+        if isinstance(first_label, int):
+            copied_self.labels = [x for x in self.labels if x == class_id]
+        elif isinstance(first_label, list):
+            copied_self.labels = [x for x in self.labels if x[0] == class_id]
+        else:
+            raise RuntimeError(f"Unsupported label: {first_label}")
+
+        return copied_self
+
 
 class DatasetManifest:
     """
@@ -322,6 +340,62 @@ class DatasetManifest:
             sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
 
         sampled_images = [self.images[i] for i in sampled_image_ids]
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
+    def sample_n_way_n_shot(self, n_way, n_shot, random_seed=0):
+        """
+        Sample N-way N-shot dataset. Sampled dataset has n_way classes and each classes has n_shot images.
+        Each image will have only 1 class. If the original image has multiple classes, annotations for the other classes will be removed.
+
+        This method can throw a RuntimeError if it failed to generate N-way N-shot dataset.
+
+        Args:
+            n_way (int): The number of classes to sample.
+            n_shot (int): The number of images for each classes.
+
+        Returns:
+            A sampled dataset (DatasetManifest)
+        """
+        if self.is_multitask:
+            raise RuntimeError("N-way N-shot sampling from multi-task is not supported.")
+
+        rng = random.Random(random_seed)
+        labels = [[self._get_cid(c) for c in image.labels] for image in self.images]
+
+        # Get lists of images per class_ids.
+        images_by_cids = collections.defaultdict(list)
+        for i, label in enumerate(labels):
+            for c in set(label):
+                images_by_cids[c].append(i)
+
+        # Get a list of classes that have at least N images, and sample N-way classes.
+        sampled_classes = list(rng.sample([c for c in images_by_cids if len(images_by_cids[c]) >= n_shot], n_way))
+
+        sampled_images = []
+        for c_id in sampled_classes:
+            num_cids = [len(c for c in x if c == c_id) for x in labels]  # [(image_id, num_target_classes)]
+
+            # Get a list of images that has c_id class without other sampled classes.
+            valid_images = list(set(images_by_cids[c_id]) - set([x for key in images_by_cids if key != c_id for x in images_by_cids[key]]))
+            rng.shuffle(valid_images)
+
+            # Sample N-shot images from the list of images.
+            num_samples = 0
+            for image_id in valid_images:
+                if num_cids[image_id] > num_samples - n_shot:  # If the next image has too many samples, skip it.
+                    continue
+
+                num_samples += num_cids[image_id]
+                image = self.images[image_id]
+                sampled_images.append(image.extract_labels_by_class(c_id))
+
+                if num_samples >= n_shot:
+                    break
+
+            if num_samples != n_shot:
+                assert num_samples > n_shot
+                raise RuntimeError(f"Failed to extract N-shot examples for class {c_id}.")
+
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
 
