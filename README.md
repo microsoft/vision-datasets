@@ -18,7 +18,7 @@ This repo
 
 `ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
-Currently, three basic types of data are supported: `classification_multilabel`, `classification_multiclass`, and `object_detection`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of the three basic types.
+Currently, four basic types of data are supported: `classification_multilabel`, `classification_multiclass`, `object_detection`, `image_caption`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of the three basic types.
 
 For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
 
@@ -108,6 +108,29 @@ Note that
 
 - Note that we used to use `ltrb` as default. If your coco annotations were prepared to work with this repo before version 0.1.2. Please add `"bbox_format": "ltrb"` to your coco file.
 - Regardless of what format bboxes are stored in Coco file, when annotations are transformed into `ImageDataManifest`, the bbox will be unified into `ltrb: [left, top, right, bottom]`.
+
+##### Coco JSON - Image caption
+
+``` {json}
+{
+  "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
+              {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
+  "annotations": [
+      {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
+      {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
+      {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
+      {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
+      {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
+      {"id": 1, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
+      {"id": 2, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
+      {"id": 3, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
+      {"id": 4, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
+      {"id": 5, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
+  ],
+  "type": "captions"
+}
+```
+
 
 #### Iris format
 
