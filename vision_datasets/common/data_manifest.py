@@ -324,6 +324,42 @@ class DatasetManifest:
         sampled_images = [self.images[i] for i in sampled_image_ids]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
+    def sample_few_shots_subset_greedy(self, n_shots, random_seed=0):
+        """Greedy few-shots sampling method.
+        Randomly pick images from the original datasets until all classes have at least n_shots images.
+
+        Args:
+            n_shots (int): The number of images per class.
+            random_seed (int): Random seed to use.
+
+        Returns:
+            A samped dataset (DatasetManifest)
+
+        Raises:
+            RuntimeError if it couldn't find n_shots images.
+        """
+        assert n_shots > 0
+        images = list(self.images)
+        rng = random.Random(random_seed)
+        rng.shuffle(images)
+
+        num_classes = len(self.labelmap) if not self.is_multitask else sum(len(x) for x in self.labelmap.values())
+        total_counter = collections.Counter([n_shots for _ in range(num_classes)])
+        sampled_images = []
+        for image in images:
+            counts = collections.Counter([self._get_cid(c) for c in image.labels] if not self.is_multitask else [self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels])
+            if set((+total_counter).keys()) in set(counts.keys()):
+                total_counter -= counts
+                sampled_images.append(image)
+
+            if not +total_counter:
+                break
+
+        if +total_counter:
+            raise RuntimeError(f"Couldn't find {n_shots} samples for some classes: {+total_counter}")
+
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
 
 def _generate_multitask_dataset_manifest(manifest_by_task: Dict[str, DatasetManifest]):
     images_by_id = {}
