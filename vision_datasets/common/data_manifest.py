@@ -140,7 +140,7 @@ class DatasetManifest:
                 return CocoManifestAdaptor.create_dataset_manifest(coco_file_by_task, data_type_by_task, get_full_sas_or_path)
 
             return CocoManifestAdaptor.create_dataset_manifest(dataset_info.index_files.get(usage), dataset_info.type, get_full_sas_or_path)
-            
+
         raise RuntimeError(f'{dataset_info.data_format} not supported yet.')
 
     @staticmethod
