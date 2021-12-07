@@ -111,6 +111,8 @@ Note that
 
 ##### Coco JSON - Image caption
 
+Here is one example of the json file for image image caption task. 
+
 ``` {json}
 {
   "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
@@ -121,11 +123,11 @@ Note that
       {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
       {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
       {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
-      {"id": 1, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
-      {"id": 2, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
-      {"id": 3, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
-      {"id": 4, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
-      {"id": 5, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
+      {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
+      {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
+      {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
+      {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
+      {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
   ],
   "type": "captions"
 }
