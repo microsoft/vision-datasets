@@ -140,8 +140,6 @@ class DatasetManifest:
                 return CocoManifestAdaptor.create_dataset_manifest(coco_file_by_task, data_type_by_task, get_full_sas_or_path)
 
             return CocoManifestAdaptor.create_dataset_manifest(dataset_info.index_files.get(usage), dataset_info.type, get_full_sas_or_path)
-        if dataset_info.data_format == Formats.IMCAP:
-            return ImCapManifestAdaptor.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)
         raise RuntimeError(f'{dataset_info.data_format} not supported yet.')
 
     @staticmethod
@@ -527,6 +525,14 @@ class CocoManifestAdaptor:
 
         file_reader.close()
 
+        if data_type == DatasetTypes.IMCAP:
+            images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), [], [], []) for img in coco_manifest['images']}
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append(annotation['caption'])
+            images = [x for x in images_by_id.values()]
+            images.sort(key=lambda x: x.id)
+            return DatasetManifest(images, None, data_type)
+
         images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
 
         label_dict_by_id = {cate['id']: cate['name'] for cate in coco_manifest['categories']}
@@ -550,62 +556,3 @@ class CocoManifestAdaptor:
         images.sort(key=lambda x: x.id)
 
         return DatasetManifest(images, labelmap, data_type)
-
-
-class ImCapManifestAdaptor:
-    """
-    Adaptor for generating dataset manifest from image caption format
-    """
-
-    @staticmethod
-    def create_dataset_manifest(dataset_info, usage: str, container_sas_or_root_dir: str = None):
-        """
-        Args:
-            dataset_info (DatasetInfo):  dataset info
-            usage (str): which usage of data to construct
-            container_sas_or_root_dir (str): sas url if the data is store in a azure blob container, or a local root dir
-        """
-        assert dataset_info
-        assert usage
-
-        if usage not in dataset_info.index_files:
-            return None
-
-        file_reader = FileReader()
-
-        dataset_info = copy.deepcopy(dataset_info)
-        get_full_sas_or_path = _construct_full_sas_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)
-
-        # read image width and height
-        img_wh = None
-        if dataset_info.image_metadata_path:
-            img_wh = ImCapManifestAdaptor._load_img_width_and_height(file_reader, get_full_sas_or_path(dataset_info.image_metadata_path))
-
-        # read image index files
-        images = []
-        with file_reader.open(get_full_sas_or_path(dataset_info.index_files[usage])) as file_in:
-            for line in file_in:
-                line = purge_line(line)
-                if not line:
-                    continue
-                parts = line.rsplit(' ', maxsplit=1)  # assumption: only the image file path can have spaces
-                img_path = parts[0]
-                image_id = parts[1]
-                w, h = img_wh[img_path] if img_wh else (None, None)
-                image_id = int(image_id)
-                images.append(ImageDataManifest(img_path, get_full_sas_or_path(img_path), w, h, image_id))
-            file_reader.close()
-        return DatasetManifest(images, None, dataset_info.type)
-
-    @staticmethod
-    def _load_img_width_and_height(file_reader, file_path):
-        img_wh = dict()
-        with file_reader.open(file_path) as file_in:
-            for line in file_in:
-                line = purge_line(line)
-                if line == '':
-                    continue
-                location, w, h = line.split()
-                img_wh[location] = (int(w), int(h))
-
-        return img_wh
