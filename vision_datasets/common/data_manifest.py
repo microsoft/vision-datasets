@@ -95,7 +95,7 @@ class ImageDataManifest:
             labels (list or dict):
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
                 detection: [c_id, left, top, right, bottom];
-                image caption: dict of {'file_name': dummy_name, 'caption': [dummy strings]};
+                image caption: dict of {'image_id': image_id, 'image_file': filename, 'caption': [dummy strings]};
                 multitask: dict[task, labels]
         """
         self.id = id
@@ -531,11 +531,12 @@ class CocoManifestAdaptor:
         file_reader.close()
 
         if data_type == DatasetTypes.IMCAP:
-            images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), [], [], {'file_name': None, 'caption': []}) for img in coco_manifest['images']}
-            file_names_by_id = {img['id']: img['file_name'] for img in coco_manifest['images']}
+            images_by_id = {}
+            for img in coco_manifest['images']:
+                label = {'image_id': img['id'], 'file_name': img['file_name'], 'caption': []}
+                images_by_id.update({img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), [], [], label)})
             for annotation in coco_manifest['annotations']:
                 images_by_id[annotation['image_id']].labels['caption'].append(annotation['caption'])
-                images_by_id[annotation['image_id']].labels['file_name'] = file_names_by_id[annotation['image_id']]
             images = [x for x in images_by_id.values()]
             images.sort(key=lambda x: x.id)
             return DatasetManifest(images, None, data_type)
