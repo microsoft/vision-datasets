@@ -316,7 +316,6 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
                 {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
                 {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
             ],
-            "type": "captions"
         }
         caption_1 = ['A black Honda motorcycle parked in front of a garage.',
                      'A Honda motorcycle parked in a grass driveway.',
