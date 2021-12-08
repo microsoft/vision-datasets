@@ -347,7 +347,7 @@ class DatasetManifest:
         total_counter = collections.Counter({i: n_shots for i in range(num_classes)})
         sampled_images = []
         for image in images:
-            counts = collections.Counter([self._get_cid(c) for c in image.labels] if not self.is_multitask else [self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels])
+            counts = collections.Counter(set([self._get_cid(c) for c in image.labels] if not self.is_multitask else [self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels]))
             if set((+total_counter).keys()) & set(counts.keys()):
                 total_counter -= counts
                 sampled_images.append(image)
