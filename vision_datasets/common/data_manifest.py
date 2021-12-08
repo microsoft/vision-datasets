@@ -408,6 +408,7 @@ class IrisManifestAdaptor:
         """
         assert dataset_info
         assert usage
+        
         if dataset_info.type == DatasetTypes.IMCAP:
             raise ValueError('Iris format is not supported for image caption task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
