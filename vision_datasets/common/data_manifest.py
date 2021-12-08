@@ -408,11 +408,11 @@ class IrisManifestAdaptor:
         """
         assert dataset_info
         assert usage
-
+        if dataset_info.type == DatasetTypes.IMCAP:
+            raise ValueError('Iris format is not supported for image caption task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
             return _generate_multitask_dataset_manifest(dataset_manifest_by_task)
-
         if usage not in dataset_info.index_files:
             return None
 

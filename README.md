@@ -111,7 +111,7 @@ Note that
 
 ##### Coco JSON - Image caption
 
-Here is one example of the json file for image image caption task. 
+Here is one example of the json file for image caption task. 
 
 ``` {json}
 {
