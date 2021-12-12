@@ -338,8 +338,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.IMCAP)
             self.assertIsInstance(dataset_manifest, DatasetManifest)
             self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, {'image_id': 1, 'file_name': 'train_images.zip@honda.jpg', 'caption': caption_1})
-            self.assertEqual(dataset_manifest.images[1].labels, {'image_id': 2, 'file_name': 'train_images.zip@kitchen.jpg', 'caption': caption_2})
+            self.assertEqual(dataset_manifest.images[0].labels, caption_1)
+            self.assertEqual(dataset_manifest.images[1].labels, caption_2)
 
 
 class TestManifestFewShotSample(unittest.TestCase):
