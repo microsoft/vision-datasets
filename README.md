@@ -129,7 +129,6 @@ Here is one example of the json file for image caption task.
       {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
       {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
   ],
-  "type": "captions"
 }
 ```
 
