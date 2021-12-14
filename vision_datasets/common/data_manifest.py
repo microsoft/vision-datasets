@@ -536,7 +536,6 @@ class CocoManifestAdaptor:
             for annotation in coco_manifest['annotations']:
                 images_by_id[annotation['image_id']].labels.append(annotation['caption'])
             images = [x for x in images_by_id.values()]
-            images.sort(key=lambda x: x.id)
             return DatasetManifest(images, None, data_type)
 
         images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
