@@ -392,7 +392,7 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, dataset_dict['type'])
             self.assertIsInstance(dataset_manifest, DatasetManifest)
             self.assertEqual(len(dataset_manifest.images), 2)
-            print(dataset_manifest.images[1].labels)
+            self.assertEqual(len(dataset_manifest.labelmap), 2)
             self.assertEqual(dataset_manifest.images[0].labels, {'task1': [0], 'task2': caption_1})
             self.assertEqual(dataset_manifest.images[1].labels, {'task1': [0, 1], 'task2': caption_2})
 
