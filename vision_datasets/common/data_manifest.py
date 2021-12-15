@@ -530,14 +530,9 @@ class CocoManifestAdaptor:
             coco_manifest = json.load(file_in)
 
         file_reader.close()
-
+        
         if data_type == DatasetTypes.IMCAP:
-            images_by_id = {}
-            for img in coco_manifest['images']:
-                image_width = None if 'width' not in img else img['width']
-                image_height = None if 'height' not in img else img['height']
-                images_by_id[img['id']] = ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), image_width, image_height, [])
-
+            images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
             for annotation in coco_manifest['annotations']:
                 images_by_id[annotation['image_id']].labels.append(annotation['caption'])
             images = [x for x in images_by_id.values()]
