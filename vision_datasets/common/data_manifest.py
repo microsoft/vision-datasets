@@ -92,7 +92,11 @@ class ImageDataManifest:
             img_path (str): path to image
             width (int): image width
             height (int): image height
-            labels (list or dict): classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel; detection: [c_id, left, top, right, bottom]; dict[task, labels] for multitask dataset
+            labels (list or dict):
+                classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
+                detection: [c_id, left, top, right, bottom];
+                image caption: [caption1, caption2, ...];
+                multitask: dict[task, labels]
         """
         self.id = id
         self.img_path = img_path
@@ -405,10 +409,11 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
+        if dataset_info.type == DatasetTypes.IMCAP:
+            raise ValueError('Iris format is not supported for image caption task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
             return _generate_multitask_dataset_manifest(dataset_manifest_by_task)
-
         if usage not in dataset_info.index_files:
             return None
 
@@ -525,6 +530,13 @@ class CocoManifestAdaptor:
             coco_manifest = json.load(file_in)
 
         file_reader.close()
+
+        if data_type == DatasetTypes.IMCAP:
+            images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append(annotation['caption'])
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
 
         images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
 
