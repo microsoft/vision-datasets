@@ -1,3 +1,4 @@
+import collections
 import copy
 import json
 import logging
@@ -209,9 +210,9 @@ class DatasetManifest:
         if int(len(self.images) * train_ratio) == len(self.images):
             return DatasetManifest(self.images, self.labelmap, self.data_type), DatasetManifest([], self.labelmap, self.data_type)
 
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
         images = list(self.images)
-        random.shuffle(images)
+        rng.shuffle(images)
 
         train_imgs = []
         val_imgs = []
@@ -251,6 +252,11 @@ class DatasetManifest:
         Sample a few-shot dataset, with the number of images per class below num_samples_per_class.
         For multiclass dataset, this is always possible, while for multilabel dataset, it is not guaranteed
         Multitask dataset and detection dataset are treated the same with multilabel dataset.
+
+        This method tries to get balanced results.
+
+        Note that negative images will be added to the subset up to num_samples_per_class.
+
         Args:
             num_samples_per_class: rough number samples per class to sample
             random_seed: random seed
@@ -262,9 +268,9 @@ class DatasetManifest:
         assert num_samples_per_class > 0
 
         sampled_images = []
-        random.seed(random_seed)
+        rng = random.Random(random_seed)
         images = list(self.images)
-        random.shuffle(images)
+        rng.shuffle(images)
         n_imgs_by_class = [0] * len(self.labelmap) if not self.is_multitask else [0] * sum([len(x) for x in self.labelmap.values()])
         neg_img_cnt = 0
         for image in images:
@@ -285,6 +291,79 @@ class DatasetManifest:
 
             if min(n_imgs_by_class) >= num_samples_per_class:
                 break
+
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
+    def sample_subset_by_ratio(self, sampling_ratio):
+        """
+        Sample a dataset so that each labels appears by at least the given sampling_ratio. In case of multiclass dataset, the number of sampled images will be N * sampling_ratio.
+        For multilabel or object detection datasets, the total number of images will be bigger than that.
+
+        Args:
+            sampling_ratio (float): sampling raito. must be 0 < x < 1.
+
+        Returns:
+            A sampled dataset (DatasetManifest)
+        """
+        assert 0 < sampling_ratio < 1
+
+        if self.is_multitask:
+            labels = [[self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels] for image in self.images]
+        else:
+            labels = [[self._get_cid(c) for c in image.labels] for image in self.images]
+
+        # Create a dict {label_id: [image_id, ...], ...}
+        # Note that image_id can be included multiple times if the dataset is multilabel, objectdetection, or multitask.
+        label_image_map = collections.defaultdict(list)
+        for i, image_labels in enumerate(labels):
+            if not image_labels:
+                label_image_map[-1].append(i)
+            for label in image_labels:
+                label_image_map[label].append(i)
+
+        # From each lists, sample max(1, N * ratio) images.
+        sampled_image_ids = set()
+        for image_ids in label_image_map.values():
+            sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
+
+        sampled_images = [self.images[i] for i in sampled_image_ids]
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
+    def sample_few_shots_subset_greedy(self, num_min_samples_per_class, random_seed=0):
+        """Greedy few-shots sampling method.
+        Randomly pick images from the original datasets until all classes have at least {num_min_images_per_class} tags/boxes.
+
+        Note that images without any tag/box will be ignored. All images in the subset will have at least one tag/box.
+
+        Args:
+            num_min_samples_per_class (int): The minimum number of samples per class.
+            random_seed (int): Random seed to use.
+
+        Returns:
+            A samped dataset (DatasetManifest)
+
+        Raises:
+            RuntimeError if it couldn't find num_min_samples_per_class samples for all classes
+        """
+        assert num_min_samples_per_class > 0
+        images = list(self.images)
+        rng = random.Random(random_seed)
+        rng.shuffle(images)
+
+        num_classes = len(self.labelmap) if not self.is_multitask else sum(len(x) for x in self.labelmap.values())
+        total_counter = collections.Counter({i: num_min_samples_per_class for i in range(num_classes)})
+        sampled_images = []
+        for image in images:
+            counts = collections.Counter([self._get_cid(c) for c in image.labels] if not self.is_multitask else [self._get_cid(c, t) for t, t_labels in image.labels.items() for c in t_labels])
+            if set((+total_counter).keys()) & set(counts.keys()):
+                total_counter -= counts
+                sampled_images.append(image)
+
+            if not +total_counter:
+                break
+
+        if +total_counter:
+            raise RuntimeError(f"Couldn't find {num_min_samples_per_class} samples for some classes: {+total_counter}")
 
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
