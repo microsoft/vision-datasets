@@ -530,7 +530,7 @@ class CocoManifestAdaptor:
             coco_manifest = json.load(file_in)
 
         file_reader.close()
-        
+
         if data_type == DatasetTypes.IMCAP:
             images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
             for annotation in coco_manifest['annotations']:
