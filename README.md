@@ -18,7 +18,7 @@ This repo
 
 `ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
-Currently, four basic types of data are supported: `classification_multilabel`, `classification_multiclass`, `object_detection`, `image_caption`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type except for `image_caption`.
+Currently, four basic types of data are supported: `classification_multilabel`, `classification_multiclass`, `object_detection`, `image_caption`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
 For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
 
