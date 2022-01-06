@@ -540,10 +540,10 @@ class CocoManifestAdaptor:
 
         images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
 
-        label_name_id = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
-        label_name_id.sort(key=lambda x: x[0])
-        label_id_to_pos = {x[0]: i for i, x in enumerate(label_name_id)}
-        labelmap = [x[1] for x in label_name_id]
+        cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
+        cate_id_name.sort(key=lambda x: x[0])
+        label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
+        labelmap = [x[1] for x in cate_id_name]
 
         bbox_format = coco_manifest.get('bbox_format', BBoxFormat.LTWH)
         BBoxFormat.validate(bbox_format)
