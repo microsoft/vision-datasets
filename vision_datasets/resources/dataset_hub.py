@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 from ..common import DatasetRegistry, Usages
 from ..common.data_manifest import DatasetManifest
@@ -13,11 +14,11 @@ class DatasetHub(object):
     This hub class works with both resources on local disk or on azure blob.
     """
 
-    def __init__(self, dataset_json_str):
+    def __init__(self, dataset_json_str: Union[str, list]):
         """
 
         Args:
-            dataset_json_str (str): dataset registry json, containing multiple dataset_info for different datasets,
+            dataset_json_str (str, list): dataset registry json, containing multiple dataset_info for different datasets, or a list of dataset reg json
             retrievable by their names, versions and usages.
         """
         assert dataset_json_str

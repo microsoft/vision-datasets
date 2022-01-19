@@ -1,6 +1,7 @@
 import copy
 import json
 from .dataset_info import DatasetInfoFactory
+from typing import Union
 
 
 class DatasetRegistry:
@@ -8,8 +9,11 @@ class DatasetRegistry:
     A central registry of all available datasets
     """
 
-    def __init__(self, datasets_json: str):
-        self.datasets = [DatasetInfoFactory.create(d) for d in json.loads(datasets_json)]
+    def __init__(self, datasets_json: Union[str, list]):
+        if isinstance(datasets_json, list):
+            self.datasets = [DatasetInfoFactory.create(d) for dj in datasets_json for d in json.loads(dj)]
+        else:
+            self.datasets = [DatasetInfoFactory.create(d) for d in json.loads(datasets_json)]
 
     def get_dataset_info(self, dataset_name, dataset_version=None):
         datasets = [d for d in self.datasets if d.name == dataset_name and (not dataset_version or d.version == dataset_version)]
