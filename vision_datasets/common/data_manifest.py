@@ -149,11 +149,14 @@ class DatasetManifest:
 
     @staticmethod
     def merge(manifest_a, manifest_b):
+        """
+        merge two data manifests of the same data type and labelmap
+        """
         assert manifest_a
         assert manifest_b
 
-        assert manifest_a.data_type == manifest_b.data_type
-        assert manifest_a.labelmap == manifest_b.labelmap
+        assert manifest_a.data_type == manifest_b.data_type, f'data type must be the same, {manifest_a.data_type} vs {manifest_b.data_type}.'
+        assert manifest_a.labelmap == manifest_b.labelmap, f'labelmap must be the same, {manifest_a.labelmap}, {manifest_b.labelmap}.'
 
         return DatasetManifest(manifest_a.images + manifest_b.images, manifest_a.labelmap, manifest_a.data_type)
 
