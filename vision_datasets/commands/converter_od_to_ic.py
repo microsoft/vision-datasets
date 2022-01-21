@@ -1,7 +1,11 @@
+import logging
 import os
 import pathlib
 
 from vision_datasets import DatasetHub, Usages
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def create_arg_parser():
@@ -29,15 +33,14 @@ def main():
         img_index_file = os.path.join(args.target_folder, f'{phase}.txt')
         if not os.path.exists(img_folder):
             os.mkdir(img_folder)
-        print('download dataset manifest...')
+        logger.info('download dataset manifest...')
         az_dataset = dataset_resources.create_manifest_dataset(args.sas, None, args.name, usage=phase, coordinates='absolute')
-        print('start conversion...')
+        logger.info('start conversion...')
         with open(img_index_file, 'w') as index_file_out:
             for img, labels, idx in az_dataset:
-                print(f'image idx {idx} {img.size}')
+                logger.info(f'image idx {idx} {img.size}')
                 crop_idx = 0
                 for c_idx, l, t, r, b in labels:
-                    print((l, t, r, b))
                     crop_img = img.crop((l, t, r, b))
                     crop_id = f'{idx}-{crop_idx}'
                     crop_idx += 1
