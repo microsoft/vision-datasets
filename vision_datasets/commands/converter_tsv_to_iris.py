@@ -6,8 +6,7 @@ import json
 import logging
 import os
 
-from build.lib.vision_datasets.commands.converter_tsv_to_iris import verify_and_correct_box_or_null
-from vision_datasets.commands.utils import guess_encoding, decode64_to_pil, zip_folder, TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM
+from .utils import guess_encoding, decode64_to_pil, zip_folder, TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM, verify_and_correct_box_or_none
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -90,7 +89,7 @@ def main():
                                     label_name_to_idx[label['class']] = len(label_name_to_idx)
 
                                 label_idx = label_name_to_idx[label['class']]
-                                box = verify_and_correct_box_or_null(lp, label['rect'], args.format, w, h)
+                                box = verify_and_correct_box_or_none(lp, label['rect'], args.format, w, h)
                                 if box is None:
                                     continue
 
