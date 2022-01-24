@@ -41,6 +41,7 @@ setuptools.setup(name='vision_datasets',
                                          'vision_check_dataset=vision_datasets.commands.dataset_check:main',
                                          'vision_convert_local_dir_ic_data=vision_datasets.commands.convert_local_dir_ic_data:main',
                                          'vision_tsv_to_iris=vision_datasets.commands.converter_tsv_to_iris:main',
+                                         'vision_tsv_to_coco=vision_datasets.commands.converter_tsv_to_coco:main',
                                          'vision_yolo_to_iris=vision_datasets.commands.converter_yolo_darknet_to_iris:main',
                                          'vision_gen_metafile=vision_datasets.commands.generate_image_meta_info:main']
                  })
