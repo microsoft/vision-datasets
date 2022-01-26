@@ -1,8 +1,10 @@
+import json
 import logging
 import os
 import pathlib
 
 from vision_datasets import DatasetHub, Usages
+from vision_datasets.common.manifest_dataset import DetectionAsClassificationDataset
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -12,10 +14,16 @@ def create_arg_parser():
     import argparse
 
     parser = argparse.ArgumentParser(description='Convert OD dataset to ic dataset.')
-    parser.add_argument('-t', '--target_folder', type=str, required=True, help='target folder of the converted dataset')
-    parser.add_argument('-k', '--sas_or_dir', type=str, help="sas url or dataset folder.", required=True)
-    parser.add_argument('-r', '--reg_json', type=str, default=None, help="dataset registration json.", required=False)
     parser.add_argument('-n', '--name', type=str, required=True, help='dataset name')
+    parser.add_argument('-r', '--reg_json_path', type=str, default=None, help="dataset registration json path.", required=True)
+    parser.add_argument('-k', '--sas', type=str, help="sas url.", required=False, default=None)
+    parser.add_argument('-l', '--local_folder', type=str, help="detection dataset folder.", required=False)
+    parser.add_argument('-o', '--output_folder', type=str, required=True, help='target folder of the converted classification dataset')
+    parser.add_argument('-zb', '--zoom_ratio_bounds', type=str, required=False,
+                        help='lower and bound of the ratio that box height and width can expand (>1) or shrink (0-1), during cropping, e.g, 0.8/1.2')
+    parser.add_argument('-sb', '--shift_relative_bounds', type=str, required=False,
+                        help='lower/upper bounds of relative ratio wrt box width and height that a box can shift, during cropping, e.g., "-0.3/0.1"')
+    parser.add_argument('-s', '--rnd_seed', type=int, required=False, help='random see for box expansion/shrink/shifting.', default=0)
 
     return parser
 
@@ -23,29 +31,59 @@ def create_arg_parser():
 def main():
     arg_parser = create_arg_parser()
     args = arg_parser.parse_args()
-    dataset_resources = DatasetHub(pathlib.Path(args.json_path).read_text())
+    dataset_resources = DatasetHub(pathlib.Path(args.reg_json_path).read_text())
+    aug_params = {}
+    if args.zoom_ratio_bounds:
+        low, up = args.zoom_ratio_bounds.split('/')
+        aug_params['zoom_ratio_bounds'] = (float(low), float(up))
 
-    if not os.path.exists(args.target_folder):
-        os.makedirs(args.target_folder)
+    if args.shift_relative_bounds:
+        low, up = args.shift_relative_bounds.split('/')
+        aug_params['shift_relative_bounds'] = (float(low), float(up))
 
-    for phase in [Usages.TRAIN_PURPOSE, Usages.TEST_PURPOSE]:
-        img_folder = os.path.join(args.target_folder, phase)
-        img_index_file = os.path.join(args.target_folder, f'{phase}.txt')
+    if aug_params:
+        aug_params['rnd_seed'] = args.rnd_seed
+
+    if not os.path.exists(args.output_folder):
+        os.makedirs(args.output_folder)
+
+    if args.local_folder and not os.path.exists(args.local_folder):
+        os.makedirs(args.local_folder)
+
+    categories = None
+    for phase in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
+        images = []
+        annotations = []
+
+        logger.info(f'download dataset manifest for {args.name}...')
+        dataset = dataset_resources.create_manifest_dataset(args.sas, args.local_folder, args.name, usage=phase, coordinates='absolute')
+        if not dataset:
+            logger.info(f'Skipping phase {phase}.')
+            continue
+
+        img_folder = os.path.join(args.output_folder, phase)
         if not os.path.exists(img_folder):
             os.mkdir(img_folder)
-        logger.info('download dataset manifest...')
-        az_dataset = dataset_resources.create_manifest_dataset(args.sas, None, args.name, usage=phase, coordinates='absolute')
+
+        if not categories:
+            categories = []
+            for c_name in dataset.labels:
+                categories.append({'id': len(categories) + 1, 'name': c_name})
+
         logger.info('start conversion...')
-        with open(img_index_file, 'w') as index_file_out:
-            for img, labels, idx in az_dataset:
-                logger.info(f'image idx {idx} {img.size}')
-                crop_idx = 0
-                for c_idx, l, t, r, b in labels:
-                    crop_img = img.crop((l, t, r, b))
-                    crop_id = f'{idx}-{crop_idx}'
-                    crop_idx += 1
-                    crop_img.save(os.path.join(img_folder, f'{crop_id}.jpg'), "JPEG")
-                    index_file_out.write(f'{phase}.zip@{crop_id}.jpg {c_idx}\n')
+        ic_dataset = DetectionAsClassificationDataset(dataset, aug_params)
+
+        for img, labels, idx in ic_dataset:
+            img_id = int(idx) + 1
+            file_name = f'{idx}.{img.format}'
+            img.save(os.path.join(img_folder, file_name), img.format)
+            logger.info(f'Saving to {os.path.join(img_folder, file_name)}')
+            file_name = f'{phase}/{file_name}'
+            images.append({'id': img_id, 'file_name': file_name, 'width': img.width, 'height': img.height})
+            annotations.append({'id': len(annotations) + 1, 'image_id': img_id, 'category_id': labels[0] + 1})
+
+        with open(f'{args.output_folder}/{phase}.json', 'w') as coco_out:
+            coco_out.write(json.dumps({'images': images, 'categories': categories, 'annotations': annotations}, indent=2))
 
 
 if __name__ == '__main__':
