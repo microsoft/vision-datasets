@@ -89,7 +89,7 @@ class DetectionAsClassificationDataset(BaseDataset):
         Args:
             detection_dataset: the detection dataset where images are cropped as classification samples
             box_aug_params (dict): params controlling box crop augmentation,
-                'zoom_ratio_bounds': the lower/upper bound of box zoom ratio wrt box width and height, e.g., (-0.3, 0.1)
+                'zoom_ratio_bounds': the lower/upper bound of box zoom ratio wrt box width and height, e.g., (0.3, 1.5)
                 'shift_relative_bounds': lower/upper bounds of relative ratio wrt box width and height that a box can shift, e.g., (-0.3, 0.1)
                 'rnd_seed': rnd seed used for box crop zoom and shift
             local_cache_params(dict): params controlling local cache for crop access:
@@ -175,17 +175,21 @@ class DetectionAsClassificationDataset(BaseDataset):
 
 class BoxAlteration:
     @staticmethod
+    def _stay_in_range(val, low, up):
+        return int(min(max(val, low), up))
+
+    @staticmethod
     def shift_box(left, t, r, b, img_w, img_h, relative_lower_b, relative_upper_b, rnd: random.Random):
         level = logging.DEBUG
         logger.log(level, f'old box {left}, {t}, {r}, {b}, out of ({img_w}, {img_h})')
         box_w = r - left
-        box_h = t - b
+        box_h = b - t
         hor_shift = rnd.uniform(relative_lower_b, relative_upper_b) * box_w
         ver_shift = rnd.uniform(relative_lower_b, relative_upper_b) * box_h
-        left = min((left + hor_shift), img_w)
-        t = min(t + ver_shift, img_h)
-        r = min((r + hor_shift), img_w)
-        b = min(b + ver_shift, img_h)
+        left = BoxAlteration._stay_in_range(left + hor_shift, 0, img_w)
+        t = BoxAlteration._stay_in_range(t + ver_shift, 0, img_h)
+        r = BoxAlteration._stay_in_range(r + hor_shift, 0, img_w)
+        b = BoxAlteration._stay_in_range(b + ver_shift, 0, img_h)
         logger.log(level, f'[shift_box] new box {left}, {t}, {r}, {b}, with {hor_shift}, {ver_shift}, out of ({img_w}, {img_h})')
 
         return left, t, r, b
@@ -201,10 +205,10 @@ class BoxAlteration:
         new_box_w = box_w * w_ratio
         new_box_h = box_h * h_ratio
         logger.log(level, f'w h change: {box_w} {box_h} => {new_box_w} {new_box_h}')
-        left = max(left - (new_box_w - box_w) / 2, 0)
-        t = max(t - (new_box_h - box_h) / 2, 0)
-        r = min(r + (new_box_w - box_w) / 2, img_w)
-        b = min(b + (new_box_h - box_h) / 2, img_h)
+        left = BoxAlteration._stay_in_range(left - (new_box_w - box_w) / 2, 0, img_w)
+        t = BoxAlteration._stay_in_range(t - (new_box_h - box_h) / 2, 0, img_h)
+        r = BoxAlteration._stay_in_range(r + (new_box_w - box_w) / 2, left, img_w)
+        b = BoxAlteration._stay_in_range(b + (new_box_h - box_h) / 2, 0, img_h)
         logger.log(level, f'[zoom_box] new box {left}, {t}, {r}, {b}, with {w_ratio}, {h_ratio}, out of ({img_w}, {img_h})')
 
         return left, t, r, b

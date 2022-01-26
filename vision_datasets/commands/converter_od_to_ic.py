@@ -70,14 +70,14 @@ def main():
             for c_name in dataset.labels:
                 categories.append({'id': len(categories) + 1, 'name': c_name})
 
-        logger.info('start conversion...')
+        logger.info(f'start conversion for {args.name}...')
         ic_dataset = DetectionAsClassificationDataset(dataset, aug_params)
 
         for img, labels, idx in ic_dataset:
             img_id = int(idx) + 1
             file_name = f'{idx}.{img.format}'
             img.save(os.path.join(img_folder, file_name), img.format)
-            logger.info(f'Saving to {os.path.join(img_folder, file_name)}')
+            logger.log(logging.DEBUG, f'Saving to {os.path.join(img_folder, file_name)}')
             file_name = f'{phase}/{file_name}'
             images.append({'id': img_id, 'file_name': file_name, 'width': img.width, 'height': img.height})
             annotations.append({'id': len(annotations) + 1, 'image_id': img_id, 'category_id': labels[0] + 1})
