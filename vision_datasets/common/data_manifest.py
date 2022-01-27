@@ -254,6 +254,29 @@ class DatasetManifest:
 
         return DatasetManifest(train_imgs, self.labelmap, self.data_type), DatasetManifest(val_imgs, self.labelmap, self.data_type)
 
+    def sample_subset(self, num_samples, with_replacement=False, random_seed=0):
+        """
+        Sample a subset of num_samples images. When with_replacement is False and num_samples is larger than the dataset, the whole dataset will be returned
+        Args:
+            num_samples (int): number of images to be sampled
+            with_replacement (bool): with replacement or not
+            random_seed (int): random seed
+
+        Returns:
+            a sampled dataset
+        """
+
+        rnd = random.Random(random_seed)
+        if not with_replacement:
+            if num_samples >= len(self.images):
+                sampled_images = self.images
+            else:
+                sampled_images = rnd.sample(self.images, num_samples)
+        else:
+            sampled_images = [rnd.choice(self.images) for _ in range(num_samples)]
+
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
     def sample_few_shot_subset(self, num_samples_per_class, random_seed=0):
         """
         Sample a few-shot dataset, with the number of images per class below num_samples_per_class.
@@ -307,7 +330,7 @@ class DatasetManifest:
         For multilabel or object detection datasets, the total number of images will be bigger than that.
 
         Args:
-            sampling_ratio (float): sampling raito. must be 0 < x < 1.
+            sampling_ratio (float): sampling ratio. must be 0 < x < 1.
 
         Returns:
             A sampled dataset (DatasetManifest)
