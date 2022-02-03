@@ -19,14 +19,7 @@ class _ImageOnlyTransform:
 class Dataset(torch.utils.data.Dataset, ABC):
     def __init__(self, transform=None):
         super().__init__()
-
-        if not transform:
-            self._transform = _identity
-        elif len(signature(transform).parameters) == 1:
-            self._transform = _ImageOnlyTransform(transform)
-        else:
-            self._transform = transform
-
+        self.transform = transform
         # Work around for corrupted files in datasets
         ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -41,14 +34,16 @@ class Dataset(torch.utils.data.Dataset, ABC):
 
     @transform.setter
     def transform(self, val):
-        self._transform = val if val else _identity
+        if not val:
+            self._transform = _identity
+        elif len(signature(val).parameters) == 1:
+            self._transform = _ImageOnlyTransform(val)
+        else:
+            self._transform = val
 
     def close(self):
         """Release the resources allocated for this dataset."""
         pass
-
-    def get_original_image_count(self):
-        return len(self)
 
     def __getitem__(self, index):
         raise NotImplementedError

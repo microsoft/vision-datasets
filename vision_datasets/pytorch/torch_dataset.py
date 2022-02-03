@@ -13,7 +13,6 @@ class TorchDataset(Dataset):
     def __init__(self, manifest_dataset, transform=None):
         Dataset.__init__(self, transform)
         self.dataset = manifest_dataset
-        self.dataset_info = manifest_dataset.dataset_info
 
     @property
     def labels(self):
@@ -22,6 +21,10 @@ class TorchDataset(Dataset):
     @property
     def dataset_resources(self):
         return self.dataset.dataset_resources
+
+    @property
+    def dataset_info(self):
+        return self.dataset.dataset_info
 
     def __getitem__(self, index):
         if isinstance(index, int):
