@@ -191,7 +191,7 @@ class DatasetManifest:
 
     def generate_coco_annotations(self):
         """
-        generate coco annotations, working for single task classification and detection only
+        Generate coco annotations, working for single task classification, detection and caption only
 
         Returns:
             A dict of annotation data ready for coco json dump
