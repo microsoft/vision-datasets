@@ -2,6 +2,7 @@ import argparse
 import logging
 import os.path
 import pathlib
+import random
 
 from vision_datasets import DatasetRegistry, Usages, DatasetHub
 
@@ -14,11 +15,10 @@ def show_dataset_stats(dataset):
 
 
 def show_img(sample):
-
     sample[0].show()
     sample[0].close()
 
-    logger.info(f'label = {sample[1]}, wh = {sample[2]}')
+    logger.info(f'label = {sample[1]}')
 
 
 def logging_prefix(dataset_name, version):
@@ -27,7 +27,8 @@ def logging_prefix(dataset_name, version):
 
 def check_dataset(dataset):
     show_dataset_stats(dataset)
-    show_img(dataset[0])
+    for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
+        show_img(dataset[idx])
 
 
 def main():
@@ -59,8 +60,7 @@ def main():
         # if args.folder_to_check is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
         dataset = vision_datasets.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.folder_to_check, name=dataset_info.name, version=args.version, usage=usage)
         if dataset:
-            show_dataset_stats(dataset)
-            show_img(dataset[0])
+            check_dataset(dataset)
         else:
             logger.info(f'{prefix} No split for {usage} available.')
 
