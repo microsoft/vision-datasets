@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import pathlib
 import tempfile
 import unittest
 from collections import Counter
@@ -464,7 +465,7 @@ class TestManifestSubsetByRatio(unittest.TestCase):
         self.assertFalse(_get_instance_count_per_class(sampled))
 
         # 2 tags per image
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i, i + 1]) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i, i + 1]) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTILABEL)
 
         sampled = dataset_manifest.sample_subset_by_ratio(0.5)
@@ -474,7 +475,7 @@ class TestManifestSubsetByRatio(unittest.TestCase):
 
     def test_multitask(self):
         num_classes = 10
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i+1]}) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i + 1]}) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, {'a': _generate_labelmap(num_classes), 'b': _generate_labelmap(num_classes)}, {'a': DatasetTypes.IC_MULTICLASS, 'b': DatasetTypes.IC_MULTICLASS})
 
         sampled = dataset_manifest.sample_subset_by_ratio(0.5)
@@ -502,7 +503,7 @@ class TestManifestSubsetByRatio(unittest.TestCase):
         self.assertEqual(_get_instance_count_per_class(sampled), {i: 50 for i in range(num_classes)})
 
         # 2 boxes per image.
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [[i, 0, 0, 5, 5], [i + 1, 0, 0, 5, 5]]) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [[i, 0, 0, 5, 5], [i + 1, 0, 0, 5, 5]]) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.OD)
 
         sampled = dataset_manifest.sample_subset_by_ratio(0.5)
@@ -536,7 +537,7 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
             dataset_manifest.sample_few_shots_subset_greedy(10)
 
         # 2 tags per image
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i, i + 1]) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i, i + 1]) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTILABEL)
 
         sampled = dataset_manifest.sample_few_shots_subset_greedy(10)
@@ -547,7 +548,7 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
 
     def test_multitask(self):
         num_classes = 10
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i+1]}) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i + 1]}) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, {'a': _generate_labelmap(num_classes), 'b': _generate_labelmap(num_classes)}, {'a': DatasetTypes.IC_MULTICLASS, 'b': DatasetTypes.IC_MULTICLASS})
 
         sampled = dataset_manifest.sample_few_shots_subset_greedy(10)
@@ -575,7 +576,7 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
         self.assertEqual(_get_instance_count_per_class(sampled), {i: 10 for i in range(num_classes)})
 
         # 2 boxes per image.
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [[i, 0, 0, 5, 5], [i + 1, 0, 0, 5, 5]]) for i in range(num_classes-1)] * 100
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [[i, 0, 0, 5, 5], [i + 1, 0, 0, 5, 5]]) for i in range(num_classes - 1)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.OD)
 
         sampled = dataset_manifest.sample_few_shots_subset_greedy(10)
@@ -666,6 +667,105 @@ class TestManifestSplit(unittest.TestCase):
         # test deepcopy
         dataset_copy = copy.deepcopy(dataset_manifest)
         assert dataset_copy
+
+
+class TestSampleByCategories(unittest.TestCase):
+    def test_sample_od_dataset_by_categories(self):
+        images = [
+            ImageDataManifest(0, './0.jpg', 10, 10, []),
+            ImageDataManifest(1, './1.jpg', 10, 10, [[0, 1, 1, 2, 2], [1, 2, 2, 3, 3]]),
+            ImageDataManifest(2, './2.jpg', 10, 10, [[1, 1, 1, 2, 2]]),
+            ImageDataManifest(3, './3.jpg', 10, 10, [[1, 0, 0, 2, 2], [2, 1, 1, 2, 2], [3, 2, 2, 3, 3]]),
+        ]
+        manifest = DatasetManifest(images, ['a', 'b', 'c', 'd'], DatasetTypes.OD)
+        new_manifest = manifest.sample_categories([1, 3])
+        assert len(new_manifest) == len(manifest)
+        assert new_manifest.labelmap == ['b', 'd']
+        assert new_manifest.images[0].labels == []
+        assert new_manifest.images[1].labels == [[0, 2, 2, 3, 3]]
+        assert new_manifest.images[2].labels == [[0, 1, 1, 2, 2]]
+        assert new_manifest.images[3].labels == [[0, 0, 0, 2, 2], [1, 2, 2, 3, 3]]
+
+    def test_sample_ic_dataset_by_categories(self):
+        images = [
+            ImageDataManifest(0, './0.jpg', 10, 10, []),
+            ImageDataManifest(1, './1.jpg', 10, 10, [0, 1]),
+            ImageDataManifest(2, './2.jpg', 10, 10, [1]),
+            ImageDataManifest(3, './3.jpg', 10, 10, [1, 2, 3]),
+        ]
+        manifest = DatasetManifest(images, ['a', 'b', 'c', 'd'], DatasetTypes.IC_MULTILABEL)
+        new_manifest = manifest.sample_categories([1, 3])
+        assert len(new_manifest) == len(manifest)
+        assert new_manifest.labelmap == ['b', 'd']
+        assert new_manifest.images[0].labels == []
+        assert new_manifest.images[1].labels == [0]
+        assert new_manifest.images[2].labels == [0]
+        assert new_manifest.images[3].labels == [0, 1]
+
+
+class TestCocoGeneration(unittest.TestCase):
+    def test_coco_generation_od(self):
+        manifest_dict = {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 90, 90]},
+                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 100, 100]},
+                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
+            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_file = pathlib.Path(temp_dir) / 'coco.json'
+            temp_file.write_text(json.dumps(manifest_dict))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.OD)
+            coco_dict = manifest.generate_coco_annotations()
+
+        assert coco_dict == manifest_dict
+
+    def test_coco_generation_ic(self):
+        manifest_dict = {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1},
+                {"id": 2, "category_id": 1, "image_id": 2},
+                {"id": 3, "category_id": 2, "image_id": 2}
+            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_file = pathlib.Path(temp_dir) / 'coco.json'
+            temp_file.write_text(json.dumps(manifest_dict))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.IC_MULTICLASS)
+            coco_dict = manifest.generate_coco_annotations()
+
+        assert coco_dict == manifest_dict
+
+    def test_coco_generation_caption(self):
+        manifest_dict = {
+            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg", "width": 10, "height": 10},
+                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg", "width": 10, "height": 10}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
+                {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
+                {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
+                {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
+                {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
+                {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
+                {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
+                {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
+                {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
+                {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
+            ],
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_file = pathlib.Path(temp_dir) / 'coco.json'
+            temp_file.write_text(json.dumps(manifest_dict))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.IMCAP)
+            coco_dict = manifest.generate_coco_annotations()
+
+        assert coco_dict == manifest_dict
 
 
 if __name__ == '__main__':
