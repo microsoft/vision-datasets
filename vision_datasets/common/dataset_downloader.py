@@ -32,6 +32,13 @@ class DownloadedDatasetsResources:
                 logger.info(f'Removing folder: {base_dir}.')
                 shutil.rmtree(base_dir)
 
+    @staticmethod
+    def merge(r1, r2):
+        assert r1
+        assert r2
+
+        return DownloadedDatasetsResources(r1.base_dirs + r2.base_dirs)
+
 
 class DatasetDownloader:
     def __init__(self, dataset_sas_url: str, dataset_registry: DatasetRegistry):

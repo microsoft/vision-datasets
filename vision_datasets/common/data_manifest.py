@@ -460,17 +460,98 @@ class DatasetManifest:
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     @staticmethod
-    def merge(manifest_a, manifest_b):
+    def merge(*args, flavor: int = 0):
         """
-        merge two data manifests of the same data type and labelmap
+        merge multiple data manifests into one.
+
+        Args:
+            args: manifests to be merged
+            flavor: flavor of dataset merge (not difference for captioning)
+                0: merge manifests of the same type and the same labelmap (for multitask, it should be same set of tasks and same labelmap for each task)
+                1: concat manifests of the same type, the new labelmap are concats of all labelmaps in all manifest (for multitask, duplicate task names are not allowed)
         """
-        assert manifest_a
-        assert manifest_b
 
-        assert manifest_a.data_type == manifest_b.data_type, f'data type must be the same, {manifest_a.data_type} vs {manifest_b.data_type}.'
-        assert manifest_a.labelmap == manifest_b.labelmap, f'labelmap must be the same, {manifest_a.labelmap}, {manifest_b.labelmap}.'
+        assert len(args) >= 1, 'less than one manifests provided, not possible to merged.'
+        assert all(args), '"None" manifest found'
 
-        return DatasetManifest(manifest_a.images + manifest_b.images, manifest_a.labelmap, manifest_a.data_type)
+        if len(args) == 1:
+            logger.warning('Only one manifest provided. Nothing to be merged.')
+            return args[0]
+
+        if any([isinstance(x.data_type, dict) for x in args]):
+            assert all([isinstance(x.data_type, dict) for x in args]), 'Cannot merge multitask manifest and single task manifest'
+        else:
+            assert len(set([x.data_type for x in args])) == 1, 'All manifests must be of the same data type'
+
+        if flavor == 0:
+            return DatasetManifest._merge_with_same_labelmap(*args)
+        elif flavor == 1:
+            return DatasetManifest._merge_with_concat(*args)
+        else:
+            raise ValueError(f'Unknown flavor {flavor}.')
+
+    @staticmethod
+    def _merge_with_same_labelmap(*args):
+        for i in range(len(args)):
+            if i > 0 and args[i].labelmap != args[i-1].labelmap:
+                raise ValueError('labelmap must be the same for all manifests.')
+            if i > 0 and args[i].data_type != args[i-1].data_type:
+                raise ValueError('Data type must be the same for all manifests.')
+
+        images = [y for x in args for y in x.images]
+
+        return DatasetManifest(images, args[0].labelmap, args[0].data_type)
+
+    @staticmethod
+    def _merge_with_concat(*args):
+        data_type = args[0].data_type
+
+        if data_type == DatasetTypes.IMCAP:
+            return DatasetManifest._merge_with_same_labelmap(args)
+
+        if isinstance(data_type, dict):  # multitask
+            labelmap = {}
+            data_types = {}
+            for manifest in args:
+                for k, v in manifest.labelmap.items():
+                    if k in labelmap:
+                        raise ValueError(f'Failed to merge dataset manifests, as due to task with name {k} exists in more than one manifest.')
+
+                    labelmap[k] = v
+
+                for k, v in manifest.data_type.items():
+                    data_types[k] = v
+
+            return DatasetManifest([y for x in args for y in x.images], labelmap, data_types)
+
+        labelmap = []
+        images = []
+
+        for manifest in args:
+            label_offset = len(labelmap)
+            for img_manifest in manifest.images:
+                new_img_manifest = copy.deepcopy(img_manifest)
+                if DatasetTypes.is_classification(data_type):
+                    new_img_manifest.labels = [x + label_offset for x in new_img_manifest.labels]
+                elif data_type == DatasetTypes.OD:
+                    for label in new_img_manifest.labels:
+                        label[0] += label_offset
+                else:
+                    raise ValueError(f'Unsupported type in merging {data_type}')
+
+                images.append(new_img_manifest)
+            labelmap.extend(manifest.labelmap)
+
+        return DatasetManifest(images, labelmap, data_type)
+
+    @staticmethod
+    def create_multitask_manifest(manifest_by_task: dict):
+        task_names = sorted(list(manifest_by_task.keys()))
+        images = [y for task_name in task_names for y in manifest_by_task[task_name].images]
+        labelmap = {task_name: manifest_by_task[task_name].labelmap for task_name in task_names}
+        data_types = {task_name: manifest_by_task[task_name].data_type for task_name in task_names}
+
+        return DatasetManifest(images, labelmap, data_types)
 
 
 def _generate_multitask_dataset_manifest(manifest_by_task: Dict[str, DatasetManifest]):
