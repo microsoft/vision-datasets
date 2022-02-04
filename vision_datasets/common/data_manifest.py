@@ -493,9 +493,9 @@ class DatasetManifest:
     @staticmethod
     def _merge_with_same_labelmap(*args):
         for i in range(len(args)):
-            if i > 0 and args[i].labelmap != args[i-1].labelmap:
+            if i > 0 and args[i].labelmap != args[i - 1].labelmap:
                 raise ValueError('labelmap must be the same for all manifests.')
-            if i > 0 and args[i].data_type != args[i-1].data_type:
+            if i > 0 and args[i].data_type != args[i - 1].data_type:
                 raise ValueError('Data type must be the same for all manifests.')
 
         images = [y for x in args for y in x.images]
@@ -546,8 +546,23 @@ class DatasetManifest:
 
     @staticmethod
     def create_multitask_manifest(manifest_by_task: dict):
+        """
+        Merge several manifests into a multitask dataset in a naive way, assuming images from different manifests are independent different images.
+        Args:
+            manifest_by_task (dict): manifest by task name
+
+        Returns:
+            a merged multitask manifest
+        """
+
         task_names = sorted(list(manifest_by_task.keys()))
-        images = [y for task_name in task_names for y in manifest_by_task[task_name].images]
+        images = []
+        for task_name in task_names:
+            for img in manifest_by_task[task_name].images:
+                new_img = copy.deepcopy(img)
+                new_img.labels = {task_name: new_img.labels}
+                images.append(new_img)
+
         labelmap = {task_name: manifest_by_task[task_name].labelmap for task_name in task_names}
         data_types = {task_name: manifest_by_task[task_name].data_type for task_name in task_names}
 
