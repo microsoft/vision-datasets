@@ -23,6 +23,140 @@ def _get_instance_count_per_class(manifest):
         return Counter([manifest._get_cid(label) for image in manifest.images for label in image.labels])
 
 
+def _coco_dict_to_manifest(coco_dict, data_type):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        dm1_path = pathlib.Path(temp_dir) / 'coco.json'
+        dm1_path.write_text(json.dumps(coco_dict))
+        return CocoManifestAdaptor.create_dataset_manifest(str(dm1_path), data_type)
+
+
+class TestCases:
+    ic_manifest_dicts = [
+        {
+            "images": [
+                {"id": 1, "width": 224.0, "height": 224.0, "file_name": "train/1.jpg"},
+                {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train/3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1},
+                {"id": 2, "category_id": 1, "image_id": 2},
+                {"id": 3, "category_id": 2, "image_id": 2}
+            ],
+            "categories": [
+                {"id": 1, "name": "cat"},
+                {"id": 2, "name": "dog"}
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "width": 224.0, "height": 224.0, "file_name": "test/1.jpg"},
+                {"id": 2, "width": 224.0, "height": 224.0, "file_name": "test/2.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1},
+                {"id": 2, "category_id": 1, "image_id": 2},
+                {"id": 3, "category_id": 2, "image_id": 2}
+            ],
+            "categories": [
+                {"id": 1, "name": "tiger"},
+                {"id": 2, "name": "rabbit"}
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "width": 224.0, "height": 224.0, "file_name": "test/1.jpg"},
+                {"id": 2, "width": 224.0, "height": 224.0, "file_name": "test/2.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1},
+                {"id": 2, "category_id": 2, "image_id": 2}
+            ],
+            "categories": [
+                {"id": 1, "name": "cat"},
+                {"id": 2, "name": "dog"}
+            ]
+        }]
+
+    od_manifest_dicts = [
+        {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 90, 90]},
+                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 100, 100]},
+                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
+            ],
+            "categories": [
+                {"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}
+            ]
+        },
+        {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80]},
+                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [90, 90, 90, 90]},
+                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
+            ],
+            "categories": [
+                {"id": 1, "name": "tiger"}, {"id": 2, "name": "rabbit"}
+            ]
+        },
+        {
+            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
+                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80]},
+                {"id": 2, "category_id": 2, "image_id": 2, "bbox": [90, 90, 90, 90]},
+            ],
+            "categories": [
+                {"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}
+            ]
+        }]
+
+    cap_manifest_dicts = [
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "caption": "test 1."},
+                {"id": 2, "image_id": 2, "caption": "test 2."},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "caption": "test 3."},
+                {"id": 2, "image_id": 2, "caption": "test 4."},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
+                {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
+                {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
+                {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
+                {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
+                {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
+                {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
+                {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
+                {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
+                {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
+            ],
+        }]
+
+    manifest_dict_by_data_type = {
+        DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
+        DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
+        DatasetTypes.OD: od_manifest_dicts,
+        DatasetTypes.IMCAP: cap_manifest_dicts
+    }
+
+    @staticmethod
+    def get_manifest(data_type, index):
+        return _coco_dict_to_manifest(TestCases.manifest_dict_by_data_type[data_type][index], data_type)
+
+
 class TestCreateIrisDatasetManifest(unittest.TestCase):
     DATASET_INFO_DICT = {
         "name": "dummy",
@@ -187,43 +321,14 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
 
 
 class TestCreateCocoDatasetManifest(unittest.TestCase):
-    DATASET_INFO_DICT = {
-        "name": "dummy",
-        "version": 1,
-        "type": "classification_multiclass",
-        "root_folder": "dummy",
-        "test": {
-            "index_path": "test.json",
-            "files_for_local_usage": [
-                "Train.zip"
-            ]
-        },
-    }
-
     def test_image_classification(self):
-        manifest_dict = {
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1},
-                {"id": 2, "category_id": 1, "image_id": 2},
-                {"id": 3, "category_id": 2, "image_id": 2}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-        }
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
-        with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = 'classification_multilabel'
-            coco_file_path = os.path.join(tempdir, 'test.json')
-            with open(coco_file_path, 'w') as f:
-                json.dump(manifest_dict, f)
+        dataset_manifest = TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0)
 
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.IC_MULTILABEL)
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(len(dataset_manifest.labelmap), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, [0])
-            self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, [0])
+        self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
 
     def test_index_can_start_from_zero(self):
         manifest_dict = {
@@ -235,167 +340,83 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
                 {"id": 2, "category_id": 1, "image_id": 1}
             ], "categories": [{"id": 0, "name": "cat"}, {"id": 1, "name": "dog"}]
         }
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
-        with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = 'classification_multilabel'
-            coco_file_path = os.path.join(tempdir, 'test.json')
-            with open(coco_file_path, 'w') as f:
-                json.dump(manifest_dict, f)
 
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.IC_MULTILABEL)
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(len(dataset_manifest.labelmap), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, [0])
-            self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
+        dataset_manifest = _coco_dict_to_manifest(manifest_dict, DatasetTypes.IC_MULTILABEL)
+
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, [0])
+        self.assertEqual(dataset_manifest.images[1].labels, [0, 1])
 
     def test_object_detection_bbox_format_LTWH(self):
-        manifest_dict = {
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 90, 90]},
-                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 100, 100]},
-                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-        }
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
-        with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = 'object_detection'
-            coco_file_path = os.path.join(tempdir, 'test.json')
-            with open(coco_file_path, 'w') as f:
-                json.dump(manifest_dict, f)
+        dataset_manifest = TestCases.get_manifest(DatasetTypes.OD, 0)
 
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.OD)
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(len(dataset_manifest.labelmap), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 100, 100]])
-            self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 100, 100]])
+        self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
 
     def test_object_detection_bbox_format_LTRB(self):
-        manifest_dict = {
-            "bbox_format": "ltrb",
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 100, 100]},
-                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 200, 200]},
-                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 200, 200]}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-        }
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
-        with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = 'object_detection'
-            coco_file_path = os.path.join(tempdir, 'test.json')
-            with open(coco_file_path, 'w') as f:
-                json.dump(manifest_dict, f)
+        manifest_dict = copy.deepcopy(TestCases.od_manifest_dicts[0])
+        manifest_dict['bbox_format'] = 'ltrb'
 
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.OD)
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(len(dataset_manifest.labelmap), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 100, 100]])
-            self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
+        dataset_manifest = _coco_dict_to_manifest(manifest_dict, DatasetTypes.OD)
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 90, 90]])
+        self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 100, 100], [1, 20, 20, 180, 180]])
 
     def test_image_caption(self):
-        manifest_dict = {
-            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
-                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
-            "annotations": [
-                {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
-                {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
-                {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
-                {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
-                {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
-                {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
-                {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
-                {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
-                {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
-                {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
-            ],
-        }
-        caption_1 = ['A black Honda motorcycle parked in front of a garage.',
-                     'A Honda motorcycle parked in a grass driveway.',
-                     'A black Honda motorcycle with a dark burgundy seat.',
-                     'Ma motorcycle parked on the gravel in front of a garage.',
-                     'A motorcycle with its brake extended standing outside.']
-        caption_2 = ['A picture of a modern looking kitchen area.\n',
-                     'A narrow kitchen ending with a chrome refrigerator.',
-                     'A narrow kitchen is decorated in shades of white, gray, and black.',
-                     'a room that has a stove and a icebox in it',
-                     'A long empty, minimal modern skylit home kitchen.']
+        img_0_caption = ['A black Honda motorcycle parked in front of a garage.',
+                         'A Honda motorcycle parked in a grass driveway.',
+                         'A black Honda motorcycle with a dark burgundy seat.',
+                         'Ma motorcycle parked on the gravel in front of a garage.',
+                         'A motorcycle with its brake extended standing outside.']
+        img_1_caption = ['A picture of a modern looking kitchen area.\n',
+                         'A narrow kitchen ending with a chrome refrigerator.',
+                         'A narrow kitchen is decorated in shades of white, gray, and black.',
+                         'a room that has a stove and a icebox in it',
+                         'A long empty, minimal modern skylit home kitchen.']
 
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
-        with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = 'image_caption'
-            coco_file_path = os.path.join(tempdir, 'test.json')
-            with open(coco_file_path, 'w') as f:
-                json.dump(manifest_dict, f)
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, DatasetTypes.IMCAP)
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, caption_1)
-            self.assertEqual(dataset_manifest.images[1].labels, caption_2)
+        dataset_manifest = TestCases.get_manifest(DatasetTypes.IMCAP, 2)
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, img_0_caption)
+        self.assertEqual(dataset_manifest.images[1].labels, img_1_caption)
 
     def test_multitask_ic_multilabel_and_image_caption(self):
-        classfication_manifest_dict = {
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1},
-                {"id": 2, "category_id": 1, "image_id": 2},
-                {"id": 3, "category_id": 2, "image_id": 2}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-        }
-        imcap_manifest_dict = {
-            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
-                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
-            "annotations": [
-                {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
-                {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
-                {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
-                {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
-                {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
-                {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
-                {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
-                {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
-                {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
-                {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
-            ],
-        }
-        caption_1 = ['A black Honda motorcycle parked in front of a garage.',
-                     'A Honda motorcycle parked in a grass driveway.',
-                     'A black Honda motorcycle with a dark burgundy seat.',
-                     'Ma motorcycle parked on the gravel in front of a garage.',
-                     'A motorcycle with its brake extended standing outside.']
-        caption_2 = ['A picture of a modern looking kitchen area.\n',
-                     'A narrow kitchen ending with a chrome refrigerator.',
-                     'A narrow kitchen is decorated in shades of white, gray, and black.',
-                     'a room that has a stove and a icebox in it',
-                     'A long empty, minimal modern skylit home kitchen.']
+        classfication_manifest_dict = TestCases.ic_manifest_dicts[0]
+        imcap_manifest_dict = TestCases.cap_manifest_dicts[2]
+        img_0_caption = ['A black Honda motorcycle parked in front of a garage.',
+                         'A Honda motorcycle parked in a grass driveway.',
+                         'A black Honda motorcycle with a dark burgundy seat.',
+                         'Ma motorcycle parked on the gravel in front of a garage.',
+                         'A motorcycle with its brake extended standing outside.']
+        img_1_caption = ['A picture of a modern looking kitchen area.\n',
+                         'A narrow kitchen ending with a chrome refrigerator.',
+                         'A narrow kitchen is decorated in shades of white, gray, and black.',
+                         'a room that has a stove and a icebox in it',
+                         'A long empty, minimal modern skylit home kitchen.']
 
-        dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
+        task_types = {'task1': DatasetTypes.IC_MULTILABEL, 'task2': DatasetTypes.IMCAP}
+
         with tempfile.TemporaryDirectory() as tempdir:
-            dataset_dict['root_folder'] = ''
-            dataset_dict['type'] = {'task1': DatasetTypes.IC_MULTILABEL, 'task2': DatasetTypes.IMCAP}
-            classification_coco_file_path = os.path.join(tempdir, 'classification_test.json')
-            with open(classification_coco_file_path, 'w') as f:
-                json.dump(classfication_manifest_dict, f)
-            imcap_coco_file_path = os.path.join(tempdir, 'imcap_test.json')
-            with open(imcap_coco_file_path, 'w') as f:
-                json.dump(imcap_manifest_dict, f)
-            coco_file_path = {'task1': classification_coco_file_path, 'task2': imcap_coco_file_path}
-            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, dataset_dict['type'])
-            self.assertIsInstance(dataset_manifest, DatasetManifest)
-            self.assertEqual(len(dataset_manifest.images), 2)
-            self.assertEqual(len(dataset_manifest.labelmap), 2)
-            self.assertEqual(dataset_manifest.images[0].labels, {'task1': [0], 'task2': caption_1})
-            self.assertEqual(dataset_manifest.images[1].labels, {'task1': [0, 1], 'task2': caption_2})
+            classification_coco_file_path = pathlib.Path(tempdir) / 'classification_test.json'
+            classification_coco_file_path.write_text(json.dumps(classfication_manifest_dict))
+            imcap_coco_file_path = pathlib.Path(tempdir) / 'imcap_test.json'
+            imcap_coco_file_path.write_text(json.dumps(imcap_manifest_dict))
+
+            coco_file_path = {'task1': str(classification_coco_file_path), 'task2': str(imcap_coco_file_path)}
+            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, task_types)
+
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, {'task1': [0], 'task2': img_0_caption})
+        self.assertEqual(dataset_manifest.images[1].labels, {'task1': [0, 1], 'task2': img_1_caption})
 
 
 class TestManifestFewShotSample(unittest.TestCase):
@@ -704,68 +725,167 @@ class TestSampleByCategories(unittest.TestCase):
 
 
 class TestCocoGeneration(unittest.TestCase):
-    def test_coco_generation_od(self):
-        manifest_dict = {
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 90, 90]},
-                {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 100, 100]},
-                {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 180, 180]}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+    def test_coco_generation(self):
+        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP]:
+            for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
+                manifest = TestCases.get_manifest(data_type, i)
+                coco_dict = manifest.generate_coco_annotations()
+
+                assert coco_dict == TestCases.manifest_dict_by_data_type[data_type][i], f'fails with {data_type} {i}'
+
+
+class TestDatasetManifestMerge(unittest.TestCase):
+    def test_merge_two_ic_datasets_diff_labelmap(self):
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0),
+                                                TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 1),
+                                                flavor=1)
+        assert merged_manifest.labelmap == ['cat', 'dog', 'tiger', 'rabbit']
+        assert merged_manifest.images[0].labels == [0]
+        assert merged_manifest.images[1].labels == [0, 1]
+        assert merged_manifest.images[2].labels == [2]
+        assert merged_manifest.images[3].labels == [2, 3]
+
+    def test_merge_two_ic_datasets_same_labelmap(self):
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0),
+                                                TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 2),
+                                                flavor=0)
+        assert merged_manifest.labelmap == ['cat', 'dog']
+        assert merged_manifest.images[0].labels == [0]
+        assert merged_manifest.images[1].labels == [0, 1]
+        assert merged_manifest.images[2].labels == [0]
+        assert merged_manifest.images[3].labels == [1]
+
+    def test_merge_three_ic_datasets_diff_labelmap(self):
+        md3 = copy.deepcopy(TestCases.ic_manifest_dicts[2])
+        md3['categories'] = [{"id": 1, "name": "human"}, {"id": 2, "name": "snake"}]
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+                                                TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1),
+                                                _coco_dict_to_manifest(md3, DatasetTypes.IC_MULTICLASS),
+                                                flavor=1)
+        assert merged_manifest.labelmap == ['cat', 'dog', 'tiger', 'rabbit', 'human', 'snake']
+        assert merged_manifest.images[0].labels == [0]
+        assert merged_manifest.images[1].labels == [0, 1]
+        assert merged_manifest.images[2].labels == [2]
+        assert merged_manifest.images[3].labels == [2, 3]
+        assert merged_manifest.images[4].labels == [4]
+        assert merged_manifest.images[5].labels == [5]
+
+    def test_merge_two_od_datasets_diff_labelmap(self):
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.OD, 0), TestCases.get_manifest(DatasetTypes.OD, 1), flavor=1)
+        assert merged_manifest.labelmap == ['cat', 'dog', 'tiger', 'rabbit']
+        assert merged_manifest.images[0].labels == [[0, 10, 10, 100, 100]]
+        assert merged_manifest.images[1].labels == [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]]
+        assert merged_manifest.images[2].labels == [[2, 10, 10, 90, 90]]
+        assert merged_manifest.images[3].labels == [[2, 90, 90, 180, 180], [3, 20, 20, 200, 200]]
+
+    def test_merge_two_od_datasets_same_labelmap(self):
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.OD, 0), TestCases.get_manifest(DatasetTypes.OD, 2), flavor=0)
+        assert merged_manifest.labelmap == ['cat', 'dog']
+        assert merged_manifest.images[0].labels == [[0, 10, 10, 100, 100]]
+        assert merged_manifest.images[1].labels == [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]]
+        assert merged_manifest.images[2].labels == [[0, 10, 10, 90, 90]]
+        assert merged_manifest.images[3].labels == [[1, 90, 90, 180, 180]]
+
+    def test_merge_two_caption_datasets(self):
+        merged_manifest = DatasetManifest.merge(TestCases.get_manifest(DatasetTypes.IMCAP, 0), TestCases.get_manifest(DatasetTypes.IMCAP, 1), flavor=0)
+
+        assert merged_manifest.labelmap is None
+        assert len(merged_manifest) == 4
+        assert merged_manifest.images[0].labels == ['test 1.']
+        assert merged_manifest.images[1].labels == ['test 2.']
+        assert merged_manifest.images[2].labels == ['test 3.']
+        assert merged_manifest.images[3].labels == ['test 4.']
+
+    def test_merge_multitask_datasets_flavor0_with_same_tasks(self):
+        multitask_manifest_1 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 1)
+        })
+
+        multitask_manifest_2 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 1),
+        })
+
+        merged_manifest = DatasetManifest.merge(multitask_manifest_1, multitask_manifest_2, flavor=0)
+        assert len(merged_manifest) == 8
+        assert merged_manifest.data_type == {
+            'task1': DatasetTypes.IC_MULTICLASS,
+            'task2': DatasetTypes.IC_MULTILABEL,
         }
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = pathlib.Path(temp_dir) / 'coco.json'
-            temp_file.write_text(json.dumps(manifest_dict))
-            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.OD)
-            coco_dict = manifest.generate_coco_annotations()
+    def test_merge_multitask_datasets_flavor0_with_same_tasks_different_types(self):
+        multitask_manifest_1 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1)
+        })
 
-        assert coco_dict == manifest_dict
+        multitask_manifest_2 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1),
+        })
 
-    def test_coco_generation_ic(self):
-        manifest_dict = {
-            "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "siberian-kitten.jpg"},
-                       {"id": 2, "width": 224.0, "height": 224.0, "file_name": "kitten 3.jpg"}],
-            "annotations": [
-                {"id": 1, "category_id": 1, "image_id": 1},
-                {"id": 2, "category_id": 1, "image_id": 2},
-                {"id": 3, "category_id": 2, "image_id": 2}
-            ], "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+        self.assertRaises(ValueError, lambda: DatasetManifest.merge(multitask_manifest_1, multitask_manifest_2, flavor=0))
+
+    def test_merge_multitask_datasets_flavor0_with_different_tasks_should_raise(self):
+        multitask_manifest_1 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task3': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1)
+        })
+
+        multitask_manifest_2 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1),
+        })
+
+        self.assertRaises(ValueError, lambda: DatasetManifest.merge(multitask_manifest_1, multitask_manifest_2, flavor=0))
+
+    def test_merge_multitask_datasets_flavor1_with_different_tasks(self):
+        multitask_manifest_1 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 1),
+            'task3': TestCases.get_manifest(DatasetTypes.OD, 2)
+        })
+
+        multitask_manifest_2 = DatasetManifest.create_multitask_manifest({
+            'task4': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 2),
+            'task5': TestCases.get_manifest(DatasetTypes.OD, 0),
+            'task6': TestCases.get_manifest(DatasetTypes.OD, 1)
+        })
+
+        merged_manifest = DatasetManifest.merge(multitask_manifest_1, multitask_manifest_2, flavor=1)
+        assert merged_manifest.labelmap == {
+            'task1': ['cat', 'dog'],
+            'task2': ['tiger', 'rabbit'],
+            'task3': ['cat', 'dog'],
+            'task4': ['cat', 'dog'],
+            'task5': ['cat', 'dog'],
+            'task6': ['tiger', 'rabbit'],
         }
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = pathlib.Path(temp_dir) / 'coco.json'
-            temp_file.write_text(json.dumps(manifest_dict))
-            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.IC_MULTICLASS)
-            coco_dict = manifest.generate_coco_annotations()
-
-        assert coco_dict == manifest_dict
-
-    def test_coco_generation_caption(self):
-        manifest_dict = {
-            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg", "width": 10, "height": 10},
-                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg", "width": 10, "height": 10}],
-            "annotations": [
-                {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
-                {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
-                {"id": 3, "image_id": 1, "caption": "A black Honda motorcycle with a dark burgundy seat."},
-                {"id": 4, "image_id": 1, "caption": "Ma motorcycle parked on the gravel in front of a garage."},
-                {"id": 5, "image_id": 1, "caption": "A motorcycle with its brake extended standing outside."},
-                {"id": 6, "image_id": 2, "caption": "A picture of a modern looking kitchen area.\n"},
-                {"id": 7, "image_id": 2, "caption": "A narrow kitchen ending with a chrome refrigerator."},
-                {"id": 8, "image_id": 2, "caption": "A narrow kitchen is decorated in shades of white, gray, and black."},
-                {"id": 9, "image_id": 2, "caption": "a room that has a stove and a icebox in it"},
-                {"id": 10, "image_id": 2, "caption": "A long empty, minimal modern skylit home kitchen."}
-            ],
+        assert merged_manifest.data_type == {
+            'task1': DatasetTypes.IC_MULTICLASS,
+            'task2': DatasetTypes.IC_MULTILABEL,
+            'task3': DatasetTypes.OD,
+            'task4': DatasetTypes.IC_MULTICLASS,
+            'task5': DatasetTypes.OD,
+            'task6': DatasetTypes.OD,
         }
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_file = pathlib.Path(temp_dir) / 'coco.json'
-            temp_file.write_text(json.dumps(manifest_dict))
-            manifest = CocoManifestAdaptor.create_dataset_manifest(str(temp_file), DatasetTypes.IMCAP)
-            coco_dict = manifest.generate_coco_annotations()
 
-        assert coco_dict == manifest_dict
+        assert len(merged_manifest.images) == 12
+
+    def test_merge_multitask_datasets_flavor1_with_redundant_task_name_should_raise(self):
+        multitask_manifest_1 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task3': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1)
+        })
+
+        multitask_manifest_2 = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 2),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1),
+        })
+
+        self.assertRaises(ValueError, lambda: DatasetManifest.merge(multitask_manifest_1, multitask_manifest_2, flavor=1))
 
 
 if __name__ == '__main__':
