@@ -15,6 +15,7 @@ def create_arg_parser():
 
     parser = argparse.ArgumentParser(description='Merge different datasets of the same type into one.')
     parser.add_argument('-n', '--names', nargs='+', help='names of datasets to be merged.', required=True)
+    parser.add_argument('-i', '--new_name', type=str, help='name of the merged dataset.', required=True)
     parser.add_argument('-r', '--reg_json_path', type=str, default=None, help="dataset registration json path.", required=True)
     parser.add_argument('-k', '--sas', type=str, help="sas url.", required=False, default=None)
 
@@ -46,7 +47,7 @@ def main():
     dataset_resources = DatasetHub(pathlib.Path(args.reg_json_path).read_text())
     manifests = []
     merged_dataset_info_dict = {
-        'name': '-'.join(args.names) + '-merged',
+        'name': args.new_name,
         'description': f'A merged dataset of {",".join(args.names)}.',
         'format': Formats.COCO,
         'root_folder': '',
@@ -70,13 +71,13 @@ def main():
 
         merged_manifest = DatasetManifest.merge(*manifests, flavor=1)
         coco_json = merged_manifest.generate_coco_annotations()
-        index_file = f'merged_{phase}.json'
+        index_file = f'{merged_dataset_info_dict["name"]}_{phase}.json'
         pathlib.Path(index_file).write_text(json.dumps(coco_json, indent=2))
         merged_dataset_info_dict[phase]['index_path'] = index_file
         merged_dataset_info_dict[phase]['num_images'] = len(merged_manifest)
         merged_dataset_info_dict['num_classes'] = len(merged_manifest.labelmap)
 
-    pathlib.Path('data_reg.json').write_text(json.dumps([merged_dataset_info_dict], indent=2))
+    pathlib.Path(f'{args.new_name}_reg.json').write_text(json.dumps([merged_dataset_info_dict], indent=2))
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ import argparse
 import logging
 import os.path
 import pathlib
+import random
 
 from vision_datasets import DatasetRegistry, Usages, DatasetHub, DatasetTypes
 
@@ -26,8 +27,8 @@ def logging_prefix(dataset_name, version):
 
 def check_dataset(dataset):
     show_dataset_stats(dataset)
-    # for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
-    #    show_img(dataset[idx])
+    for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
+       show_img(dataset[idx])
 
     if dataset.dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.MULTITASK]:
         return
