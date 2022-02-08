@@ -28,7 +28,7 @@ def update_dataset_info(target: dict, source: DatasetInfo):
 
     for k in files_for_local_usage:
         target[k] = target.get(k, {})
-        target[k]['files_for_local_usage'] = files_for_local_usage[k]
+        target[k]['files_for_local_usage'] = target[k].get('files_for_local_usage', []) + files_for_local_usage[k]
 
     if 'type' not in target:
         target['type'] = source.type
