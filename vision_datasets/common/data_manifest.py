@@ -735,7 +735,7 @@ class CocoManifestAdaptor:
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
+        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
 
         cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
         cate_id_name.sort(key=lambda x: x[0])
