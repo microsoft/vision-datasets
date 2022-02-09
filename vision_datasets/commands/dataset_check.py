@@ -28,7 +28,7 @@ def logging_prefix(dataset_name, version):
 def check_dataset(dataset):
     show_dataset_stats(dataset)
     for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
-       show_img(dataset[idx])
+        show_img(dataset[idx])
 
     if dataset.dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.MULTITASK]:
         return
