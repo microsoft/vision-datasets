@@ -59,9 +59,8 @@ class DatasetDownloader:
             raise RuntimeError(f'No dataset matched for the specified condition: {name} ({version})')
 
         target_dir = pathlib.Path(tempfile.mkdtemp()) if target_dir is None else pathlib.Path(target_dir)
-        target_dir = target_dir / pathlib.Path(dataset_info.root_folder)
-        if not os.path.exists(target_dir):
-            os.makedirs(target_dir)
+        if not os.path.exists(target_dir / pathlib.Path(dataset_info.root_folder)):
+            os.makedirs(target_dir / pathlib.Path(dataset_info.root_folder))
 
         if DatasetInfoFactory.is_multitask(dataset_info.type):
             for subtask_info in dataset_info.sub_task_infos.values():
@@ -93,11 +92,14 @@ class DatasetDownloader:
         for file_path in file_paths:
             path = os.path.join(parts[2], file_path).replace('\\', '/')
             url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
-            target_file_path = target_dir / pathlib.Path(file_path).name
+            target_file_path = target_dir / file_path
+            target_file_dir = target_file_path.parent
+            if not target_file_dir.exists():
+                os.makedirs(target_file_dir)
+
             if os.path.exists(target_file_path):
                 logger.info(f'{target_file_path} exists. Skip downloading.')
                 continue
-
             self._download_file(url, target_file_path)
 
     @tenacity.retry(stop=tenacity.stop_after_attempt(3))

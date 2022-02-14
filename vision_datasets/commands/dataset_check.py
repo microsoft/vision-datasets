@@ -4,7 +4,7 @@ import os.path
 import pathlib
 import random
 
-from vision_datasets import DatasetRegistry, Usages, DatasetHub
+from vision_datasets import DatasetRegistry, Usages, DatasetHub, DatasetTypes
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +29,38 @@ def check_dataset(dataset):
     show_dataset_stats(dataset)
     for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
         show_img(dataset[idx])
+
+    if dataset.dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.MULTITASK]:
+        return
+
+    n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
+    for sample in dataset.dataset_manifest.images:
+        labels = sample.labels
+        c_ids = set([label[0] if dataset.dataset_info.type == DatasetTypes.OD else label for label in labels])
+        for c_id in c_ids:
+            n_imgs_by_class[c_id] += 1
+
+    c_id_with_max_images = max(n_imgs_by_class, key=n_imgs_by_class.get)
+    c_id_with_min_images = min(n_imgs_by_class, key=n_imgs_by_class.get)
+    mean_images = sum(n_imgs_by_class.values()) / len(n_imgs_by_class)
+    stats = {
+        'n images': len(dataset),
+        'n classes': len(dataset.labels),
+        f'max num images per class (cid {c_id_with_max_images})': n_imgs_by_class[c_id_with_max_images],
+        f'min num images per class (cid {c_id_with_min_images})': n_imgs_by_class[c_id_with_min_images],
+        'mean num images per class': mean_images
+    }
+
+    c_ids_with_zero_images = [k for k, v in n_imgs_by_class.items() if v == 0]
+    logger.warning(f'Class ids with zero images: {c_ids_with_zero_images}')
+
+    import matplotlib.pyplot as plt
+
+    plt.hist(list(n_imgs_by_class.values()), density=False, bins=len(set(n_imgs_by_class.values())))
+    plt.ylabel('n classes')
+    plt.xlabel('n images per class')
+    plt.show()
+    logger.info(str(stats))
 
 
 def main():
