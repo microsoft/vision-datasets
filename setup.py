@@ -24,7 +24,8 @@ setuptools.setup(name='vision_datasets',
                      'numpy>=1.18.3',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
-                     'tenacity>=6.2.0'
+                     'tenacity>=6.2.0',
+                     'tqdm'
                  ],
                  classifiers=[
                      'Development Status :: 4 - Beta',
