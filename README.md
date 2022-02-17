@@ -77,12 +77,12 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
     }
 ```
 
-Coco annotation format details wrt Only `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
+Coco annotation format details w.r.t. `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
 
 #### Iris format
 
-Iris format is a legacy format which can be found in `IRIS_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
+Iris format is a legacy format which can be found in `IRIS_DATA_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
 
 ## Dataset management and access
 
