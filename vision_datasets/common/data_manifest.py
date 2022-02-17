@@ -96,6 +96,7 @@ class ImageDataManifest:
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
                 detection: [[c_id, left, top, right, bottom], ...];
                 image caption: [caption1, caption2, ...];
+                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)]
                 multitask: dict[task, labels]
         """
         self.id = id
@@ -606,8 +607,8 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type == DatasetTypes.IMCAP:
-            raise ValueError('Iris format is not supported for image caption task, please use COCO format!')
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING]:
+            raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
             return _generate_multitask_dataset_manifest(dataset_manifest_by_task)
@@ -728,14 +729,18 @@ class CocoManifestAdaptor:
 
         file_reader.close()
 
+        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
         if data_type == DatasetTypes.IMCAP:
-            images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
             for annotation in coco_manifest['annotations']:
                 images_by_id[annotation['image_id']].labels.append(annotation['caption'])
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
+        if data_type == DatasetTypes.IMAGE_TEXT_MATCHING:
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append((annotation['text'], annotation['match']))
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
 
         cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
         cate_id_name.sort(key=lambda x: x[0])
