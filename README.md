@@ -98,6 +98,11 @@ dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text())
 stanford_cars = dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage='train')
 
+# note that you can pass multiple datasets.json to DatasetHub, it can combine them all
+# example: DatasetHub([ds_json1, ds_json2, ...])
+# note that you can specify multiple usages in create_manifest_dataset call
+# example dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=['train', 'val'])
+
 for img, targets, sample_idx_str in stanford_cars:
     img.show()
     img.close()
