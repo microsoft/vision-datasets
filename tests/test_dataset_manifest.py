@@ -145,11 +145,46 @@ class TestCases:
             ],
         }]
 
+    image_text_manifest_dicts = [
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "text": "test 1.", "match": 0},
+                {"id": 2, "image_id": 2, "text": "test 2.", "match": 0},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "text": "test 3.", "match": 0},
+                {"id": 2, "image_id": 2, "text": "test 4.", "match": 1},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "text": "A black Honda motorcycle parked in front of a garage.", 'match': 0},
+                {"id": 2, "image_id": 1, "text": "A Honda motorcycle parked in a grass driveway.", 'match': 1},
+                {"id": 3, "image_id": 1, "text": "A black Honda motorcycle with a dark burgundy seat.", 'match': 1},
+                {"id": 4, "image_id": 1, "text": "Ma motorcycle parked on the gravel in front of a garage.", 'match': 0},
+                {"id": 5, "image_id": 1, "text": "A motorcycle with its brake extended standing outside.", 'match': 0},
+                {"id": 6, "image_id": 2, "text": "A picture of a modern looking kitchen area.\n", 'match': 1},
+                {"id": 7, "image_id": 2, "text": "A narrow kitchen ending with a chrome refrigerator.", 'match': 0},
+                {"id": 8, "image_id": 2, "text": "A narrow kitchen is decorated in shades of white, gray, and black.", 'match': 0},
+                {"id": 9, "image_id": 2, "text": "a room that has a stove and a icebox in it", 'match': 0},
+                {"id": 10, "image_id": 2, "text": "A long empty, minimal modern skylit home kitchen.", 'match': 1}
+            ],
+        }]
+
     manifest_dict_by_data_type = {
         DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
         DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
         DatasetTypes.OD: od_manifest_dicts,
-        DatasetTypes.IMCAP: cap_manifest_dicts
+        DatasetTypes.IMCAP: cap_manifest_dicts,
+        DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts
     }
 
     @staticmethod
@@ -369,7 +404,7 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertEqual(dataset_manifest.images[0].labels, [[0, 10, 10, 90, 90]])
         self.assertEqual(dataset_manifest.images[1].labels, [[0, 100, 100, 100, 100], [1, 20, 20, 180, 180]])
 
-    def test_image_caption(self):
+    def test_image_caption_manifest(self):
         img_0_caption = ['A black Honda motorcycle parked in front of a garage.',
                          'A Honda motorcycle parked in a grass driveway.',
                          'A black Honda motorcycle with a dark burgundy seat.',
@@ -417,6 +452,20 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertEqual(len(dataset_manifest.labelmap), 2)
         self.assertEqual(dataset_manifest.images[0].labels, {'task1': [0], 'task2': img_0_caption})
         self.assertEqual(dataset_manifest.images[1].labels, {'task1': [0, 1], 'task2': img_1_caption})
+
+    def test_image_text_manifest(self):
+        for i in range(len(TestCases.image_text_manifest_dicts)):
+            dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_TEXT_MATCHING, i)
+            self.assertIsInstance(dataset_manifest, DatasetManifest)
+            self.assertEqual(len(dataset_manifest.images), len(TestCases.image_text_manifest_dicts[i]['images']))
+            self.assertEqual(len([label for image in dataset_manifest.images for label in image.labels]), len(TestCases.image_text_manifest_dicts[i]['annotations']))
+            image_ann = {}
+            for ann in TestCases.image_text_manifest_dicts[i]['annotations']:
+                img_id = ann['image_id']
+                image_ann[img_id] = image_ann.get(img_id, [])
+                image_ann[img_id].append((ann['text'], ann['match']))
+            for image in dataset_manifest.images:
+                assert image.labels == image_ann[image.id]
 
 
 class TestManifestFewShotSample(unittest.TestCase):
