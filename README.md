@@ -77,12 +77,12 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
     }
 ```
 
-Coco annotation format details wrt Only `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
+Coco annotation format details w.r.t. `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
 
 #### Iris format
 
-Iris format is a legacy format which can be found in `IRIS_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
+Iris format is a legacy format which can be found in `IRIS_DATA_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
 
 ## Dataset management and access
 
@@ -97,6 +97,11 @@ import pathlib
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text())
 stanford_cars = dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage='train')
+
+# note that you can pass multiple datasets.json to DatasetHub, it can combine them all
+# example: DatasetHub([ds_json1, ds_json2, ...])
+# note that you can specify multiple usages in create_manifest_dataset call
+# example dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=['train', 'val'])
 
 for img, targets, sample_idx_str in stanford_cars:
     img.show()
