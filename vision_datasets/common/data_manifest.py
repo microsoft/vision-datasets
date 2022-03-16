@@ -92,7 +92,12 @@ class ImageDataManifest:
             img_path (str): path to image
             width (int): image width
             height (int): image height
-            labels (list or dict): classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel; detection: [c_id, left, top, right, bottom]; dict[task, labels] for multitask dataset
+            labels (list or dict):
+                classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
+                detection: [[c_id, left, top, right, bottom], ...];
+                image caption: [caption1, caption2, ...];
+                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)]
+                multitask: dict[task, labels]
         """
         self.id = id
         self.img_path = img_path
@@ -143,19 +148,12 @@ class DatasetManifest:
 
         raise RuntimeError(f'{dataset_info.data_format} not supported yet.')
 
-    @staticmethod
-    def merge(manifest_a, manifest_b):
-        assert manifest_a
-        assert manifest_b
-
-        assert manifest_a.data_type == manifest_b.data_type
-        assert manifest_a.labelmap == manifest_b.labelmap
-
-        return DatasetManifest(manifest_a.images + manifest_b.images, manifest_a.labelmap, manifest_a.data_type)
-
     @property
     def is_multitask(self):
         return isinstance(self.data_type, dict)
+
+    def __len__(self):
+        return len(self.images)
 
     def _add_label_count(self, labels, n_images_by_class: list):
         if self.is_multitask:
@@ -191,6 +189,50 @@ class DatasetManifest:
     def _is_negative(self, labels):
         n_labels = len(labels) if not self.is_multitask else sum([len(x) for x in labels.values()])
         return n_labels == 0
+
+    def generate_coco_annotations(self):
+        """
+        Generate coco annotations, working for single task classification, detection and caption only
+
+        Returns:
+            A dict of annotation data ready for coco json dump
+
+        """
+
+        images = []
+        for i, x in enumerate(self.images):
+            image = {'id': i + 1, 'file_name': x.img_path}
+            if x.width:
+                image['width'] = x.width
+            if x.height:
+                image['height'] = x.height
+            images.append(image)
+
+        annotations = []
+        for img_id, img in enumerate(self.images):
+            for ann in img.labels:
+                coco_ann = {
+                    'id': len(annotations) + 1,
+                    'image_id': img_id + 1,
+                }
+
+                if DatasetTypes.is_classification(self.data_type):
+                    coco_ann['category_id'] = ann + 1
+                elif self.data_type == DatasetTypes.OD:
+                    coco_ann['category_id'] = ann[0] + 1
+                    coco_ann['bbox'] = [ann[1], ann[2], ann[3] - ann[1], ann[4] - ann[2]]
+                elif self.data_type == DatasetTypes.IMCAP:
+                    coco_ann['caption'] = ann
+                else:
+                    raise ValueError(f'Unsupported data type {self.data_type}')
+
+                annotations.append(coco_ann)
+
+        coco_dict = {'images': images, 'annotations': annotations}
+        if self.data_type != DatasetTypes.IMCAP:
+            coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
+
+        return coco_dict
 
     def train_val_split(self, train_ratio, random_seed=0):
         """
@@ -247,6 +289,57 @@ class DatasetManifest:
 
         return DatasetManifest(train_imgs, self.labelmap, self.data_type), DatasetManifest(val_imgs, self.labelmap, self.data_type)
 
+    def sample_categories(self, category_indices: List):
+        """
+        Sample a new dataset of selected categories. Works for single IC and OD dataset only.
+        Args:
+            category_indices: indices of the selected categories
+
+        Returns:
+            a sampled dataset with selected categories
+
+        """
+
+        assert self.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]
+        assert category_indices
+        assert max(category_indices) < len(self.labelmap)
+
+        category_id_remap = {o_cid: n_cid for n_cid, o_cid in enumerate(category_indices)}
+        new_labelmap = [self.labelmap[x] for x in category_indices]
+        new_images = []
+        for img in self.images:
+            new_img = copy.deepcopy(img)
+            if DatasetTypes.is_classification(self.data_type):
+                new_img.labels = [category_id_remap[x] for x in new_img.labels if x in category_id_remap]
+            else:
+                new_img.labels = [[category_id_remap[x[0]], x[1], x[2], x[3], x[4]] for x in img.labels if x[0] in category_id_remap]
+
+            new_images.append(new_img)
+        return DatasetManifest(new_images, new_labelmap, self.data_type)
+
+    def sample_subset(self, num_samples, with_replacement=False, random_seed=0):
+        """
+        Sample a subset of num_samples images. When with_replacement is False and num_samples is larger than the dataset, the whole dataset will be returned
+        Args:
+            num_samples (int): number of images to be sampled
+            with_replacement (bool): with replacement or not
+            random_seed (int): random seed
+
+        Returns:
+            a sampled dataset
+        """
+
+        rnd = random.Random(random_seed)
+        if not with_replacement:
+            if num_samples >= len(self.images):
+                sampled_images = self.images
+            else:
+                sampled_images = rnd.sample(self.images, num_samples)
+        else:
+            sampled_images = [rnd.choice(self.images) for _ in range(num_samples)]
+
+        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+
     def sample_few_shot_subset(self, num_samples_per_class, random_seed=0):
         """
         Sample a few-shot dataset, with the number of images per class below num_samples_per_class.
@@ -300,7 +393,7 @@ class DatasetManifest:
         For multilabel or object detection datasets, the total number of images will be bigger than that.
 
         Args:
-            sampling_ratio (float): sampling raito. must be 0 < x < 1.
+            sampling_ratio (float): sampling ratio. must be 0 < x < 1.
 
         Returns:
             A sampled dataset (DatasetManifest)
@@ -367,6 +460,115 @@ class DatasetManifest:
 
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
+    @staticmethod
+    def merge(*args, flavor: int = 0):
+        """
+        merge multiple data manifests into one.
+
+        Args:
+            args: manifests to be merged
+            flavor: flavor of dataset merge (not difference for captioning)
+                0: merge manifests of the same type and the same labelmap (for multitask, it should be same set of tasks and same labelmap for each task)
+                1: concat manifests of the same type, the new labelmap are concats of all labelmaps in all manifest (for multitask, duplicate task names are not allowed)
+        """
+
+        assert len(args) >= 1, 'less than one manifests provided, not possible to merged.'
+        assert all(args), '"None" manifest found'
+
+        if len(args) == 1:
+            logger.warning('Only one manifest provided. Nothing to be merged.')
+            return args[0]
+
+        if any([isinstance(x.data_type, dict) for x in args]):
+            assert all([isinstance(x.data_type, dict) for x in args]), 'Cannot merge multitask manifest and single task manifest'
+        else:
+            assert len(set([x.data_type for x in args])) == 1, 'All manifests must be of the same data type'
+
+        if flavor == 0:
+            return DatasetManifest._merge_with_same_labelmap(*args)
+        elif flavor == 1:
+            return DatasetManifest._merge_with_concat(*args)
+        else:
+            raise ValueError(f'Unknown flavor {flavor}.')
+
+    @staticmethod
+    def _merge_with_same_labelmap(*args):
+        for i in range(len(args)):
+            if i > 0 and args[i].labelmap != args[i - 1].labelmap:
+                raise ValueError('labelmap must be the same for all manifests.')
+            if i > 0 and args[i].data_type != args[i - 1].data_type:
+                raise ValueError('Data type must be the same for all manifests.')
+
+        images = [y for x in args for y in x.images]
+
+        return DatasetManifest(images, args[0].labelmap, args[0].data_type)
+
+    @staticmethod
+    def _merge_with_concat(*args):
+        data_type = args[0].data_type
+
+        if data_type == DatasetTypes.IMCAP:
+            return DatasetManifest._merge_with_same_labelmap(args)
+
+        if isinstance(data_type, dict):  # multitask
+            labelmap = {}
+            data_types = {}
+            for manifest in args:
+                for k, v in manifest.labelmap.items():
+                    if k in labelmap:
+                        raise ValueError(f'Failed to merge dataset manifests, as due to task with name {k} exists in more than one manifest.')
+
+                    labelmap[k] = v
+
+                for k, v in manifest.data_type.items():
+                    data_types[k] = v
+
+            return DatasetManifest([y for x in args for y in x.images], labelmap, data_types)
+
+        labelmap = []
+        images = []
+
+        for manifest in args:
+            label_offset = len(labelmap)
+            for img_manifest in manifest.images:
+                new_img_manifest = copy.deepcopy(img_manifest)
+                if DatasetTypes.is_classification(data_type):
+                    new_img_manifest.labels = [x + label_offset for x in new_img_manifest.labels]
+                elif data_type == DatasetTypes.OD:
+                    for label in new_img_manifest.labels:
+                        label[0] += label_offset
+                else:
+                    raise ValueError(f'Unsupported type in merging {data_type}')
+
+                images.append(new_img_manifest)
+            labelmap.extend(manifest.labelmap)
+
+        return DatasetManifest(images, labelmap, data_type)
+
+    @staticmethod
+    def create_multitask_manifest(manifest_by_task: dict):
+        """
+        Merge several manifests into a multitask dataset in a naive way, assuming images from different manifests are independent different images.
+        Args:
+            manifest_by_task (dict): manifest by task name
+
+        Returns:
+            a merged multitask manifest
+        """
+
+        task_names = sorted(list(manifest_by_task.keys()))
+        images = []
+        for task_name in task_names:
+            for img in manifest_by_task[task_name].images:
+                new_img = copy.deepcopy(img)
+                new_img.labels = {task_name: new_img.labels}
+                images.append(new_img)
+
+        labelmap = {task_name: manifest_by_task[task_name].labelmap for task_name in task_names}
+        data_types = {task_name: manifest_by_task[task_name].data_type for task_name in task_names}
+
+        return DatasetManifest(images, labelmap, data_types)
+
 
 def _generate_multitask_dataset_manifest(manifest_by_task: Dict[str, DatasetManifest]):
     images_by_id = {}
@@ -405,10 +607,11 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING]:
+            raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
             return _generate_multitask_dataset_manifest(dataset_manifest_by_task)
-
         if usage not in dataset_info.index_files:
             return None
 
@@ -526,17 +729,29 @@ class CocoManifestAdaptor:
 
         file_reader.close()
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img['width'], img['height'], []) for img in coco_manifest['images']}
+        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
+        if data_type == DatasetTypes.IMCAP:
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append(annotation['caption'])
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
 
-        label_dict_by_id = {cate['id']: cate['name'] for cate in coco_manifest['categories']}
-        label_starting_idx = min(label_dict_by_id.keys())
-        labelmap = [label_dict_by_id[i + label_starting_idx] for i in range(len(label_dict_by_id))]
+        if data_type == DatasetTypes.IMAGE_TEXT_MATCHING:
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append((annotation['text'], annotation['match']))
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
+
+        cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
+        cate_id_name.sort(key=lambda x: x[0])
+        label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
+        labelmap = [x[1] for x in cate_id_name]
 
         bbox_format = coco_manifest.get('bbox_format', BBoxFormat.LTWH)
         BBoxFormat.validate(bbox_format)
 
         for annotation in coco_manifest['annotations']:
-            c_id = annotation['category_id'] - label_starting_idx
+            c_id = label_id_to_pos[annotation['category_id']]
             if 'bbox' in annotation:
                 bbox = annotation['bbox']
                 if bbox_format == BBoxFormat.LTWH:

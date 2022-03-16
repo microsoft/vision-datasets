@@ -19,10 +19,12 @@ class BaseDataset(ABC):
         """
 
         if isinstance(idx, int):
+            if idx >= self.__len__():
+                raise IndexError
             return self._get_single_item(idx)
 
         stop = min(self.__len__(), idx.stop)
-        return [self._get_single_item(i) for i in range(idx.start, stop, idx.step)] if idx.step else [self._get_single_item(i) for i in range(idx.start, stop)]
+        return [self.__getitem__(i) for i in range(idx.start, stop, idx.step)] if idx.step else [self.__getitem__(i) for i in range(idx.start, stop)]
 
     @property
     @abstractmethod

@@ -4,8 +4,18 @@
 
 This repo
 
-- defines the contract for dataset for purposes such as training, visualization, and exploration
-- provides API for organizing and accessing datasets: `DatasetHub`
+- defines unified contract for dataset for purposes such as training, visualization, and exploration, via `DatasetManifest` and `ImageDataManifest`.
+- provides API for organizing and accessing datasets, via `DatasetHub`
+
+Currently, five `basic` types of data are supported: 
+- `classification_multiclass`: each image can is only with one label.
+- `classification_multilabel`: each image can is with one or multiple labels (e.g., 'cat', 'animal', 'pet').
+- `object_detection`: each image is labeled with bounding boxes surrounding the objects of interest.
+- `image_caption`: each image is labeled with a few texts describing the images.
+- `image_text_matching`: each image is associated with a collection of texts describing the image, and whether each text description matches the image or not
+
+`multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
+
 
 ## Dataset Contracts
 
@@ -18,19 +28,17 @@ This repo
 
 `ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
-Currently, three basic types of data are supported: `classification_multilabel`, `classification_multiclass`, and `object_detection`. `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of the three basic types.
-
 For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
 
 ### Creating DatasetManifest
 
 In addition to loading a serialized `DatasetManifest` for instantiation, this repo currently supports two formats of data that can instantiates `DatasetManifest`,
-using `DatasetManifest.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)`: `IRIS` and `COCO`.
+using `DatasetManifest.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)`: `COCO` and `IRIS` (legacy).
 
 `DatasetInfo` as the first arg in the arg list wraps the metainfo about the dataset like the name of the dataset, locations of the images, annotation files, etc. See examples in the sections below
 for different data formats.
 
-Once a `DatasetManifest` is created, you can create a `ManifestDataset` for accessing the dataset:
+Once a `DatasetManifest` is created, you can create a `ManifestDataset` for accessing the data in the dataset, especially the image data, for training, visualization, etc:
 
 ```{python}
 dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates='relative')
@@ -51,200 +59,30 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
         "train": {
             "index_path": "train.json", // coco json file for training, see next section for example
             "files_for_local_usage": [ // associated files including data such as images
-                "train_images.zip"
+                "images/train_images.zip"
             ]
         },
         "val": {
             "index_path": "val.json",
             "files_for_local_usage": [
-                "test_images.zip"
+                "images/val_images.zip"
             ]
         },
         "test": {
             "index_path": "test.json",
             "files_for_local_usage": [
-                "test_images.zip"
+                "images/test_images.zip"
             ]
         }
     }
 ```
 
-##### Coco JSON - Image classification
+Coco annotation format details w.r.t. `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
-Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, **starting from 1**. Note that our lib might work with id starting from 0, but many tools like [CVAT](https://github.com/openvinotoolkit/cvat/issues/2085) and official [COCOAPI](https://github.com/cocodataset/cocoapi/issues/507) will fail.
-
-``` {json}
-{
-  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@siberian-kitten.jpg"},
-              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@kitten 3.jpg"}],
-              //  file_name is the image path, which supports three formats as described in previous section.
-  "annotations": [
-      {"id": 1, "category_id": 1, "image_id": 1},
-      {"id": 2, "category_id": 1, "image_id": 2},
-      {"id": 3, "category_id": 2, "image_id": 2}
-  ],
-  "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-}
-```
-
-##### Coco JSON - Object detection
-
-``` {json}
-{
-  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@siberian-kitten.jpg"},
-              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@kitten 3.jpg"}],
-  "annotations": [
-      {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 100, 100]},
-      {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 200, 200]},
-      {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 200, 200]}
-  ],
-  "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
-}
-```
-
-bbox format should be **absolute** pixel position following either `ltwh: [left, top, width, height]` or `ltrb: [left, top, right, bottom]`. `ltwh` is the default format. To work with `ltrb`, please specify `bbox_format` to be `ltrb` in coco json file.
-
-Note that
-
-- Note that we used to use `ltrb` as default. If your coco annotations were prepared to work with this repo before version 0.1.2. Please add `"bbox_format": "ltrb"` to your coco file.
-- Regardless of what format bboxes are stored in Coco file, when annotations are transformed into `ImageDataManifest`, the bbox will be unified into `ltrb: [left, top, right, bottom]`.
 
 #### Iris format
 
-Here is an example with explanation of what a `DatasetInfo` looks like for `iris` format:
-
-```{json}
-    {
-        "name": "sampled-ms-coco",
-        "version": 1,
-        "description": "A sampled ms-coco dataset.",
-        "type": "object_detection",
-        "root_folder": "detection/coco2017_20200401",
-        "format": "iris", // indicating the annotation data are stored in iris format
-        "train": {
-            "index_path": "train_images.txt", // index file for images and labels for training, example can be found in next section
-            "files_for_local_usage": [
-                "train_images.zip",
-                "train_labels.zip"
-            ],
-        },
-        "val": {
-            "index_path": "val_images.txt",
-            "files_for_local_usage": [
-                "val_images.zip",
-                "val_labels.zip"
-            ],
-        },
-        "test": {
-            "index_path": "test_images.txt",
-            "files_for_local_usage": [
-                "test_images.zip",
-                "test_labels.zip"
-            ],
-        },
-        "labelmap": "labels.txt", // includes tag names
-        "image_metadata_path": "image_meta_info.txt", // includes info about image width and height
-    },
-```
-
-##### Iris image classification format
-
-Each rows in the index file (`index_path`) is:
-
-``` {txt}
-<image_filepath> <comma-separated-label-indices>
-```
-
-Note that the class/label index should start from zero.
-
-Example:
-
-``` {txt}
-train_images1.zip@1.jpg 0,1,2
-train_images2.zip@1.jpg 2,3
-...
-```
-
-##### Iris object detection format
-
-The index file for OD is slightly different from IC. Each rows in the index file is:
-
-``` {txt}
-<image_filepath> <label_filepath>
-```
-
-Same with classification, the class/label index should start from 0.
-
-Example for `train_images.txt`:
-
-``` {txt}
-train_images.zip@1.jpg train_labels.zip@1.txt
-train_images.zip@2.jpg train_labels.zip@2.txt
-...
-```
-
-Formats and example for a label file like `train_labels.zip@1.txt`:
-
-``` {txt}
-class_index left top right bottom
-```
-
-``` {txt}
-3 200 300 600 1200 // class_id, left, top, right, bottom
-4 100 100 200 200
-...
-```
-
-#### Multitask DatasetInfo
-
-The `DatasetInfo` for multitask is not very different from single task. A `'tasks'` section will be found in the json and the `'type'` of the dataset is `'multitask'`. Within each task, it wraps the
-info specific to that task.
-
-Below is an example for `'iris'` format, but the general idea applies to `'coco'` format as well.
-
-```{json}
-{
-    "name": "coco-vehicle-multitask",
-    "version": 1,
-    "type": "multitask",
-    "root_folder": "classification/coco_vehicle_multitask_20210202",
-    "format": "iris",
-    "tasks": {
-        "vehicle_color": {
-            "type": "classification_multiclass",
-            "train": {
-                "index_path": "train_images_VehicleColor.txt",
-                "files_for_local_usage": [
-                    "train_images.zip"
-                ]
-            },
-            "test": {
-                "index_path": "test_images_VehicleColor.txt",
-                "files_for_local_usage": [
-                    "test_images.zip"
-                ]
-            },
-            "labelmap": "labels_VehicleColor.txt"
-        },
-        "vehicle_type": {
-            "type": "classification_multiclass",
-            "train": {
-                "index_path": "train_images_VehicleType.txt",
-                "files_for_local_usage": [
-                    "train_images.zip"
-                ]
-            },
-            "test": {
-                "index_path": "test_images_VehicleType.txt",
-                "files_for_local_usage": [
-                    "test_images.zip"
-                ]
-            },
-            "labelmap": "labels_VehicleType.txt"
-        }
-    }
-}
-```
+Iris format is a legacy format which can be found in `IRIS_DATA_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
 
 ## Dataset management and access
 
@@ -259,6 +97,11 @@ import pathlib
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text())
 stanford_cars = dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage='train')
+
+# note that you can pass multiple datasets.json to DatasetHub, it can combine them all
+# example: DatasetHub([ds_json1, ds_json2, ...])
+# note that you can specify multiple usages in create_manifest_dataset call
+# example dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=['train', 'val'])
 
 for img, targets, sample_idx_str in stanford_cars:
     img.show()
@@ -290,7 +133,7 @@ If you are using `DatasetHub` to manage datasets in cloud storage, we recommend 
 
 If you upload folders of images directly to cloud storage:
 
-- you will have to list all images in `"files_for_local_usage"`, which can be millions of entries
+- you will need to list all images in `"files_for_local_usage"`, which can be millions of entries
 - downloading images one by one (even with multithreading) is much slower than downloading a few zip files
 
-One more thing is that sometimes when you create a zip file `train.zip`, you might find out that there is only one `train` folder in the zip. This will fail the file loading if the path is `train.zip@1.jpg`, as the image is actually at `train.zip@train\1.jpg`. It is usually a good idea to avoid this extra layer of folder when zipping and double-confirm this does not happen by mistake.
+One more thing is that sometimes when you create a zip file `train.zip`, you might find out that there is only one `train` folder in the zip. This will fail the file loading if the path is `train.zip@1.jpg`, as the image is actually at `train.zip@train\1.jpg`. It is ok to have this extra layer but please make sure the path is correct.

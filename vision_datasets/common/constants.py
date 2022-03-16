@@ -3,8 +3,10 @@ class DatasetTypes:
     IC_MULTICLASS = 'classification_multiclass'
     OD = 'object_detection'
     MULTITASK = 'multitask'
+    IMCAP = 'image_caption'
+    IMAGE_TEXT_MATCHING = 'image_text_matching'
 
-    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK]
+    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK, IMCAP, IMAGE_TEXT_MATCHING]
 
     @staticmethod
     def is_classification(dataset_type):

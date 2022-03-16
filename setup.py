@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.1.8'
+VERSION = '0.2.7'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -24,7 +24,8 @@ setuptools.setup(name='vision_datasets',
                      'numpy>=1.18.3',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
-                     'tenacity>=6.2.0'
+                     'tenacity>=6.2.0',
+                     'tqdm'
                  ],
                  classifiers=[
                      'Development Status :: 4 - Beta',
@@ -39,8 +40,11 @@ setuptools.setup(name='vision_datasets',
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download:main',
                                          'vision_check_dataset=vision_datasets.commands.dataset_check:main',
+                                         'vision_od_to_ic=vision_datasets.commands.converter_od_to_ic:main',
+                                         'vision_merge_datasets=vision_datasets.commands.merge_datasets:main',
                                          'vision_convert_local_dir_ic_data=vision_datasets.commands.convert_local_dir_ic_data:main',
                                          'vision_tsv_to_iris=vision_datasets.commands.converter_tsv_to_iris:main',
+                                         'vision_tsv_to_coco=vision_datasets.commands.converter_tsv_to_coco:main',
                                          'vision_yolo_to_iris=vision_datasets.commands.converter_yolo_darknet_to_iris:main',
                                          'vision_gen_metafile=vision_datasets.commands.generate_image_meta_info:main']
                  })
