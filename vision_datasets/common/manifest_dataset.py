@@ -105,7 +105,7 @@ class DetectionAsClassificationBaseDataset(BaseDataset, ABC):
         return self._dataset.labels
 
     @abstractmethod
-    def generate_manifest(self):
+    def generate_manifest(self, **kwargs):
         pass
 
 
@@ -125,7 +125,7 @@ class DetectionAsClassificationIgnoreBoxesDataset(DetectionAsClassificationBaseD
         labels = list(set([label[0] for label in labels]))
         return img, labels, idx_str
 
-    def generate_manifest(self):
+    def generate_manifest(self, **kwargs):
         images = []
         for img in self._dataset.dataset_manifest.images:
             labels = list(set([label[0] for label in img.labels]))
@@ -199,76 +199,79 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
 
         return crop_img
 
-    def generate_manifest(self):
-        raise RuntimeError('Image is cropped from bbox on the fly, a file path is not available for generating manifest.')
+    def generate_manifest(self, **kwargs):
+        local_cache_params = {'dir': kwargs.get('dir', f'{self.dataset_info.name}-cropped-ic'), 'n_copies': kwargs.get('n_copies')}
+        cache_decor = LocalFolderCacheDecorator(self, local_cache_params)
+        return cache_decor.generate_manifest()
 
 
-class DetectionAsClassificationByCroppingWithCacheDataset(DetectionAsClassificationByCroppingDataset):
+class LocalFolderCacheDecorator(BaseDataset):
     """
-    Consume detection dataset as a classification dataset, i.e., sample from this dataset is a crop wrt a bbox in the detection dataset.
+    Decorate a dataset by caching data in a local folder, in local_cache_params['dir'].
 
-    When box_aug_params is provided, different crops with randomness will be generated for the same bbox, up to local_cache_params['n_max_copies'] versions
     """
 
-    def __init__(self, detection_dataset: ManifestDataset, local_cache_params: dict, box_aug_params: dict = None):
+    def __init__(self, dataset: BaseDataset, local_cache_params: dict):
         """
         Args:
-            detection_dataset: the detection dataset where images are cropped as classification samples
-            box_aug_params (dict): params controlling box crop augmentation,
-                'zoom_ratio_bounds': the lower/upper bound of box zoom ratio wrt box width and height, e.g., (0.3, 1.5)
-                'shift_relative_bounds': lower/upper bounds of relative ratio wrt box width and height that a box can shift, e.g., (-0.3, 0.1)
-                'rnd_seed': rnd seed used for box crop zoom and shift
-            local_cache_params(dict): params controlling local cache for crop access:
+            dataset: dataset that requires cache
+            local_cache_params(dict): params controlling local cache for image access:
                 'dir': local dir for caching crops, it will be auto-created if not exist
-                'n_max_copies': max number of crops cached for each bbox
+                [optional] 'n_copies': default being 1. if n_copies is greater than 1, then multiple copies will be cached and dataset will be n_copies times bigger
         """
-        super().__init__(detection_dataset, box_aug_params)
 
+        assert dataset
         assert local_cache_params
         assert local_cache_params.get('dir')
-        assert local_cache_params.get('n_max_copies', 0) >= 1, 'n_max_copies must be provided and equal or greater than 1.'
+        local_cache_params['n_copies'] = local_cache_params.get('n_copies', 1)
+        assert local_cache_params['n_copies'] >= 1, 'n_copies must be equal or greater than 1.'
 
+        super().__init__(dataset.dataset_info)
+
+        self._dataset = dataset
         self._local_cache_params = local_cache_params
         if not os.path.exists(self._local_cache_params['dir']):
             os.makedirs(self._local_cache_params['dir'])
 
+        self._annotations = {}
+        self._paths = {}
+
+    @property
+    def labels(self):
+        return self._dataset.labels
+
     def __len__(self):
-        return self._n_booxes * self._local_cache_params['n_max_copies']
+        return len(self._dataset) * self._local_cache_params['n_copies']
 
     def _get_single_item(self, index):
-        box_idx = index % self._n_booxes
-        img_idx, box_rel_idx = self._box_abs_id_to_img_rel_id[box_idx]
-        box_copy_idx = index // self._n_booxes
+        annotations = self._annotations.get(index)
+        if annotations:
+            return Image.open(self._paths[index]), annotations, str(index)
 
-        local_img_path = self._construct_local_image_path(box_idx, box_copy_idx)
-        if os.path.exists(local_img_path):
-            logger.log(logging.DEBUG, f'Found local cache for crop {box_idx}! {box_copy_idx}')
-            c_id = self._dataset.dataset_manifest.images[img_idx].labels[box_rel_idx][0]
-            return Image.open(local_img_path), [c_id], str(index)
+        idx_in_epoch = index % len(self._dataset)
+        img, annotations, _ = self._dataset[idx_in_epoch]
+        local_img_path = self._construct_local_image_path(index, img.format)
+        img.save(local_img_path, img.format)
+        self._annotations[index] = annotations
+        self._paths[index] = local_img_path
 
-        box_img, labels, _ = super()._get_single_item(box_idx)
-        box_img.save(local_img_path, box_img.format)
+        return img, annotations, str(index)
 
-        return box_img, labels, str(index)
-
-    def _construct_local_image_path(self, box_idx, box_copy_idx):
-        box_img_id = f'{box_idx}-{box_copy_idx}' if self._box_aug_params else str(box_idx)
-        local_img_path = pathlib.Path(self._local_cache_params['dir']) / box_img_id
-
-        return local_img_path
+    def _construct_local_image_path(self, img_idx, img_format):
+        return pathlib.Path(self._local_cache_params['dir']) / f'{img_idx}.{img_format}'
 
     def generate_manifest(self):
         images = []
-        for idx in range(len(self)):
-            box_idx = idx % self._n_booxes
-            box_copy_idx = idx // self._n_booxes
-            file_path = self._construct_local_image_path(box_idx, box_copy_idx)
-            img, labels, _ = self._get_single_item(idx)  # make sure crop is generated and saved on disk
+        for idx in tqdm(range(len(self)), desc='Generating manifest...'):
+            img, labels, _ = self._get_single_item(idx)  # make sure
             width, height = img.size
-            image = ImageDataManifest(len(images) + 1, str(file_path.as_posix()), width, height, labels)
+            image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
             images.append(image)
 
         return DatasetManifest(images, self.labels, DatasetTypes.IC_MULTICLASS)
+
+    def close(self):
+        self._dataset.close()
 
 
 class BoxAlteration:
