@@ -82,7 +82,7 @@ class ManifestDataset(BaseDataset):
 
 
 class DetectionAsClassificationBaseDataset(BaseDataset, ABC):
-    def __init__(self, detection_dataset: ManifestDataset):
+    def __init__(self, detection_dataset: ManifestDataset, dataset_type: DatasetTypes):
         """
         Args:
             detection_dataset: the detection dataset where images are cropped as classification samples
@@ -90,9 +90,10 @@ class DetectionAsClassificationBaseDataset(BaseDataset, ABC):
 
         assert detection_dataset is not None
         assert detection_dataset.dataset_info.type == DatasetTypes.OD
+        assert DatasetTypes.is_classification(dataset_type)
 
         dataset_info = deepcopy(detection_dataset.dataset_info)
-        dataset_info.type = DatasetTypes.IC_MULTILABEL
+        dataset_info.type = dataset_type
         super().__init__(dataset_info)
 
         self._dataset = detection_dataset
@@ -115,7 +116,7 @@ class DetectionAsClassificationIgnoreBoxesDataset(DetectionAsClassificationBaseD
     """
 
     def __init__(self, detection_dataset: ManifestDataset):
-        super(DetectionAsClassificationIgnoreBoxesDataset, self).__init__(detection_dataset)
+        super(DetectionAsClassificationIgnoreBoxesDataset, self).__init__(detection_dataset, DatasetTypes.IC_MULTILABEL)
 
     def __len__(self):
         return len(self._dataset)
@@ -150,7 +151,7 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
                 'shift_relative_bounds': lower/upper bounds of relative ratio wrt box width and height that a box can shift, e.g., (-0.3, 0.1)
                 'rnd_seed': rnd seed used for box crop zoom and shift
         """
-        super().__init__(detection_dataset)
+        super().__init__(detection_dataset, DatasetTypes.IC_MULTICLASS)
 
         self._n_booxes = 0
         self._box_abs_id_to_img_rel_id = {}
