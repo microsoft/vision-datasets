@@ -112,7 +112,8 @@ class DetectionAsClassificationBaseDataset(BaseDataset, ABC):
 
 class DetectionAsClassificationIgnoreBoxesDataset(DetectionAsClassificationBaseDataset):
     """
-    Consume a detection dataset as a multilabel classification dataset by simply ignoring the boxes
+    Consume a detection dataset as a multilabel classification dataset by simply ignoring the boxes. Duplicate classes for an image will be merged into one, i.e., whether one image possesses 1 bbox
+    of category 1 or 100 bboxes of category 1 does not matter, after conversion
     """
 
     def __init__(self, detection_dataset: ManifestDataset):
@@ -123,16 +124,24 @@ class DetectionAsClassificationIgnoreBoxesDataset(DetectionAsClassificationBaseD
 
     def _get_single_item(self, index):
         img, labels, idx_str = self._dataset[index]
-        labels = list(set([label[0] for label in labels]))
+        labels = DetectionAsClassificationIgnoreBoxesDataset._od_to_ic_labels(labels)
         return img, labels, idx_str
 
     def generate_manifest(self, **kwargs):
+        """
+        Generate dataset manifest for the multilabel classification dataset converted from detection dataset by ignoring the bbox. Manifest will re-use the existing image paths
+        """
+
         images = []
         for img in self._dataset.dataset_manifest.images:
-            labels = list(set([label[0] for label in img.labels]))
+            labels = DetectionAsClassificationIgnoreBoxesDataset._od_to_ic_labels(img.labels)
             ic_img = ImageDataManifest(len(images) + 1, img.img_path, img.width, img.height, labels)
             images.append(ic_img)
         return DatasetManifest(images, self._dataset.labels, DatasetTypes.IC_MULTILABEL)
+
+    @staticmethod
+    def _od_to_ic_labels(labels):
+        return sorted(list(set([label[0] for label in labels])))
 
 
 class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDataset):
@@ -149,7 +158,7 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
             box_aug_params (dict): params controlling box crop augmentation,
                 'zoom_ratio_bounds': the lower/upper bound of box zoom ratio wrt box width and height, e.g., (0.3, 1.5)
                 'shift_relative_bounds': lower/upper bounds of relative ratio wrt box width and height that a box can shift, e.g., (-0.3, 0.1)
-                'rnd_seed': rnd seed used for box crop zoom and shift
+                'rnd_seed' [optional]: rnd seed used for box crop zoom and shift, default being 0
         """
         super().__init__(detection_dataset, DatasetTypes.IC_MULTICLASS)
 
@@ -162,7 +171,7 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
                 self._n_booxes += 1
         self._box_aug_params = box_aug_params
 
-        self._box_aug_rnd = random.Random(self._box_aug_params['rnd_seed']) if box_aug_params else None
+        self._box_aug_rnd = random.Random(self._box_aug_params.get('rnd_seed', 0)) if box_aug_params else None
         self._box_pick_rnd = random.Random(0)
 
     def __len__(self):
@@ -201,6 +210,14 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
         return crop_img
 
     def generate_manifest(self, **kwargs):
+        """
+        Generate dataset manifest for the multiclass classification dataset converted from detection dataset by cropping bboxes as classification samples.
+        Crops will be saved into 'dir' for generating the manifest
+        Args:
+            'dir'(str): directory where cropped images will be saved
+            'n_copies'(int): number of image copies generated for each bbox
+        """
+
         local_cache_params = {'dir': kwargs.get('dir', f'{self.dataset_info.name}-cropped-ic'), 'n_copies': kwargs.get('n_copies')}
         cache_decor = LocalFolderCacheDecorator(self, local_cache_params)
         return cache_decor.generate_manifest()
@@ -221,7 +238,7 @@ class LocalFolderCacheDecorator(BaseDataset):
                 [optional] 'n_copies': default being 1. if n_copies is greater than 1, then multiple copies will be cached and dataset will be n_copies times bigger
         """
 
-        assert dataset
+        assert dataset is not None
         assert local_cache_params
         assert local_cache_params.get('dir')
         local_cache_params['n_copies'] = local_cache_params.get('n_copies', 1)
@@ -262,6 +279,10 @@ class LocalFolderCacheDecorator(BaseDataset):
         return pathlib.Path(self._local_cache_params['dir']) / f'{img_idx}.{img_format}'
 
     def generate_manifest(self):
+        """
+        Generate dataset manifest for the cached dataset.
+        """
+
         images = []
         for idx in tqdm(range(len(self)), desc='Generating manifest...'):
             img, labels, _ = self._get_single_item(idx)  # make sure
@@ -269,7 +290,7 @@ class LocalFolderCacheDecorator(BaseDataset):
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
             images.append(image)
 
-        return DatasetManifest(images, self.labels, DatasetTypes.IC_MULTICLASS)
+        return DatasetManifest(images, self.labels, self._dataset.dataset_info.type)
 
     def close(self):
         self._dataset.close()
