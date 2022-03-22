@@ -3,10 +3,10 @@ import logging
 import multiprocessing
 import os
 import pathlib
+import shutil
 
-from tqdm import tqdm
 from vision_datasets import DatasetHub, Usages
-from vision_datasets.common.manifest_dataset import DetectionAsClassificationDataset
+from vision_datasets.common.manifest_dataset import DetectionAsClassificationByCroppingDataset
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -25,47 +25,34 @@ def create_arg_parser():
                         help='lower and bound of the ratio that box height and width can expand (>1) or shrink (0-1), during cropping, e.g, 0.8/1.2')
     parser.add_argument('-sb', '--shift_relative_bounds', type=str, required=False,
                         help='lower/upper bounds of relative ratio wrt box width and height that a box can shift, during cropping, e.g., "-0.3/0.1"')
+    parser.add_argument('-np', '--n_copies', type=int, required=False, default=1, help='number of copies per bbox')
     parser.add_argument('-s', '--rnd_seed', type=int, required=False, help='random see for box expansion/shrink/shifting.', default=0)
+    parser.add_argument('--zip', dest='zip', action='store_true', help='Flag to add zip prefix to the image paths.')
 
     return parser
 
 
 def process_phase(params):
     args, aug_params, phase = params
-    categories = None
-    images = []
-    annotations = []
 
     logger.info(f'download dataset manifest for {args.name}...')
     dataset_resources = DatasetHub(pathlib.Path(args.reg_json_path).read_text())
     dataset = dataset_resources.create_manifest_dataset(args.sas, args.local_folder, args.name, usage=phase, coordinates='absolute')
     if not dataset:
-        logger.info(f'Skipping phase {phase}.')
+        logger.info(f'Skipping non-existent phase {phase}.')
         return
 
-    img_folder = os.path.join(args.output_folder, phase)
-    if not os.path.exists(img_folder):
-        os.mkdir(img_folder)
-
-    if not categories:
-        categories = []
-        for c_name in dataset.labels:
-            categories.append({'id': len(categories) + 1, 'name': c_name})
-
     logger.info(f'start conversion for {args.name}...')
-    ic_dataset = DetectionAsClassificationDataset(dataset, aug_params)
+    ic_dataset = DetectionAsClassificationByCroppingDataset(dataset, aug_params)
+    manifest = ic_dataset.generate_manifest(dir=phase, n_copies=args.n_copies)
+    if args.zip:
+        for img in manifest.images:
+            img.img_path = f'{phase}.zip@{img.img_path}'
 
-    for img, labels, idx in tqdm(ic_dataset, desc=f'convert for {phase}'):
-        img_id = int(idx) + 1
-        file_name = f'{idx}.{img.format}'
-        img.save(os.path.join(img_folder, file_name), img.format)
-        logger.log(logging.DEBUG, f'Saving to {os.path.join(img_folder, file_name)}')
-        file_name = f'{phase}.zip@{phase}/{file_name}'
-        images.append({'id': img_id, 'file_name': file_name, 'width': img.width, 'height': img.height})
-        annotations.append({'id': len(annotations) + 1, 'image_id': img_id, 'category_id': labels[0] + 1})
-
+    coco = manifest.generate_coco_annotations()
     with open(f'{args.output_folder}/{phase}.json', 'w') as coco_out:
-        coco_out.write(json.dumps({'images': images, 'categories': categories, 'annotations': annotations}, indent=2))
+        coco_out.write(json.dumps(coco, indent=2))
+    shutil.move(f'{phase}', f'{args.output_folder}/', copy_function=shutil.copytree)
 
 
 def main():

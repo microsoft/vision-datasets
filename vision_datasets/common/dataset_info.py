@@ -20,9 +20,9 @@ class BaseDatasetInfo:
 
     def __init__(self, dataset_info_dict):
         self.name = dataset_info_dict['name']
-        self.version = dataset_info_dict['version']
+        self.version = dataset_info_dict.get('version', 1)
         self.type = dataset_info_dict['type']
-        self.root_folder = dataset_info_dict['root_folder']
+        self.root_folder = dataset_info_dict.get('root_folder')
         self.description = dataset_info_dict.get('description', '')
         self.data_format = dataset_info_dict.get('format', Formats.IRIS)
 
@@ -30,7 +30,8 @@ class BaseDatasetInfo:
 class DatasetInfo(BaseDatasetInfo):
 
     def __init__(self, dataset_info_dict):
-        assert dataset_info_dict['type'] in DatasetTypes.VALID_TYPES
+
+        assert dataset_info_dict.get('type') in DatasetTypes.VALID_TYPES
         assert not DatasetInfoFactory.is_multitask(dataset_info_dict['type'])
         super(DatasetInfo, self).__init__(dataset_info_dict)
 
@@ -39,9 +40,7 @@ class DatasetInfo(BaseDatasetInfo):
         for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
             if usage in dataset_info_dict:
                 self.index_files[usage] = dataset_info_dict[usage]['index_path']
-                self.files_for_local_usage[usage] = dataset_info_dict[usage]['files_for_local_usage']
-
-        self.box_out_of_image = dataset_info_dict.get('box_out_of_image', False)
+                self.files_for_local_usage[usage] = dataset_info_dict[usage].get('files_for_local_usage', [])
 
         # Below are needed for iris format only. As both image h and w and labelmaps are included in the coco annotation files
         self.labelmap = dataset_info_dict.get('labelmap')
