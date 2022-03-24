@@ -164,9 +164,8 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
 
         self._n_booxes = 0
         self._box_abs_id_to_img_rel_id = {}
-        for img_id, x in enumerate(self._dataset):
-            boxes = x[1]
-            for i in range(len(boxes)):
+        for img_id, x in enumerate(self._dataset.dataset_manifest.images):
+            for i in range(len(x.labels)):
                 self._box_abs_id_to_img_rel_id[self._n_booxes] = (img_id, i)
                 self._n_booxes += 1
         self._box_aug_params = box_aug_params
@@ -184,10 +183,7 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
         c_id, left, t, r, b = boxes[box_rel_idx]
         if self._dataset.coordinates == 'relative':
             w, h = img.size
-            left *= w
-            t *= h
-            r *= w
-            b *= h
+            left, t, r, b = left * w, t * h, r * w, b * h
 
         box_img = DetectionAsClassificationByCroppingDataset.crop(img, left, t, r, b, self._box_aug_params, self._box_aug_rnd)
         return box_img, [c_id], str(index)
