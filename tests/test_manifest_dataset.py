@@ -5,9 +5,10 @@ import tempfile
 import unittest
 
 from PIL import Image
+
+from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets import IrisManifestAdaptor, DatasetInfo, ManifestDataset
-from vision_datasets.common.constants import Usages, DatasetTypes
-from vision_datasets.common.manifest_dataset import DetectionAsClassificationDataset
+from vision_datasets.common.constants import Usages
 
 
 class TestManifestDataset(unittest.TestCase):
@@ -62,13 +63,7 @@ class TestManifestDataset(unittest.TestCase):
             self.assertEqual(target0, [[0, 0.0, 0.0, 100.0, 100.0], [1, 10.0, 10.0, 50.0, 100.0]])
             self.assertEqual(target1, [[1, 50.0, 50.0, 80.0, 80.0], [3, 0.0, 50.0, 100.0, 100.0]])
 
-    def test_od_as_ic_dataset(self):
-        dataset, tempdir = self._create_an_od_dataset()
-        with tempdir:
-            ic_dataset = DetectionAsClassificationDataset(dataset)
-            assert ic_dataset.dataset_info.type == DatasetTypes.IC_MULTICLASS
-            assert len(ic_dataset) == 4
-            assert ic_dataset[0][0].size == (100, 100)
-            assert ic_dataset[1][0].size == (40, 90)
-            assert ic_dataset[2][0].size == (30, 30)
-            assert ic_dataset[3][0].size == (100, 50)
+    def test_works_with_empty_manifest(self):
+        dataset_manifest = DetectionTestFixtures.create_an_od_manifest()
+        dataset_manifest.images = []
+        assert len(ManifestDataset(DatasetInfo(DetectionTestFixtures.DATASET_INFO_DICT), dataset_manifest)) == 0
