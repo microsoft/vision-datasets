@@ -9,7 +9,7 @@ from vision_datasets.common.manifest_dataset import DetectionAsClassificationByC
 
 class TestDetectionAsClassification(unittest.TestCase):
     def test_od_manifest_with_different_coordinate_formats(self):
-        dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
+        dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(2, 'relative')
         with tempdir:
             self.assertEqual(len(dataset), 2)
             self.assertEqual(len(dataset.labels), 4)
@@ -18,10 +18,18 @@ class TestDetectionAsClassification(unittest.TestCase):
             self.assertEqual(target0, [[0, 0.0, 0.0, 1.0, 1.0], [1, 0.1, 0.1, 0.5, 1.0]])
             self.assertEqual(target1, [[2, 0.5, 0.5, 0.8, 0.8], [3, 0.0, 0.5, 1.0, 1.0]])
             dataset = ManifestDataset(dataset.dataset_info, dataset.dataset_manifest, 'absolute')
+            ic_dataset_1 = DetectionAsClassificationByCroppingDataset(dataset)
             image0, target0, _ = dataset[0]
             image1, target1, _ = dataset[1]
             self.assertEqual(target0, [[0, 0.0, 0.0, 100.0, 100.0], [1, 10.0, 10.0, 50.0, 100.0]])
             self.assertEqual(target1, [[2, 50.0, 50.0, 80.0, 80.0], [3, 0.0, 50.0, 100.0, 100.0]])
+            ic_dataset_2 = DetectionAsClassificationByCroppingDataset(dataset)
+            assert len(ic_dataset_1) == len(ic_dataset_2)
+            for i in range(len(ic_dataset_1)):
+                img_1 = ic_dataset_1[i]
+                img_2 = ic_dataset_2[i]
+                assert img_1[0].size == img_2[0].size
+                assert img_1[1] == img_2[1]
 
     def test_od_as_ic_dataset_by_crop(self):
         dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()

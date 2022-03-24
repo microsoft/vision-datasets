@@ -42,17 +42,17 @@ class DetectionTestFixtures:
         return CocoManifestAdaptor.create_dataset_manifest(coco_path.name, DatasetTypes.IC_MULTICLASS, root_dir)
 
     @staticmethod
-    def create_an_od_dataset():
+    def create_an_od_dataset(n_images=2, coordinates='relative'):
         dataset_dict = copy.deepcopy(DetectionTestFixtures.DATASET_INFO_DICT)
 
         tempdir = tempfile.TemporaryDirectory()
         dataset_dict['root_folder'] = tempdir.name
         dataset_dict['type'] = 'object_detection'
-        for i in range(2):
+        for i in range(n_images):
             Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
             print(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
 
         dataset_info = DatasetInfo(dataset_dict)
         dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir.name)
-        dataset = ManifestDataset(dataset_info, dataset_manifest, 'relative')
+        dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates)
         return dataset, tempdir
