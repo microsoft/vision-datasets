@@ -742,6 +742,12 @@ class CocoManifestAdaptor:
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
+        if data_type == DatasetTypes.IMAGE_MATTING:
+            for annotation in coco_manifest['annotations']:
+                images_by_id[annotation['image_id']].labels.append(get_full_sas_or_path(annotation['file_name']))
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
+
         cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
         cate_id_name.sort(key=lambda x: x[0])
         label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
