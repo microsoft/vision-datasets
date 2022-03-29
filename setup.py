@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.2.7'
+VERSION = '0.2.8'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -25,7 +25,8 @@ setuptools.setup(name='vision_datasets',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
-                     'tqdm'
+                     'tqdm',
+                     'zipfile'
                  ],
                  classifiers=[
                      'Development Status :: 4 - Beta',
