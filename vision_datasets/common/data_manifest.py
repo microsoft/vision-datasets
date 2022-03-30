@@ -779,9 +779,9 @@ class CocoManifestAdaptor:
         """
         Load image matting label from a zip file
         Arg:
-            image_label_file_path: one of the following two file path format
+            image_label_file_path: an annotation file path for the image. Two formats are supported:
                 1. a file path containing the image file name e.g. foo/bar.jpg
-                1. a file path containing the zip file name and the image name, connecting with '@',  e.g. '/tmp/foo.zip@bar.jpg'
+                2. a file path containing the zip file name and the image name, connecting with '@',  e.g. '/tmp/foo.zip@bar.jpg'
         Return:
             A PIL image object
         """
