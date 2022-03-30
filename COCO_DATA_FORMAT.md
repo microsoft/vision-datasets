@@ -71,3 +71,19 @@ Here is one example of the json file for image text matching task. `match: 1` in
   ],
 }
 ```
+
+
+## Image text matching
+
+Here is one example of the json file for image matting task. 
+
+``` {json}
+{
+    "images": [{"id": 1, "file_name": "train_images.zip@image/04035_input.jpg"},
+                {"id": 2, "file_name": "train_images.zip@image/01226_input.jpg"}],
+    "annotations": [
+        {"id": 1, "image_id": 1, "label": "image_matting_test_data.zip@mask/04035_input.png"},
+        {"id": 2, "image_id": 2, "label": "image_matting_test_data.zip@mask/01226_input.png"},
+    ]
+}
+```
