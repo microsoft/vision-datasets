@@ -747,7 +747,7 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                label = CocoManifestAdaptor._load_image_matting_label_from_file(get_full_sas_or_path(annotation['file_name']))
+                label = CocoManifestAdaptor._load_image_matting_label_from_file(get_full_sas_or_path(annotation['label']))
                 images_by_id[annotation['image_id']].labels.append(label)
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
@@ -779,22 +779,24 @@ class CocoManifestAdaptor:
         """
         Load image matting label from a zip file
         Arg:
-            image_label_file_path: a file path containing the zip file name and the image name
-                    e.g. '/tmp/foo.zip@bar.jpg'
+            image_label_file_path: one of the following two file path format
+                1. a file path containing the image file name e.g. foo/bar.jpg
+                1. a file path containing the zip file name and the image name, connecting with '@',  e.g. '/tmp/foo.zip@bar.jpg'
         Return:
             A PIL image object
         """
+        if '@' in image_label_file_path:
+            zip_file_path, image_file_path = image_label_file_path.split('@')
 
-        zip_file_path, image_file_path = image_label_file_path.split('@')
+            assert zip_file_path, f'Zip file name is not found in path: {image_label_file_path}'
+            assert image_file_path, f'Image file name is not found in path: {image_label_file_path}'
 
-        assert zip_file_path, f'Zip file name is not found in path: {image_label_file_path}'
-        assert image_file_path, f'Image file name is not found in path: {image_label_file_path}'
+            image_zip = zipfile.ZipFile(zip_file_path)
+            name_list = image_zip.namelist()
 
-        image_zip = zipfile.ZipFile(zip_file_path)
-        name_list = image_zip.namelist()
+            assert image_file_path in name_list, f'Image {image_file_path} is not found in zip file {zip_file_path}'
 
-        assert image_file_path in name_list, f'Image {image_file_path} is not found in zip file {zip_file_path}'
-
-        image_data = image_zip.open(image_file_path)
-        return Image.open(image_data)
-
+            image_data = Image.open(image_zip.open(image_file_path))
+        else:
+            image_data = Image.open(image_label_file_path)
+        return image_data
