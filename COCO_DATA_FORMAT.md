@@ -73,7 +73,7 @@ Here is one example of the json file for image text matching task. `match: 1` in
 ```
 
 
-## Image text matching
+## Image matting
 
 Here is one example of the json file for image matting task. 
 
