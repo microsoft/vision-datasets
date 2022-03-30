@@ -747,7 +747,8 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                label = CocoManifestAdaptor._load_image_matting_label_from_file(get_full_sas_or_path(annotation['label']))
+                # label = CocoManifestAdaptor._load_image_matting_label_from_file(file_reader, get_full_sas_or_path(annotation['label']))
+                label = Image.open(file_reader.open(get_full_sas_or_path(annotation['label'])))
                 images_by_id[annotation['image_id']].labels.append(label)
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
@@ -775,7 +776,7 @@ class CocoManifestAdaptor:
 
         return DatasetManifest(images, labelmap, data_type)
 
-    def _load_image_matting_label_from_file(image_label_file_path):
+    def _load_image_matting_label_from_file(file_reader, image_label_file_path):
         """
         Load image matting label from a zip file
         Arg:
