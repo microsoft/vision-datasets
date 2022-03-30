@@ -7,6 +7,9 @@ import random
 from typing import List, Dict
 from urllib import parse as urlparse
 
+import zipfile
+from PIL import Image
+
 from .constants import DatasetTypes, Formats, BBoxFormat
 from .dataset_info import MultiTaskDatasetInfo
 from .util import is_url, FileReader
@@ -607,7 +610,7 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING]:
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING]:
             raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
@@ -744,7 +747,8 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                images_by_id[annotation['image_id']].labels.append(get_full_sas_or_path(annotation['file_name']))
+                label = CocoManifestAdaptor._load_image_matting_label_from_file(get_full_sas_or_path(annotation['label']))
+                images_by_id[annotation['image_id']].labels.append(label)
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
@@ -770,3 +774,27 @@ class CocoManifestAdaptor:
         images.sort(key=lambda x: x.id)
 
         return DatasetManifest(images, labelmap, data_type)
+
+    def _load_image_matting_label_from_file(image_label_file_path):
+        """
+        Load image matting label from a zip file
+        Arg:
+            image_label_file_path: an annotation file path for the image. Two formats are supported:
+                1. a file path containing the image file name e.g. foo/bar.jpg
+                2. a file path containing the zip file name and the image name, connecting with '@',  e.g. '/tmp/foo.zip@bar.jpg'
+        Return:
+            A PIL image object
+        """
+        if '@' in image_label_file_path:
+            zip_file_path, image_file_path = image_label_file_path.split('@')
+            assert zip_file_path, f'Zip file name is not found in path: {image_label_file_path}'
+            assert image_file_path, f'Image file name is not found in path: {image_label_file_path}'
+
+            image_zip = zipfile.ZipFile(zip_file_path)
+            name_list = image_zip.namelist()
+            assert image_file_path in name_list, f'Image {image_file_path} is not found in zip file {zip_file_path}'
+
+            image_data = Image.open(image_zip.open(image_file_path))
+        else:
+            image_data = Image.open(image_label_file_path)
+        return image_data
