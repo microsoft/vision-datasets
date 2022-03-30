@@ -1002,12 +1002,3 @@ class TestDatasetManifestMerge(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    # zip_file_path = os.path.join(pathlib.Path(__file__).resolve().parent, 'image_matting_test_data.zip')
-    # img_0_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/01667_input.png'))]
-    # img_1_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/0676_cloud_input.png'))]
-
-    # dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
-    # unittest.TestCase.assertIsInstance(unittest.TestCase, dataset_manifest, DatasetManifest)
-    # unittest.TestCase.assertEqual(unittest.TestCase, len(dataset_manifest.images), 2)
-    # unittest.TestCase.assertEqual(unittest.TestCase, dataset_manifest.images[0].labels, img_0_matting)
-    # unittest.TestCase.assertEqual(unittest.TestCase, dataset_manifest.images[1].labels, img_1_matting)
