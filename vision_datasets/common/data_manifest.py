@@ -787,13 +787,11 @@ class CocoManifestAdaptor:
         """
         if '@' in image_label_file_path:
             zip_file_path, image_file_path = image_label_file_path.split('@')
-
             assert zip_file_path, f'Zip file name is not found in path: {image_label_file_path}'
             assert image_file_path, f'Image file name is not found in path: {image_label_file_path}'
 
             image_zip = zipfile.ZipFile(zip_file_path)
             name_list = image_zip.namelist()
-
             assert image_file_path in name_list, f'Image {image_file_path} is not found in zip file {zip_file_path}'
 
             image_data = Image.open(image_zip.open(image_file_path))
