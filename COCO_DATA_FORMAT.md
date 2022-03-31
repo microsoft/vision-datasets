@@ -98,7 +98,7 @@ Specifically, **only** image files are supported for the label files.
 =======
 >>>>>>> fixing comments
 
-Specifically, **only** image files are supported for the label file.
+Specifically, **only** image files are supported for the label files.
 
 ``` {json}
 {
