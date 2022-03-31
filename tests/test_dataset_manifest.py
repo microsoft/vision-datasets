@@ -504,7 +504,6 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
-        print(dataset_manifest.images[0].labels, img_0_matting)
         self.assertEqual(dataset_manifest.images[0].labels, img_0_matting)
         self.assertEqual(dataset_manifest.images[1].labels, img_1_matting)
 
