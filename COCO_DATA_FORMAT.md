@@ -81,7 +81,7 @@ Here is one example of the json file for image matting task. The "label" in the 
 - a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
 - a url to the label file
 
-Specifically, **only** image files are supported for the label file.
+Specifically, **only** image files are supported for the label files.
 
 ``` {json}
 {
