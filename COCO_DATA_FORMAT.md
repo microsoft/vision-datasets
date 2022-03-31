@@ -79,11 +79,11 @@ Here is one example of the json file for image matting task.
 
 ``` {json}
 {
-    "images": [{"id": 1, "file_name": "train_images.zip@image/04035_input.jpg"},
-                {"id": 2, "file_name": "train_images.zip@image/01226_input.jpg"}],
+    "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
     "annotations": [
-        {"id": 1, "image_id": 1, "label": "image_matting_test_data.zip@mask/04035_input.png"},
-        {"id": 2, "image_id": 2, "label": "image_matting_test_data.zip@mask/01226_input.png"},
+        {"id": 1, "image_id": 1, "label": "image_matting_test_data.zip@mask/test_1.png"},
+        {"id": 2, "image_id": 2, "label": "image_matting_test_data.zip@mask/test_2.png"},
     ]
 }
 ```
