@@ -89,7 +89,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
         },
     }
 
-    MATTING_JSON ={
+    MATTING_JSON_COCO_FORMAT ={
         "images": [{"id": 1, "file_name": "test.zip@0.jpg"},
                    {"id": 2, "file_name": "test.zip@1.jpg"}],
         "annotations": [
@@ -118,7 +118,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
             zf.write(pathlib.Path(tempdir.name) / '1.png', '1.png')
 
         with open(pathlib.Path(tempdir.name) / 'test.json', 'w') as f:
-            json.dump(TestCOCOManifestDataset.MATTING_JSON, f)
+            json.dump(TestCOCOManifestDataset.MATTING_JSON_COCO_FORMAT, f)
 
         dataset_info = DatasetInfo(dataset_dict)
         dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(dataset_info.test_path, dataset_info.type, dataset_info.root_folder)
