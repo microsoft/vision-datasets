@@ -99,9 +99,8 @@ class ImageDataManifest:
                 detection: [[c_id, left, top, right, bottom], ...];
                 image caption: [caption1, caption2, ...];
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
-                image matting: [image_matting], where 'image_matting' is a PIL object or a Numpy array;
                 multitask: dict[task, labels]
-            label_file_path (str): path to label file
+            label_file_path (str): path to a image label file. "label_file_path" only works for image matting task.
         """
         self.id = id
         self.img_path = img_path
@@ -109,11 +108,14 @@ class ImageDataManifest:
         self.height = height
         self._labels = labels
         self.label_file_path = label_file_path
+        self.file_reader = FileReader()
 
     @property
     def labels(self):
         if self.label_file_path:
-            return Image.open(FileReader().open(self.label_file_path))
+            label = Image.open(self.file_reader.open(self.label_file_path))
+            self.file_reader.close()
+            return label
         else:
             return self._labels
 

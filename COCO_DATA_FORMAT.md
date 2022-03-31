@@ -98,7 +98,7 @@ Specifically, **only** image files are supported for the label files.
 =======
 >>>>>>> fixing comments
 
-Specifically, **only** image files are supported for the label files.
+Specifically, **only** image files are supported for the label files. The ground turth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
 
 ``` {json}
 {
