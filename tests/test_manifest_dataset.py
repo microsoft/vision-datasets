@@ -1,5 +1,4 @@
 import copy
-import os
 import pathlib
 import tempfile
 import unittest
@@ -89,7 +88,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
         },
     }
 
-    MATTING_JSON_COCO_FORMAT ={
+    MATTING_JSON_COCO_FORMAT = {
         "images": [{"id": 1, "file_name": "test.zip@0.jpg"},
                    {"id": 2, "file_name": "test.zip@1.jpg"}],
         "annotations": [
@@ -103,7 +102,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
         dataset_dict = copy.deepcopy(TestCOCOManifestDataset.DATASET_INFO_DICT)
         tempdir = tempfile.TemporaryDirectory()
         dataset_dict['root_folder'] = tempdir.name
-        images = [Image.new('RGB', (100, 100)), Image.new('RGB', (100, 100)), Image.new('L', (100, 100)), Image.new('L', (100, 100))] 
+        images = [Image.new('RGB', (100, 100)), Image.new('RGB', (100, 100)), Image.new('L', (100, 100)), Image.new('L', (100, 100))]
         images[0].save(pathlib.Path(tempdir.name) / '0.jpg')
         images[1].save(pathlib.Path(tempdir.name) / '1.jpg')
         images[2].save(pathlib.Path(tempdir.name) / '0.png')
@@ -112,7 +111,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
         with zipfile.ZipFile(pathlib.Path(tempdir.name) / 'test.zip', 'w') as zf:
             zf.write(pathlib.Path(tempdir.name) / '0.jpg', '0.jpg')
             zf.write(pathlib.Path(tempdir.name) / '1.jpg', '1.jpg')
-        
+
         with zipfile.ZipFile(pathlib.Path(tempdir.name) / 'mask.zip', 'w') as zf:
             zf.write(pathlib.Path(tempdir.name) / '0.png', '0.png')
             zf.write(pathlib.Path(tempdir.name) / '1.png', '1.png')
