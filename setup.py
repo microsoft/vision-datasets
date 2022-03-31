@@ -25,7 +25,7 @@ setuptools.setup(name='vision_datasets',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
-                     'tqdm',
+                     'tqdm'
                  ],
                  classifiers=[
                      'Development Status :: 4 - Beta',
