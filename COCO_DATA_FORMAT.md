@@ -75,7 +75,7 @@ Here is one example of the json file for image text matching task. `match: 1` in
 
 ## Image matting
 
-Here is one example of the json file for image matting task. Specifically, the "label" in the "annotations" can be one of the following format: 
+Here is one example of the json file for image matting task. Specifically, the "label" in the "annotations" can be one of the following formats: 
 
 - a local path to the label file
 - a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
