@@ -8,11 +8,11 @@ from collections import Counter
 from unittest.mock import patch
 
 from PIL import Image
-import zipfile
 
 from vision_datasets import IrisManifestAdaptor, DatasetInfo, DatasetManifest, CocoManifestAdaptor
 from vision_datasets.common.constants import Usages, DatasetTypes
 from vision_datasets.common.data_manifest import ImageDataManifest
+from vision_datasets.common.util import FileReader
 
 
 def _generate_labelmap(n_classes):
@@ -184,25 +184,25 @@ class TestCases:
 
     image_matting_manifest_dicts = [
         {
-            "images": [{"id": 1, "file_name": "train_images.zip@image/00492_input.jpg"}],
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"}],
             "annotations": [
-                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/00492_input.png"}
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"}
             ]
         },
         {
-            "images": [{"id": 1, "file_name": "train_images.zip@image/04035_input.jpg"},
-                       {"id": 2, "file_name": "train_images.zip@image/01226_input.jpg"}],
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
             "annotations": [
-                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/04035_input.png"},
-                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/01226_input.png"},
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"},
+                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_2.png"},
             ]
         },
         {
-            "images": [{"id": 1, "file_name": "train_images.zip@image/01667_input.jpg"},
-                       {"id": 2, "file_name": "train_images.zip@image/0676_cloud_input.jpg"}],
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
             "annotations": [
-                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/01667_input.png"},
-                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/0676_cloud_input.png"},
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"},
+                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_2.png"},
             ]
         }]
 
@@ -496,22 +496,25 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
                 assert image.labels == image_ann[image.id]
 
     def test_image_matting_manifest(self):
-        zip_file_path = os.path.join(pathlib.Path(__file__).resolve().parent, 'image_matting_test_data.zip')
-        img_0_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/01667_input.png'))]
-        img_1_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/0676_cloud_input.png'))]
+        zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
+        file_reader = FileReader()
+        img_0_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png'))
+        img_1_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png'))
 
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
+        print(dataset_manifest.images[0].labels, img_0_matting)
         self.assertEqual(dataset_manifest.images[0].labels, img_0_matting)
         self.assertEqual(dataset_manifest.images[1].labels, img_1_matting)
 
     def test_multitask_ic_multilabel_and_image_matting(self):
         classfication_manifest_dict = TestCases.ic_manifest_dicts[0]
         image_matting_manifest_dict = TestCases.image_matting_manifest_dicts[2]
-        zip_file_path = os.path.join(pathlib.Path(__file__).resolve().parent, 'image_matting_test_data.zip')
-        img_0_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/01667_input.png'))]
-        img_1_matting = [Image.open(zipfile.ZipFile(zip_file_path).open('mask/0676_cloud_input.png'))]
+        zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
+        file_reader = FileReader()
+        img_0_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png'))
+        img_1_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png'))
 
         task_types = {'task1': DatasetTypes.IC_MULTILABEL, 'task2': DatasetTypes.IMAGE_MATTING}
 

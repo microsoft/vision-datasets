@@ -7,7 +7,6 @@ import random
 from typing import List, Dict
 from urllib import parse as urlparse
 
-import zipfile
 from PIL import Image
 
 from .constants import DatasetTypes, Formats, BBoxFormat
@@ -85,10 +84,10 @@ class ImageDataManifest:
     """
     Encapsulates the information and annotations of an image.
 
-    img_path could be 1. a local path 2. a local path in a non-compressed zip file (`c:\a.zip@1.jpg`) or 3. a url.
+    img_path and label_file_path could be 1. a local path 2. a local path in a non-compressed zip file (`c:\a.zip@1.jpg`) or 3. a url.
     """
 
-    def __init__(self, id, img_path, width, height, labels):
+    def __init__(self, id, img_path, width, height, labels, label_file_path=None):
         """
         Args:
             id (int or str): image id
@@ -99,14 +98,28 @@ class ImageDataManifest:
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
                 detection: [[c_id, left, top, right, bottom], ...];
                 image caption: [caption1, caption2, ...];
-                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)]
+                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
+                image matting: [image_matting], where 'image_matting' is a PIL object or a Numpy array;
                 multitask: dict[task, labels]
+            label_file_path (str): path to label file
         """
         self.id = id
         self.img_path = img_path
         self.width = width
         self.height = height
-        self.labels = labels
+        self._labels = labels
+        self.label_file_path = label_file_path
+
+    @property
+    def labels(self):
+        if self.label_file_path:
+            return Image.open(FileReader().open(self.label_file_path))
+        else:
+            return self._labels
+
+    @labels.setter
+    def labels(self, value):
+        self._labels = value
 
 
 class DatasetManifest:
@@ -747,9 +760,7 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                # label = CocoManifestAdaptor._load_image_matting_label_from_file(file_reader, get_full_sas_or_path(annotation['label']))
-                label = Image.open(file_reader.open(get_full_sas_or_path(annotation['label'])))
-                images_by_id[annotation['image_id']].labels.append(label)
+                images_by_id[annotation['image_id']].label_file_path = (get_full_sas_or_path(annotation['label']))
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
@@ -775,27 +786,3 @@ class CocoManifestAdaptor:
         images.sort(key=lambda x: x.id)
 
         return DatasetManifest(images, labelmap, data_type)
-
-    def _load_image_matting_label_from_file(file_reader, image_label_file_path):
-        """
-        Load image matting label from a zip file
-        Arg:
-            image_label_file_path: an annotation file path for the image. Two formats are supported:
-                1. a file path containing the image file name e.g. foo/bar.jpg
-                2. a file path containing the zip file name and the image name, connecting with '@',  e.g. '/tmp/foo.zip@bar.jpg'
-        Return:
-            A PIL image object
-        """
-        if '@' in image_label_file_path:
-            zip_file_path, image_file_path = image_label_file_path.split('@')
-            assert zip_file_path, f'Zip file name is not found in path: {image_label_file_path}'
-            assert image_file_path, f'Image file name is not found in path: {image_label_file_path}'
-
-            image_zip = zipfile.ZipFile(zip_file_path)
-            name_list = image_zip.namelist()
-            assert image_file_path in name_list, f'Image {image_file_path} is not found in zip file {zip_file_path}'
-
-            image_data = Image.open(image_zip.open(image_file_path))
-        else:
-            image_data = Image.open(image_label_file_path)
-        return image_data
