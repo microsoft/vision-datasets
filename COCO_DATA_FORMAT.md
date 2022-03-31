@@ -88,8 +88,8 @@ Specifically, **only** image files are supported for the label files.
     "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
                 {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
     "annotations": [
-        {"id": 1, "image_id": 1, "label": "image_matting_label.zip@mask/test_1.png"},
-        {"id": 2, "image_id": 2, "label": "image_matting_label.zip@mask/test_2.png"},
+        {"id": 1, "image_id": 1, "label": "image_matting_test_data.zip@mask/test_1.png"},
+        {"id": 2, "image_id": 2, "label": "image_matting_test_data.zip@mask/test_2.png"},
     ]
 }
 ```
