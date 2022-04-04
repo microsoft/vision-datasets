@@ -35,6 +35,7 @@ setuptools.setup(name='vision_datasets',
                      'Programming Language :: Python :: 3.7',
                      'Programming Language :: Python :: 3.8',
                      'Programming Language :: Python :: 3.9',
+                     'Programming Language :: Python :: 3.10',
                  ],
                  extras_require={'run': ['torch>=1.6.0', 'torchvision>=0.7.0']},
                  entry_points={
