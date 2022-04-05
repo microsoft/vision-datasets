@@ -8,6 +8,7 @@ from typing import List, Dict
 from urllib import parse as urlparse
 
 from PIL import Image
+import numpy as np
 
 from .constants import DatasetTypes, Formats, BBoxFormat
 from .dataset_info import MultiTaskDatasetInfo
@@ -84,10 +85,11 @@ class ImageDataManifest:
     """
     Encapsulates the information and annotations of an image.
 
-    img_path and label_file_path could be 1. a local path 2. a local path in a non-compressed zip file (`c:\a.zip@1.jpg`) or 3. a url.
+    img_path could be 1. a local path 2. a local path in a non-compressed zip file (`c:\a.zip@1.jpg`) or 3. a url.
+    label_file_paths is a list of paths that have the same format with img_path
     """
 
-    def __init__(self, id, img_path, width, height, labels, label_file_path=None):
+    def __init__(self, id, img_path, width, height, labels, label_file_paths=None):
         """
         Args:
             id (int or str): image id
@@ -97,32 +99,57 @@ class ImageDataManifest:
             labels (list or dict):
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
                 detection: [[c_id, left, top, right, bottom], ...];
-                image caption: [caption1, caption2, ...];
+                image_caption: [caption1, caption2, ...];
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
                 multitask: dict[task, labels]
-            label_file_path (str): path to a image label file. "label_file_path" only works for image matting task.
+                image_matting: [mating1, matting2, ...]
+            label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
         """
         self.id = id
         self.img_path = img_path
         self.width = width
         self.height = height
         self._labels = labels
-        self.label_file_path = label_file_path
+        self.label_file_paths = label_file_paths
         self.file_reader = FileReader()
 
     @property
     def labels(self):
-        if self.label_file_path:
-            label = Image.open(self.file_reader.open(self.label_file_path))
-            self.file_reader.close()
-            return label
+        if self._labels:
+            return self._labels
+        elif self.label_file_paths:
+            labels = []
+            for label_file_path in self.label_file_paths:
+                labels.append(np.asImage.open(self.file_reader.open(label_file_path)))
+                self.file_reader.close()
+            return labels
         else:
+            self._labels=[]
             return self._labels
 
     @labels.setter
     def labels(self, value):
         self._labels = value
 
+
+"""
+Class ImageDataManifest:
+    def __init__(self, ...., labels, label_file_path=None)
+         self._labels = labels
+         self.label_file_path = label_file_path
+    @property
+    def labels(self):
+        if self._labels:
+            return self.labels
+        elif self.label_file_path:
+            return read_parse(self.label_file_path)
+         
+         return None
+     
+     @labels.setter
+     def labels(self, value):
+         self._labels = value
+"""
 
 class DatasetManifest:
     """
