@@ -118,14 +118,12 @@ class ImageDataManifest:
         if self._labels:
             return self._labels
         elif self.label_file_paths:
-            labels = []
+            self._labels = []
             for label_file_path in self.label_file_paths:
-                labels.append(np.asarray(Image.open(self.file_reader.open(label_file_path))))
+                self._labels.append(np.asarray(Image.open(self.file_reader.open(label_file_path))))
                 self.file_reader.close()
-            return labels
-        else:
-            self._labels=[]
             return self._labels
+        return self._labels
 
     @labels.setter
     def labels(self, value):
