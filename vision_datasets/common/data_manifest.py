@@ -132,25 +132,6 @@ class ImageDataManifest:
         self._labels = value
 
 
-"""
-Class ImageDataManifest:
-    def __init__(self, ...., labels, label_file_path=None)
-         self._labels = labels
-         self.label_file_path = label_file_path
-    @property
-    def labels(self):
-        if self._labels:
-            return self.labels
-        elif self.label_file_path:
-            return read_parse(self.label_file_path)
-         
-         return None
-     
-     @labels.setter
-     def labels(self, value):
-         self._labels = value
-"""
-
 class DatasetManifest:
     """
     Encapsulates every information about a dataset including labelmap, images (width, height, path to image), and annotations. Information about each image is encapsulated in ImageDataManifest.

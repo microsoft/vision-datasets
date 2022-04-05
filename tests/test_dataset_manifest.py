@@ -8,6 +8,7 @@ from collections import Counter
 from unittest.mock import patch
 
 from PIL import Image
+import numpy as np
 
 from vision_datasets import IrisManifestAdaptor, DatasetInfo, DatasetManifest, CocoManifestAdaptor
 from vision_datasets.common.constants import Usages, DatasetTypes
@@ -498,8 +499,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
     def test_image_matting_manifest(self):
         zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
         file_reader = FileReader()
-        img_0_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png'))
-        img_1_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png'))
+        img_0_matting = np.asarray(Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png')))
+        img_1_matting = np.asarray(Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png')))
 
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
