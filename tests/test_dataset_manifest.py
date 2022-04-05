@@ -505,8 +505,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
-        self.assertEqual(dataset_manifest.images[0].labels, img_0_matting)
-        self.assertEqual(dataset_manifest.images[1].labels, img_1_matting)
+        self.assertTrue(np.array_equal(dataset_manifest.images[0].labels[0], img_0_matting, equal_nan=True))
+        self.assertTrue(np.array_equal(dataset_manifest.images[1].labels[0], img_1_matting, equal_nan=True))
 
     def test_multitask_ic_multilabel_and_image_matting(self):
         classfication_manifest_dict = TestCases.ic_manifest_dicts[0]
@@ -530,8 +530,10 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(len(dataset_manifest.labelmap), 2)
-        self.assertEqual(dataset_manifest.images[0].labels, {'task1': [0], 'task2': img_0_matting})
-        self.assertEqual(dataset_manifest.images[1].labels, {'task1': [0, 1], 'task2': img_1_matting})
+        self.assertEqual(dataset_manifest.images[0].labels['task1'],  [0])
+        self.assertTrue(np.array_equal(dataset_manifest.images[0].labels['task2'][0], img_0_matting, equal_nan=True))
+        self.assertEqual(dataset_manifest.images[1].labels['task1'],  [0, 1])
+        self.assertTrue(np.array_equal(dataset_manifest.images[1].labels['task2'][0], img_1_matting, equal_nan=True))
 
 
 class TestManifestFewShotSample(unittest.TestCase):

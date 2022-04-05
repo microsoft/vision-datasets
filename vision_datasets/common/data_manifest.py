@@ -120,7 +120,7 @@ class ImageDataManifest:
         elif self.label_file_paths:
             labels = []
             for label_file_path in self.label_file_paths:
-                labels.append(np.asImage.open(self.file_reader.open(label_file_path)))
+                labels.append(np.asarray(Image.open(self.file_reader.open(label_file_path))))
                 self.file_reader.close()
             return labels
         else:
@@ -770,7 +770,7 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                images_by_id[annotation['image_id']].label_file_path = (get_full_sas_or_path(annotation['label']))
+                images_by_id[annotation['image_id']].label_file_paths = [get_full_sas_or_path(annotation['label'])]
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 

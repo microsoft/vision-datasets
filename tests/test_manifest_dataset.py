@@ -6,6 +6,7 @@ import zipfile
 import json
 
 from PIL import Image
+import numpy as np
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets import IrisManifestAdaptor, DatasetInfo, ManifestDataset, CocoManifestAdaptor
@@ -132,5 +133,5 @@ class TestCOCOManifestDataset(unittest.TestCase):
             image1, target1, _ = dataset[1]
             self.assertEqual(list(image0.getdata()), list(images[0].getdata()))
             self.assertEqual(list(image1.getdata()), list(images[1].getdata()))
-            self.assertEqual(list(target0.getdata()), list(images[2].getdata()))
-            self.assertEqual(list(target1.getdata()), list(images[3].getdata()))
+            self.assertTrue(np.array_equal(target0[0], np.asarray(images[2]), equal_nan=True))
+            self.assertTrue(np.array_equal(target1[0], np.asarray(images[3]), equal_nan=True))
