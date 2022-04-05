@@ -72,31 +72,13 @@ Here is one example of the json file for image text matching task. `match: 1` in
 }
 ```
 
-
 ## Image matting
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 Here is one example of the json file for image matting task. The "label" in the "annotations" can be one of the following formats: 
-=======
-Here is one example of the json file for image matting task. Specifically, the "label" in the "annotations" can be one of the following format: 
->>>>>>> fixing comments
-=======
-Here is one example of the json file for image matting task. Specifically, the "label" in the "annotations" can be one of the following formats: 
->>>>>>> fixing comments
-=======
-Here is one example of the json file for image matting task. The "label" in the "annotations" can be one of the following formats: 
->>>>>>> fixing typo
 
 - a local path to the label file
 - a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
 - a url to the label file
-<<<<<<< HEAD
-
-Specifically, **only** image files are supported for the label files.
-=======
->>>>>>> fixing comments
 
 Specifically, **only** image files are supported for the label files. The ground turth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
 
