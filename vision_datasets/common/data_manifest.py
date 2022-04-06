@@ -120,9 +120,9 @@ class ImageDataManifest:
         elif self.label_file_paths:
             self._labels = []
             for label_file_path in self.label_file_paths:
-                self._labels.append(np.asarray(Image.open(self.file_reader.open(label_file_path))))
-                self.file_reader.close()
-            return self._labels
+                with self.file_reader.open(label_file_path) as f:
+                    label = np.asarray(Image.open(f))
+                    self._labels.append(label)
         return self._labels
 
     @labels.setter
