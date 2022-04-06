@@ -5,8 +5,8 @@ class DatasetTypes:
     MULTITASK = 'multitask'
     IMCAP = 'image_caption'
     IMAGE_TEXT_MATCHING = 'image_text_matching'
-
-    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK, IMCAP, IMAGE_TEXT_MATCHING]
+    IMAGE_MATTING = 'image_matting'
+    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK, IMCAP, IMAGE_TEXT_MATCHING, IMAGE_MATTING]
 
     @staticmethod
     def is_classification(dataset_type):

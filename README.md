@@ -7,12 +7,13 @@ This repo
 - defines unified contract for dataset for purposes such as training, visualization, and exploration, via `DatasetManifest` and `ImageDataManifest`.
 - provides API for organizing and accessing datasets, via `DatasetHub`
 
-Currently, five `basic` types of data are supported: 
+Currently, six `basic` types of data are supported: 
 - `classification_multiclass`: each image can is only with one label.
 - `classification_multilabel`: each image can is with one or multiple labels (e.g., 'cat', 'animal', 'pet').
 - `object_detection`: each image is labeled with bounding boxes surrounding the objects of interest.
 - `image_caption`: each image is labeled with a few texts describing the images.
-- `image_text_matching`: each image is associated with a collection of texts describing the image, and whether each text description matches the image or not
+- `image_text_matching`: each image is associated with a collection of texts describing the image, and whether each text description matches the image or not.
+- `image_matting`: each image has a pixel-wise annotation, where each pixel is labeled as 'foreground' or 'background'.
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 

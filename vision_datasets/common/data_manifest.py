@@ -7,6 +7,9 @@ import random
 from typing import List, Dict
 from urllib import parse as urlparse
 
+from PIL import Image
+import numpy as np
+
 from .constants import DatasetTypes, Formats, BBoxFormat
 from .dataset_info import MultiTaskDatasetInfo
 from .util import is_url, FileReader
@@ -83,9 +86,10 @@ class ImageDataManifest:
     Encapsulates the information and annotations of an image.
 
     img_path could be 1. a local path 2. a local path in a non-compressed zip file (`c:\a.zip@1.jpg`) or 3. a url.
+    label_file_paths is a list of paths that have the same format with img_path
     """
 
-    def __init__(self, id, img_path, width, height, labels):
+    def __init__(self, id, img_path, width, height, labels, label_file_paths=None):
         """
         Args:
             id (int or str): image id
@@ -95,15 +99,36 @@ class ImageDataManifest:
             labels (list or dict):
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
                 detection: [[c_id, left, top, right, bottom], ...];
-                image caption: [caption1, caption2, ...];
-                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)]
-                multitask: dict[task, labels]
+                image_caption: [caption1, caption2, ...];
+                image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
+                multitask: dict[task, labels];
+                image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image.
+            label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
         """
         self.id = id
         self.img_path = img_path
         self.width = width
         self.height = height
-        self.labels = labels
+        self._labels = labels
+        self.label_file_paths = label_file_paths
+
+    @property
+    def labels(self):
+        if self._labels:
+            return self._labels
+        elif self.label_file_paths:
+            file_reader = FileReader()
+            self._labels = []
+            for label_file_path in self.label_file_paths:
+                with file_reader.open(label_file_path) as f:
+                    label = np.asarray(Image.open(f))
+                    self._labels.append(label)
+            file_reader.close()
+        return self._labels
+
+    @labels.setter
+    def labels(self, value):
+        self._labels = value
 
 
 class DatasetManifest:
@@ -607,7 +632,7 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING]:
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING]:
             raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
@@ -739,6 +764,15 @@ class CocoManifestAdaptor:
         if data_type == DatasetTypes.IMAGE_TEXT_MATCHING:
             for annotation in coco_manifest['annotations']:
                 images_by_id[annotation['image_id']].labels.append((annotation['text'], annotation['match']))
+            images = [x for x in images_by_id.values()]
+            return DatasetManifest(images, None, data_type)
+
+        if data_type == DatasetTypes.IMAGE_MATTING:
+            for annotation in coco_manifest['annotations']:
+                if images_by_id[annotation['image_id']].label_file_paths:
+                    images_by_id[annotation['image_id']].label_file_paths.append(get_full_sas_or_path(annotation['label']))
+                else:
+                    images_by_id[annotation['image_id']].label_file_paths = [get_full_sas_or_path(annotation['label'])]
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 

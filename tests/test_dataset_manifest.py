@@ -7,9 +7,13 @@ import unittest
 from collections import Counter
 from unittest.mock import patch
 
+from PIL import Image
+import numpy as np
+
 from vision_datasets import IrisManifestAdaptor, DatasetInfo, DatasetManifest, CocoManifestAdaptor
 from vision_datasets.common.constants import Usages, DatasetTypes
 from vision_datasets.common.data_manifest import ImageDataManifest
+from vision_datasets.common.util import FileReader
 
 
 def _generate_labelmap(n_classes):
@@ -179,12 +183,37 @@ class TestCases:
             ],
         }]
 
+    image_matting_manifest_dicts = [
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"}
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"},
+                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_2.png"},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_1.png"},
+                {"id": 2, "image_id": 2, "label": f"{str(pathlib.Path(__file__).resolve().parent)}/image_matting_test_data.zip@mask/test_2.png"},
+            ]
+        }]
+
     manifest_dict_by_data_type = {
         DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
         DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
         DatasetTypes.OD: od_manifest_dicts,
         DatasetTypes.IMCAP: cap_manifest_dicts,
-        DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts
+        DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts,
+        DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts
     }
 
     @staticmethod
@@ -466,6 +495,45 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
                 image_ann[img_id].append((ann['text'], ann['match']))
             for image in dataset_manifest.images:
                 assert image.labels == image_ann[image.id]
+
+    def test_image_matting_manifest(self):
+        zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
+        file_reader = FileReader()
+        img_0_matting = np.asarray(Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png')))
+        img_1_matting = np.asarray(Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png')))
+
+        dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_MATTING, 2)
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertTrue(np.array_equal(dataset_manifest.images[0].labels[0], img_0_matting, equal_nan=True))
+        self.assertTrue(np.array_equal(dataset_manifest.images[1].labels[0], img_1_matting, equal_nan=True))
+
+    def test_multitask_ic_multilabel_and_image_matting(self):
+        classfication_manifest_dict = TestCases.ic_manifest_dicts[0]
+        image_matting_manifest_dict = TestCases.image_matting_manifest_dicts[2]
+        zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
+        file_reader = FileReader()
+        img_0_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_1.png'))
+        img_1_matting = Image.open(file_reader.open(str(zip_file_path)+'@mask/test_2.png'))
+
+        task_types = {'task1': DatasetTypes.IC_MULTILABEL, 'task2': DatasetTypes.IMAGE_MATTING}
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            classification_coco_file_path = pathlib.Path(tempdir) / 'classification_test.json'
+            classification_coco_file_path.write_text(json.dumps(classfication_manifest_dict))
+            image_matting_coco_file_path = pathlib.Path(tempdir) / 'image_matting_test.json'
+            image_matting_coco_file_path.write_text(json.dumps(image_matting_manifest_dict))
+
+            coco_file_path = {'task1': str(classification_coco_file_path), 'task2': str(image_matting_coco_file_path)}
+            dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(coco_file_path, task_types)
+
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(len(dataset_manifest.labelmap), 2)
+        self.assertEqual(dataset_manifest.images[0].labels['task1'],  [0])
+        self.assertTrue(np.array_equal(dataset_manifest.images[0].labels['task2'][0], img_0_matting, equal_nan=True))
+        self.assertEqual(dataset_manifest.images[1].labels['task1'],  [0, 1])
+        self.assertTrue(np.array_equal(dataset_manifest.images[1].labels['task2'][0], img_1_matting, equal_nan=True))
 
 
 class TestManifestFewShotSample(unittest.TestCase):
