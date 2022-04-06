@@ -768,7 +768,10 @@ class CocoManifestAdaptor:
 
         if data_type == DatasetTypes.IMAGE_MATTING:
             for annotation in coco_manifest['annotations']:
-                images_by_id[annotation['image_id']].label_file_paths = [get_full_sas_or_path(annotation['label'])]
+                if images_by_id[annotation['image_id']].label_file_paths:
+                    images_by_id[annotation['image_id']].label_file_paths.append(get_full_sas_or_path(annotation['label']))
+                else:
+                    images_by_id[annotation['image_id']].label_file_paths = [get_full_sas_or_path(annotation['label'])]
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
