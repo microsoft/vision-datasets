@@ -111,18 +111,19 @@ class ImageDataManifest:
         self.height = height
         self._labels = labels
         self.label_file_paths = label_file_paths
-        self.file_reader = FileReader()
 
     @property
     def labels(self):
         if self._labels:
             return self._labels
         elif self.label_file_paths:
+            file_reader = FileReader()
             self._labels = []
             for label_file_path in self.label_file_paths:
-                with self.file_reader.open(label_file_path) as f:
+                with file_reader.open(label_file_path) as f:
                     label = np.asarray(Image.open(f))
                     self._labels.append(label)
+            file_reader.close()
         return self._labels
 
     @labels.setter
