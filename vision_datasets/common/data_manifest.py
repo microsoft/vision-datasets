@@ -101,8 +101,8 @@ class ImageDataManifest:
                 detection: [[c_id, left, top, right, bottom], ...];
                 image_caption: [caption1, caption2, ...];
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
-                multitask: dict[task, labels]
-                image_matting: [mating1, matting2, ...]
+                multitask: dict[task, labels];
+                image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image.
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
         """
         self.id = id
