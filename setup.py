@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.2.9'
+VERSION = '0.2.10'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -35,6 +35,7 @@ setuptools.setup(name='vision_datasets',
                      'Programming Language :: Python :: 3.7',
                      'Programming Language :: Python :: 3.8',
                      'Programming Language :: Python :: 3.9',
+                     'Programming Language :: Python :: 3.10',
                  ],
                  extras_require={'run': ['torch>=1.6.0', 'torchvision>=0.7.0']},
                  entry_points={

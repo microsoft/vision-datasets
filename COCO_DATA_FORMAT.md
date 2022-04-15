@@ -71,3 +71,24 @@ Here is one example of the json file for image text matching task. `match: 1` in
   ],
 }
 ```
+
+## Image matting
+
+Here is one example of the json file for image matting task. The "label" in the "annotations" can be one of the following formats: 
+
+- a local path to the label file
+- a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
+- a url to the label file
+
+Specifically, **only** image files are supported for the label files. The ground turth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
+
+``` {json}
+{
+    "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
+                {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
+    "annotations": [
+        {"id": 1, "image_id": 1, "label": "image_matting_label.zip@mask/test_1.png"},
+        {"id": 2, "image_id": 2, "label": "image_matting_label.zip@mask/test_2.png"},
+    ]
+}
+```

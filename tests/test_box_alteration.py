@@ -56,7 +56,6 @@ class TestBoxAlteration(unittest.TestCase):
 
     def test_shift_box_lt(self):
         left, t, r, b = BoxAlteration.shift_box(10, 5, 20, 25, 100, 100, -0.1, -0.1, random.Random(0))
-        print(left, t, r, b)
         assert left == 9
         assert t == 3
         assert r == 19
