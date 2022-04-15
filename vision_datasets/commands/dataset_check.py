@@ -30,7 +30,7 @@ def check_dataset(dataset):
     for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
         show_img(dataset[idx])
 
-    if dataset.dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.MULTITASK]:
+    if dataset.dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.MULTITASK, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING] or not dataset.labels:
         return
 
     n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
