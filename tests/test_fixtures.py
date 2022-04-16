@@ -12,7 +12,7 @@ class DetectionTestFixtures:
     DATASET_INFO_DICT = {
         "name": "dummy",
         "version": 1,
-        "type": "classification_multiclass",
+        "type": "object_detection",
         "root_folder": "dummy",
         "format": "coco",
         "test": {
@@ -24,25 +24,21 @@ class DetectionTestFixtures:
     }
 
     @staticmethod
-    def create_an_od_manifest(root_dir=''):
-        images = [{'id': i + 1, 'file_name': f'{i + 1}.jpg', 'width': 100, 'height': 100} for i in range(2)]
+    def create_an_od_manifest(root_dir='', n_images=2, n_categories=4):
+        images = [{'id': i + 1, 'file_name': f'{i + 1}.jpg', 'width': 100, 'height': 100} for i in range(n_images)]
 
-        categories = [{'id': i + 1, 'name': f'{i + 1}-class', } for i in range(4)]
+        categories = [{'id': i + 1, 'name': f'{i + 1}-class', } for i in range(n_categories)]
 
-        annotations = [
-            {'id': 1, 'image_id': 1, 'category_id': 1, 'bbox': [0, 0, 100, 100]},
-            {'id': 2, 'image_id': 1, 'category_id': 2, 'bbox': [10, 10, 40, 90]},
-            {'id': 3, 'image_id': 2, 'category_id': 3, 'bbox': [50, 50, 30, 30]},
-            {'id': 4, 'image_id': 2, 'category_id': 4, 'bbox': [0, 50, 100, 50]}
-        ]
+        bbox_set = [[0, 0, 100, 100], [10, 10, 40, 90], [50, 50, 30, 30], [0, 50, 100, 50]]
+        annotations = [{'id': i + 1, 'image_id': i // 2 + 1, 'category_id': i % n_categories + 1, 'bbox': bbox_set[i % len(bbox_set)]} for i in range(n_images * 2)]
 
         coco_dict = {'images': images, 'categories': categories, 'annotations': annotations}
         coco_path = pathlib.Path(root_dir) / 'coco.json'
         coco_path.write_text(json.dumps(coco_dict))
-        return CocoManifestAdaptor.create_dataset_manifest(coco_path.name, DatasetTypes.IC_MULTICLASS, root_dir)
+        return CocoManifestAdaptor.create_dataset_manifest(coco_path.name, DatasetTypes.OD, root_dir)
 
     @staticmethod
-    def create_an_od_dataset(n_images=2, coordinates='relative'):
+    def create_an_od_dataset(n_images=2, n_categories=4, coordinates='relative'):
         dataset_dict = copy.deepcopy(DetectionTestFixtures.DATASET_INFO_DICT)
 
         tempdir = tempfile.TemporaryDirectory()
@@ -50,9 +46,8 @@ class DetectionTestFixtures:
         dataset_dict['type'] = 'object_detection'
         for i in range(n_images):
             Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
-            print(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
 
         dataset_info = DatasetInfo(dataset_dict)
-        dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir.name)
+        dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir.name, n_images, n_categories)
         dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates)
         return dataset, tempdir
