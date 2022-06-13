@@ -9,7 +9,7 @@ from vision_datasets.common.manifest_dataset import DetectionAsClassificationByC
 
 class TestDetectionAsClassification(unittest.TestCase):
     def test_od_manifest_with_different_coordinate_formats(self):
-        dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(2, 'relative')
+        dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(2, coordinates='relative')
         with tempdir:
             self.assertEqual(len(dataset), 2)
             self.assertEqual(len(dataset.labels), 4)
@@ -17,7 +17,7 @@ class TestDetectionAsClassification(unittest.TestCase):
             image1, target1, _ = dataset[1]
             self.assertEqual(target0, [[0, 0.0, 0.0, 1.0, 1.0], [1, 0.1, 0.1, 0.5, 1.0]])
             self.assertEqual(target1, [[2, 0.5, 0.5, 0.8, 0.8], [3, 0.0, 0.5, 1.0, 1.0]])
-            dataset = ManifestDataset(dataset.dataset_info, dataset.dataset_manifest, 'absolute')
+            dataset = ManifestDataset(dataset.dataset_info, dataset.dataset_manifest, coordinates='absolute')
             ic_dataset_1 = DetectionAsClassificationByCroppingDataset(dataset)
             image0, target0, _ = dataset[0]
             image1, target1, _ = dataset[1]
