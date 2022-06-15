@@ -423,9 +423,10 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             manifest = CocoManifestAdaptor.create_dataset_manifest(str(file_path), DatasetTypes.OD)
 
             image = manifest.images[0]
-            self.assertEqual(image.labels_extra_info['iscrowd'], 1)
-            self.assertEqual(image.labels_extra_info['iscrowd'], 0)
-            self.assertEqual(image.labels_extra_info['iscrowd'], 0)
+            self.assertEqual(len(image.labels_extra_info['iscrowd']), len(image.labels))
+            self.assertEqual(image.labels_extra_info['iscrowd'][0], 1)
+            self.assertEqual(image.labels_extra_info['iscrowd'][1], 0)
+            self.assertEqual(image.labels_extra_info['iscrowd'][2], 0)
 
     def test_image_classification(self):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0)
