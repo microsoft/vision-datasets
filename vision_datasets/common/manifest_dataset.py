@@ -30,6 +30,7 @@ class ManifestDataset(BaseDataset):
             coordinates (str): 'relative' or 'absolute', indicating the desired format of the bboxes returned.
             dataset_resources (str): disposable resources associated with this dataset
         """
+
         assert dataset_manifest is not None
         assert coordinates in ['relative', 'absolute']
 
@@ -53,7 +54,7 @@ class ManifestDataset(BaseDataset):
         target = image_manifest.labels
         if self.coordinates == 'relative':
             w, h = image.size
-            target = ManifestDataset._box_convert_to_relative(image_manifest.labels, w, h, self.dataset_info)
+            target = ManifestDataset._convert_box_to_relative(image_manifest.labels, w, h, self.dataset_info)
 
         return image, target, str(index)
 
@@ -70,11 +71,12 @@ class ManifestDataset(BaseDataset):
             raise
 
     @staticmethod
-    def _box_convert_to_relative(target, w, h, dataset_info):
+    def _convert_box_to_relative(target, w, h, dataset_info):
         # Convert absolute coordinates to relative coordinates.
         # Example: for image with size (200, 200), (1, 100, 100, 200, 200) => (1, 0.5, 0.5, 1.0, 1.0)
         if dataset_info.type == DatasetTypes.MULTITASK:
-            return {task_name: ManifestDataset._box_convert_to_relative(task_target, w, h, dataset_info.sub_task_infos[task_name]) for task_name, task_target in target.items()}
+            return {task_name: ManifestDataset._convert_box_to_relative(task_target, w, h, dataset_info.sub_task_infos[task_name]) for task_name, task_target in target.items()}
+
         if dataset_info.type == DatasetTypes.OD:
             return [[t[0], t[1] / w, t[2] / h, t[3] / w, t[4] / h] for t in target]
 

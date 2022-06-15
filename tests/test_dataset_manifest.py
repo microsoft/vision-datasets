@@ -385,6 +385,48 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
 
 
 class TestCreateCocoDatasetManifest(unittest.TestCase):
+    def test_file_path_created_right_with_zip_prefix(self):
+        image_matting_manifest = {
+            "images": [{"id": 1, "file_name": "image/test_1.jpg", "zip_file": "train_images.zip"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "label": "mask/test_1.png", 'zip_file': "image_matting_test_data.zip"}
+            ]
+        }
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            file_path = tempdir / pathlib.Path('temp_coco.json')
+            file_path.write_text(json.dumps(image_matting_manifest))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(str(file_path), DatasetTypes.IMAGE_MATTING)
+
+            image = image_matting_manifest['images'][0]
+            annotation = image_matting_manifest['annotations'][0]
+            self.assertEqual(manifest.images[0].img_path, image['zip_file'] + '@' + image['file_name'])
+            self.assertEqual(manifest.images[0].label_file_paths[0], annotation['zip_file'] + '@' + annotation['label'])
+
+    def test_respect_iscrowd(self):
+        image_matting_manifest = {
+            "images": [{"id": 1, "file_name": "image/test_1.jpg", "zip_file": "train_images.zip"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80], "iscrowd": 1},
+                {"id": 2, "category_id": 1, "image_id": 1, "bbox": [90, 90, 90, 90]},
+                {"id": 3, "category_id": 2, "image_id": 1, "bbox": [20, 20, 180, 180]}
+            ],
+            "categories": [
+                {"id": 1, "name": "tiger"},
+                {"id": 2, "name": "rabbit"}
+            ]
+        }
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            file_path = tempdir / pathlib.Path('temp_coco.json')
+            file_path.write_text(json.dumps(image_matting_manifest))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(str(file_path), DatasetTypes.OD)
+
+            image = manifest.images[0]
+            self.assertEqual(image.labels_extra_info['iscrowd'], 1)
+            self.assertEqual(image.labels_extra_info['iscrowd'], 0)
+            self.assertEqual(image.labels_extra_info['iscrowd'], 0)
+
     def test_image_classification(self):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0)
 

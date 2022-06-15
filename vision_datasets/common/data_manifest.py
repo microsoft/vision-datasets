@@ -6,25 +6,17 @@ import os
 import random
 from typing import List, Dict
 from urllib import parse as urlparse
-
 from PIL import Image
 import numpy as np
 
-from .constants import DatasetTypes, Formats, BBoxFormat
+from .constants import BBoxFormat, DatasetTypes, Formats
 from .dataset_info import MultiTaskDatasetInfo
 from .util import is_url, FileReader
 
 logger = logging.getLogger(__name__)
 
 
-def purge_line(line):
-    if not isinstance(line, str):
-        line = line.decode('utf-8')
-
-    return line.strip()
-
-
-def _purge_path(path):
+def _unix_path(path):
     assert path is not None
 
     return path.replace('\\', '/')
@@ -45,38 +37,39 @@ def _construct_full_path_generator(dirs: List[str]):
     if dirs:
         def full_path_func(path):
             to_join = [x for x in dirs + [path] if x]
-            return _purge_path(os.path.join(*to_join))
+            return _unix_path(os.path.join(*to_join))
     else:
-        full_path_func = _purge_path
+        full_path_func = _unix_path
 
     return full_path_func
 
 
-def _add_path_to_sas(sas, path_or_dir):
-    assert sas
-    if not path_or_dir:
-        return sas
-
-    parts = urlparse.urlparse(sas)
-    path = _purge_path(os.path.join(parts[2], path_or_dir))
-    path = path.replace('.zip@', '/')  # cannot read from zip file with path targeting a url
-    url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
-    return url
-
-
-def _construct_full_sas_generator(container_sas: str):
+def _construct_full_url_generator(container_sas: str):
     if not container_sas:
-        return _purge_path
+        return _unix_path
+
+    def add_path_to_url(url, path_or_dir):
+        assert url
+
+        if not path_or_dir:
+            return url
+
+        parts = urlparse.urlparse(url)
+        path = _unix_path(os.path.join(parts[2], path_or_dir))
+        url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
+
+        return url
 
     def func(file_path):
-        return _add_path_to_sas(container_sas, file_path)
+        file_path = file_path.replace('.zip@', '/')  # cannot read from zip file with path targeting a url
+        return add_path_to_url(container_sas, file_path)
 
     return func
 
 
-def _construct_full_sas_or_path_generator(container_sas_or_root_dir, prefix_dir=None):
+def _construct_full_url_or_path_generator(container_sas_or_root_dir, prefix_dir=None):
     if container_sas_or_root_dir and is_url(container_sas_or_root_dir):
-        return lambda path: _construct_full_sas_generator(container_sas_or_root_dir)(_construct_full_path_generator([prefix_dir])(path))
+        return lambda path: _construct_full_url_generator(container_sas_or_root_dir)(_construct_full_path_generator([prefix_dir])(path))
     else:
         return lambda path: _construct_full_path_generator([container_sas_or_root_dir, prefix_dir])(path)
 
@@ -89,7 +82,7 @@ class ImageDataManifest:
     label_file_paths is a list of paths that have the same format with img_path
     """
 
-    def __init__(self, id, img_path, width, height, labels, label_file_paths=None):
+    def __init__(self, id, img_path, width, height, labels, label_file_paths=None, labels_extra_info: dict = {}):
         """
         Args:
             id (int or str): image id
@@ -104,13 +97,17 @@ class ImageDataManifest:
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image.
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
+            labels_extra_info (dict[string, list]]): extra information about this image's labels
+                Examples: 'iscrowd'
         """
+
         self.id = id
         self.img_path = img_path
         self.width = width
         self.height = height
         self._labels = labels
         self.label_file_paths = label_file_paths
+        self.labels_extra_info = labels_extra_info
 
     @property
     def labels(self):
@@ -163,18 +160,22 @@ class DatasetManifest:
         if dataset_info.data_format == Formats.IRIS:
             return IrisManifestAdaptor.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)
         if dataset_info.data_format == Formats.COCO:
-            get_full_sas_or_path = _construct_full_sas_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)('')
+            container_sas_or_root_dir = _construct_full_url_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)('')
             if dataset_info.type == DatasetTypes.MULTITASK:
                 coco_file_by_task = {k: sub_taskinfo.index_files.get(usage) for k, sub_taskinfo in dataset_info.sub_task_infos.items()}
                 data_type_by_task = {k: sub_taskinfo.type for k, sub_taskinfo in dataset_info.sub_task_infos.items()}
-                return CocoManifestAdaptor.create_dataset_manifest(coco_file_by_task, data_type_by_task, get_full_sas_or_path)
+                return CocoManifestAdaptor.create_dataset_manifest(coco_file_by_task, data_type_by_task, container_sas_or_root_dir)
 
-            return CocoManifestAdaptor.create_dataset_manifest(dataset_info.index_files.get(usage), dataset_info.type, get_full_sas_or_path)
+            return CocoManifestAdaptor.create_dataset_manifest(dataset_info.index_files.get(usage), dataset_info.type, container_sas_or_root_dir)
 
         raise RuntimeError(f'{dataset_info.data_format} not supported yet.')
 
     @property
     def is_multitask(self):
+        """
+        is this dataset multi-task dataset or not
+        """
+
         return isinstance(self.data_type, dict)
 
     def __len__(self):
@@ -463,6 +464,7 @@ class DatasetManifest:
         Raises:
             RuntimeError if it couldn't find num_min_samples_per_class samples for all classes
         """
+
         assert num_min_samples_per_class > 0
         images = list(self.images)
         rng = random.Random(random_seed)
@@ -643,7 +645,7 @@ class IrisManifestAdaptor:
         file_reader = FileReader()
 
         dataset_info = copy.deepcopy(dataset_info)
-        get_full_sas_or_path = _construct_full_sas_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)
+        get_full_sas_or_path = _construct_full_url_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)
 
         max_index = 0
         labelmap = None
@@ -652,7 +654,7 @@ class IrisManifestAdaptor:
         else:
             # read tag names
             with file_reader.open(get_full_sas_or_path(dataset_info.labelmap)) as file_in:
-                labelmap = [purge_line(line) for line in file_in if purge_line(line) != '']
+                labelmap = [IrisManifestAdaptor._purge_line(line) for line in file_in if IrisManifestAdaptor._purge_line(line) != '']
 
         # read image width and height
         img_wh = None
@@ -663,7 +665,7 @@ class IrisManifestAdaptor:
         images = []
         with file_reader.open(get_full_sas_or_path(dataset_info.index_files[usage])) as file_in:
             for line in file_in:
-                line = purge_line(line)
+                line = IrisManifestAdaptor._purge_line(line)
                 if not line:
                     continue
                 parts = line.rsplit(' ', maxsplit=1)  # assumption: only the image file path can have spaces
@@ -692,7 +694,7 @@ class IrisManifestAdaptor:
         img_wh = dict()
         with file_reader.open(file_path) as file_in:
             for line in file_in:
-                line = purge_line(line)
+                line = IrisManifestAdaptor._purge_line(line)
                 if line == '':
                     continue
                 location, w, h = line.split()
@@ -704,7 +706,7 @@ class IrisManifestAdaptor:
     def _load_detection_labels_from_file(file_reader, image_label_file_path):
 
         with file_reader.open(image_label_file_path) as label_in:
-            label_lines = [purge_line(line) for line in label_in]
+            label_lines = [IrisManifestAdaptor._purge_line(line) for line in label_in]
 
         img_labels = []
         for label_line in label_lines:
@@ -716,6 +718,13 @@ class IrisManifestAdaptor:
             img_labels.append(box)
 
         return img_labels
+
+    @staticmethod
+    def _purge_line(line):
+        if not isinstance(line, str):
+            line = line.decode('utf-8')
+
+        return line.strip()
 
 
 class CocoManifestAdaptor:
@@ -733,6 +742,7 @@ class CocoManifestAdaptor:
             data_type (str or dict): type of dataset. dict if multitask
             container_sas_or_root_dir (str): container sas if resources are store in blob container, or a local dir
         """
+
         if not coco_file_path_or_url:
             return None
 
@@ -745,34 +755,39 @@ class CocoManifestAdaptor:
 
             return _generate_multitask_dataset_manifest(dataset_manifest_by_task)
 
-        get_full_sas_or_path = _construct_full_sas_or_path_generator(container_sas_or_root_dir)
+        get_full_sas_or_path = _construct_full_url_or_path_generator(container_sas_or_root_dir)
 
         file_reader = FileReader()
         # read image index files
-        with file_reader.open(coco_file_path_or_url if is_url(coco_file_path_or_url) else get_full_sas_or_path(coco_file_path_or_url)) as file_in:
+        coco_file_path_or_url = coco_file_path_or_url if is_url(coco_file_path_or_url) else get_full_sas_or_path(coco_file_path_or_url)
+        with file_reader.open(coco_file_path_or_url) as file_in:
             coco_manifest = json.load(file_in)
 
         file_reader.close()
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], get_full_sas_or_path(img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
+        def get_file_path(info_dict: dict, file_name):
+            zip_prefix = info_dict.get('zip_file', '')
+            if zip_prefix:
+                zip_prefix += '@'
+
+            return get_full_sas_or_path(zip_prefix + file_name)
+
+        images_by_id = {img['id']: ImageDataManifest(img['id'], get_file_path(img, img['file_name']), img.get('width'), img.get('height'), [], {}) for img in coco_manifest['images']}
+        process_labels_without_categories = None
         if data_type == DatasetTypes.IMCAP:
-            for annotation in coco_manifest['annotations']:
-                images_by_id[annotation['image_id']].labels.append(annotation['caption'])
-            images = [x for x in images_by_id.values()]
-            return DatasetManifest(images, None, data_type)
+            def process_labels_without_categories(image):
+                image.labels.append(annotation['caption'])
+        elif data_type == DatasetTypes.IMAGE_TEXT_MATCHING:
+            def process_labels_without_categories(image):
+                image.labels.append((annotation['text'], annotation['match']))
+        elif data_type == DatasetTypes.IMAGE_MATTING:
+            def process_labels_without_categories(image):
+                image.label_file_paths = image.label_file_paths or []
+                image.label_file_paths.append(get_file_path(annotation, annotation['label']))
 
-        if data_type == DatasetTypes.IMAGE_TEXT_MATCHING:
+        if process_labels_without_categories:
             for annotation in coco_manifest['annotations']:
-                images_by_id[annotation['image_id']].labels.append((annotation['text'], annotation['match']))
-            images = [x for x in images_by_id.values()]
-            return DatasetManifest(images, None, data_type)
-
-        if data_type == DatasetTypes.IMAGE_MATTING:
-            for annotation in coco_manifest['annotations']:
-                if images_by_id[annotation['image_id']].label_file_paths:
-                    images_by_id[annotation['image_id']].label_file_paths.append(get_full_sas_or_path(annotation['label']))
-                else:
-                    images_by_id[annotation['image_id']].label_file_paths = [get_full_sas_or_path(annotation['label'])]
+                process_labels_without_categories(images_by_id[annotation['image_id']])
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
@@ -786,14 +801,19 @@ class CocoManifestAdaptor:
 
         for annotation in coco_manifest['annotations']:
             c_id = label_id_to_pos[annotation['category_id']]
+            img = images_by_id[annotation['image_id']]
             if 'bbox' in annotation:
                 bbox = annotation['bbox']
                 if bbox_format == BBoxFormat.LTWH:
                     bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
                 label = [c_id] + bbox
+                img.labels_extra_info['iscrowd'] = img.labels_extra_info.get('iscrowd', [])
+                img.labels_extra_info['iscrowd'].append(annotation.get('iscrowd', 0))
             else:
                 label = c_id
-            images_by_id[annotation['image_id']].labels.append(label)
+
+            img.labels.append(label)
+
         images = [x for x in images_by_id.values()]
         images.sort(key=lambda x: x.id)
 

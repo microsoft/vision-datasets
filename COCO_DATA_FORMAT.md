@@ -1,13 +1,15 @@
 # Coco format
 
+In coco, we use `file_name` and `zip_file` to construct the file_path in `ImageDataManifest` mentioned in `README.md`. If `zip_file` is present, it means that the image is zipped into a zip file for storage and access and the image path would be `{zip_file}@{file_name}`. If `zip_file` is not present, the image path would just be `file_name`.
+
 ## Image classification (multiclass and multilabel)
 
 Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, **starting from 1**. Note that our lib might work with id starting from 0, but many tools like [CVAT](https://github.com/openvinotoolkit/cvat/issues/2085) and official [COCOAPI](https://github.com/cocodataset/cocoapi/issues/507) will fail.
 
 ``` {json}
 {
-  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@siberian-kitten.jpg"},
-              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@kitten 3.jpg"}],
+  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/siberian-kitten.jpg", "zip_file": "train_images.zip"},
+              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/kitten 3.jpg", "zip_file": "train_images.zip"}],
               //  file_name is the image path, which supports three formats as described in previous section.
   "annotations": [
       {"id": 1, "category_id": 1, "image_id": 1},
@@ -22,8 +24,8 @@ Here is one example of the train.json, val.json, or test.json in the `DatasetInf
 
 ``` {json}
 {
-  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@siberian-kitten.jpg"},
-              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images.zip@kitten 3.jpg"}],
+  "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/siberian-kitten.jpg", "zip_file": "train_images.zip"},
+              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/kitten 3.jpg", "zip_file": "train_images.zip"}],
   "annotations": [
       {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 100, 100]},
       {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 200, 200]},
@@ -46,8 +48,8 @@ Here is one example of the json file for image caption task.
 
 ``` {json}
 {
-  "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
-              {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
+  "images": [{"id": 1, "file_name": "train_images/honda.jpg", "zip_file": "train_images.zip"},
+              {"id": 2, "file_name": "train_images/kitchen.jpg", "zip_file": "train_images.zip"}],
   "annotations": [
       {"id": 1, "image_id": 1, "caption": "A black Honda motorcycle parked in front of a garage."},
       {"id": 2, "image_id": 1, "caption": "A Honda motorcycle parked in a grass driveway."},
@@ -62,8 +64,8 @@ Here is one example of the json file for image text matching task. `match: 1` in
 
 ``` {json}
 {
-  "images": [{"id": 1, "file_name": "train_images.zip@honda.jpg"},
-              {"id": 2, "file_name": "train_images.zip@kitchen.jpg"}],
+  "images": [{"id": 1, "file_name": "train_images/honda.jpg", "zip_file": "train_images.zip"},
+              {"id": 2, "file_name": "train_images/kitchen.jpg", "zip_file": "train_images.zip"}],
   "annotations": [
       {"id": 1, "image_id": 1, "text": "A black Honda motorcycle parked in front of a garage.", "match": 0},
       {"id": 2, "image_id": 1, "text": "A Honda motorcycle parked in a grass driveway.", "match": 0},
@@ -84,11 +86,11 @@ Specifically, **only** image files are supported for the label files. The ground
 
 ``` {json}
 {
-    "images": [{"id": 1, "file_name": "train_images.zip@image/test_1.jpg"},
-                {"id": 2, "file_name": "train_images.zip@image/test_2.jpg"}],
+    "images": [{"id": 1, "file_name": "train_images/image/test_1.jpg", "zip_file": "train_images.zip"},
+                {"id": 2, "file_name": "train_images/image/test_2.jpg", "zip_file": "train_images.zip"}],
     "annotations": [
-        {"id": 1, "image_id": 1, "label": "image_matting_label.zip@mask/test_1.png"},
-        {"id": 2, "image_id": 2, "label": "image_matting_label.zip@mask/test_2.png"},
+        {"id": 1, "image_id": 1, "label": "image_matting_label/mask/test_1.png", "zip_file": "image_matting_label.zip"},
+        {"id": 2, "image_id": 2, "label": "image_matting_label/mask/test_2.png", "zip_file": "image_matting_label.zip"},
     ]
 }
 ```
