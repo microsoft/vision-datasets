@@ -82,7 +82,7 @@ class ImageDataManifest:
     label_file_paths is a list of paths that have the same format with img_path
     """
 
-    def __init__(self, id, img_path, width, height, labels, label_file_paths=None, labels_extra_info: dict = {}):
+    def __init__(self, id, img_path, width, height, labels, label_file_paths=None, labels_extra_info: dict = None):
         """
         Args:
             id (int or str): image id
@@ -107,7 +107,7 @@ class ImageDataManifest:
         self.height = height
         self._labels = labels
         self.label_file_paths = label_file_paths
-        self.labels_extra_info = labels_extra_info
+        self.labels_extra_info = labels_extra_info or {}
 
     @property
     def labels(self):

@@ -403,8 +403,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             self.assertEqual(manifest.images[0].img_path, image['zip_file'] + '@' + image['file_name'])
             self.assertEqual(manifest.images[0].label_file_paths[0], annotation['zip_file'] + '@' + annotation['label'])
 
-    def test_respect_iscrowd(self):
-        image_matting_manifest = {
+    def test_od_respect_iscrowd(self):
+        od_manifest = {
             "images": [{"id": 1, "file_name": "image/test_1.jpg", "zip_file": "train_images.zip"}],
             "annotations": [
                 {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80], "iscrowd": 1},
@@ -418,15 +418,13 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         }
 
         with tempfile.TemporaryDirectory() as tempdir:
-            file_path = tempdir / pathlib.Path('temp_coco.json')
-            file_path.write_text(json.dumps(image_matting_manifest))
+            file_path = tempdir / pathlib.Path('temp_coco2.json')
+            file_path.write_text(json.dumps(od_manifest))
             manifest = CocoManifestAdaptor.create_dataset_manifest(str(file_path), DatasetTypes.OD)
 
             image = manifest.images[0]
             self.assertEqual(len(image.labels_extra_info['iscrowd']), len(image.labels))
-            self.assertEqual(image.labels_extra_info['iscrowd'][0], 1)
-            self.assertEqual(image.labels_extra_info['iscrowd'][1], 0)
-            self.assertEqual(image.labels_extra_info['iscrowd'][2], 0)
+            self.assertEqual(image.labels_extra_info['iscrowd'], [1, 0, 0])
 
     def test_image_classification(self):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 0)
