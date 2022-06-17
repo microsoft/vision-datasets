@@ -487,6 +487,35 @@ class DatasetManifest:
 
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
+    def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
+        """Spawn manifest to a size.
+        To ensure each class has samples after spawn, we first keep a copy of original data, then merge with sampled data.
+        If instance_weights is not provided, spawn follows class distribution.
+        Otherwise spawn the dataset so that the instances follow the given weights. In this case the spawned size is not guranteed to be num_samples.
+
+        Args:
+            num_samples (int): size of spawned manifest. Should be larger than the current size.
+            random_seed (int): Random seed to use.
+            instance_weights (list): weight of each instance to spawn.
+
+        Returns:
+            Spawned dataset (DatasetManifest)
+        """
+        assert num_samples > len(self)
+        if instance_weights is not None:
+            assert len(instance_weights) == len(self)
+            sum_weights = sum(instance_weights)
+            # Distribute the number of num_samples to each image by the weights. The original image is subtracted.
+            image_multipliers = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
+            spawned_images = []
+            for image, multiplier in zip(self.images, image_multipliers):
+                spawned_images += [image] * multiplier
+            sampled_manifest = DatasetManifest(spawned_images, self.labelmap, self.data_type)
+        else:
+            sampled_manifest = self.sample_subset(num_samples - len(self), with_replacement=True, random_seed=random_seed)
+        # Merge with the copy of the original dataset to ensure each class has sample.
+        return DatasetManifest.merge(self, sampled_manifest, flavor=0)
+
     @staticmethod
     def merge(*args, flavor: int = 0):
         """

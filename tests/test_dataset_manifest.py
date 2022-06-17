@@ -520,6 +520,81 @@ class TestSampleByCategories(unittest.TestCase):
         assert new_manifest.images[3].labels == [0, 1]
 
 
+class TestSpawn(unittest.TestCase):
+    def test_spawn_od_manifest(self):
+        images = [
+            ImageDataManifest(0, './0.jpg', 10, 10, []),
+            ImageDataManifest(1, './1.jpg', 10, 10, [[0, 1, 1, 2, 2], [1, 2, 2, 3, 3]]),
+            ImageDataManifest(2, './2.jpg', 10, 10, [[1, 1, 1, 2, 2]]),
+            ImageDataManifest(3, './3.jpg', 10, 10, [[1, 0, 0, 2, 2], [2, 1, 1, 2, 2], [3, 2, 2, 3, 3]]),
+        ]
+        dst_size = 120
+        manifest = DatasetManifest(images, ['a', 'b', 'c', 'd'], DatasetTypes.OD)
+        new_manifest = manifest.spawn(dst_size)
+        self.assertEqual(len(new_manifest), dst_size)
+
+        new_manifest = manifest.spawn(dst_size, instance_weights=[0., 0.5, 0.5, 1.])
+        cnt = self.cnt_multiclass_labels(new_manifest)
+        self.assertEqual(cnt, [30, 120, 60, 60])
+
+    def test_spawn_ic_multilabel_manifest(self):
+        images = [
+            ImageDataManifest(0, './0.jpg', 10, 10, []),
+            ImageDataManifest(1, './1.jpg', 10, 10, [0, 1]),
+            ImageDataManifest(1, './1.jpg', 10, 10, [0, 1]),
+            ImageDataManifest(2, './2.jpg', 10, 10, [1]),
+        ]
+        dst_size = 60
+        manifest = DatasetManifest(images, ['a', 'b'], DatasetTypes.IC_MULTILABEL)
+        new_manifest = manifest.spawn(dst_size)
+        self.assertEqual(len(new_manifest), dst_size)
+
+        new_manifest = manifest.spawn(dst_size, instance_weights=[20, 10, 10, 20])
+        cnt = self.cnt_multiclass_labels(new_manifest)
+        self.assertEqual(cnt, [20, 40])
+
+    def test_spawn_ic_multiclass_manifest(self):
+        images = [
+            ImageDataManifest(0, './0.jpg', 10, 10, [0]),
+            ImageDataManifest(1, './1.jpg', 10, 10, [0]),
+            ImageDataManifest(1, './1.jpg', 10, 10, [2]),
+            ImageDataManifest(2, './2.jpg', 10, 10, [1]),
+        ]
+        manifest = DatasetManifest(images, ['a', 'b', 'c'], DatasetTypes.IC_MULTILABEL)
+        dst_size = 120
+        new_manifest = manifest.spawn(dst_size)
+        self.assertEqual(len(new_manifest), dst_size)
+
+        # Generate balanced instance weights, spawn the dataset to balance classes.
+        from vision_datasets.common.balanced_instance_weights_generator import BalancedInstanceWeightsGenerator
+        instance_weights = BalancedInstanceWeightsGenerator.generate(manifest, soft=False)
+        new_manifest = manifest.spawn(dst_size, instance_weights=instance_weights)
+        cnt = self.cnt_multiclass_labels(new_manifest)
+        self.assertEqual(cnt, [40, 40, 40])
+
+    def cnt_multiclass_labels(self, manifest):
+        n_images_by_classes = [0] * len(manifest.labelmap) if not manifest.is_multitask else [0] * sum([len(x) for x in manifest.labelmap.values()])
+        for im in manifest.images:
+            manifest._add_label_count(im.labels, n_images_by_classes)
+        return n_images_by_classes
+
+    def test_spawn_multitask_manifest(self):
+        manifest = DatasetManifest.create_multitask_manifest({
+            'task1': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 0),
+            'task2': TestCases.get_manifest(DatasetTypes.IC_MULTICLASS, 1),
+            'task3': TestCases.get_manifest(DatasetTypes.IC_MULTILABEL, 1),
+            'task4': TestCases.get_manifest(DatasetTypes.OD, 2)
+        })
+        dst_size = 120
+        new_manifest = manifest.spawn(dst_size, random_seed=123)
+        self.assertEqual(len(new_manifest), dst_size)
+
+        from vision_datasets.common.balanced_instance_weights_generator import BalancedInstanceWeightsGenerator
+        instance_weights = BalancedInstanceWeightsGenerator.generate(manifest)
+        new_manifest = manifest.spawn(dst_size, instance_weights=instance_weights)
+        self.assertIsInstance(new_manifest, DatasetManifest)
+
+
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
         for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP]:
