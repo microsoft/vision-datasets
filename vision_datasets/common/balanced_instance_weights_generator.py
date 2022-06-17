@@ -15,7 +15,7 @@ class BalancedInstanceWeightsGenerator(object):
     def generate(data_manifest, soft=True, weight_upper=5, weight_lower=0.2):
         assert data_manifest is not None
 
-        logging.info("Generating instance weights for dataset balancing.")
+        logger.info("Generating instance weights for dataset balancing.")
         image_tags = [BalancedInstanceWeightsGenerator._process_tags(x.labels) for x in data_manifest.images]
 
         class_wise_image_counter = Counter()
@@ -31,7 +31,7 @@ class BalancedInstanceWeightsGenerator(object):
 
         image_weights = [BalancedInstanceWeightsGenerator._get_instance_multiplier(tags, class_wise_multipliers, weight_upper, weight_lower) for tags in image_tags]
 
-        logging.info(f'instance weights: max {max(image_weights)}, min {min(image_weights)}, len {len(image_weights)}')
+        logger.info(f'instance weights: max {max(image_weights)}, min {min(image_weights)}, len {len(image_weights)}')
         return image_weights
 
     @staticmethod
