@@ -851,10 +851,12 @@ class TestSpawn(unittest.TestCase):
         ]
         dst_size = 120
         manifest = DatasetManifest(images, ['a', 'b', 'c', 'd'], DatasetTypes.OD)
-        new_manifest = manifest.spawn(dst_size, balanced=False)
+        new_manifest = manifest.spawn(dst_size)
         self.assertEqual(len(new_manifest), dst_size)
 
-        self.assertIsInstance(manifest.spawn(dst_size, balanced=True), DatasetManifest)
+        new_manifest = manifest.spawn(dst_size, instance_weights=[0., 0.5, 0.5, 1.])
+        cnt = self.cnt_multiclass_labels(new_manifest)
+        self.assertEqual(cnt, [30, 120, 60, 60])
 
     def test_spawn_ic_multilabel_manifest(self):
         images = [
@@ -863,12 +865,14 @@ class TestSpawn(unittest.TestCase):
             ImageDataManifest(1, './1.jpg', 10, 10, [0, 1]),
             ImageDataManifest(2, './2.jpg', 10, 10, [1]),
         ]
-        dst_size = 120
+        dst_size = 60
         manifest = DatasetManifest(images, ['a', 'b'], DatasetTypes.IC_MULTILABEL)
-        new_manifest = manifest.spawn(dst_size, balanced=False)
+        new_manifest = manifest.spawn(dst_size)
         self.assertEqual(len(new_manifest), dst_size)
 
-        self.assertIsInstance(manifest.spawn(dst_size, balanced=True, weight_upper=1.2), DatasetManifest)
+        new_manifest = manifest.spawn(dst_size, instance_weights=[20, 10, 10, 20])
+        cnt = self.cnt_multiclass_labels(new_manifest)
+        self.assertEqual(cnt, [20, 40])
 
     def test_spawn_ic_multiclass_manifest(self):
         images = [
@@ -879,10 +883,13 @@ class TestSpawn(unittest.TestCase):
         ]
         manifest = DatasetManifest(images, ['a', 'b', 'c'], DatasetTypes.IC_MULTILABEL)
         dst_size = 120
-        new_manifest = manifest.spawn(dst_size, balanced=False)
+        new_manifest = manifest.spawn(dst_size)
         self.assertEqual(len(new_manifest), dst_size)
 
-        new_manifest = manifest.spawn(dst_size, random_seed=0, balanced=True, soft=False)
+        # Generate balanced instance weights, spawn the dataset to balance classes.
+        from vision_datasets.common.balanced_instance_weights_generator import BalancedInstanceWeightsGenerator
+        instance_weights = BalancedInstanceWeightsGenerator.generate(manifest, soft=False)
+        new_manifest = manifest.spawn(dst_size, instance_weights=instance_weights)
         cnt = self.cnt_multiclass_labels(new_manifest)
         self.assertEqual(cnt, [40, 40, 40])
 
@@ -900,10 +907,13 @@ class TestSpawn(unittest.TestCase):
             'task4': TestCases.get_manifest(DatasetTypes.OD, 2)
         })
         dst_size = 120
-        new_manifest = manifest.spawn(dst_size, balanced=False)
+        new_manifest = manifest.spawn(dst_size, random_seed=123)
         self.assertEqual(len(new_manifest), dst_size)
 
-        self.assertIsInstance(manifest.spawn(dst_size, balanced=True, weight_lower=0.9), DatasetManifest)
+        from vision_datasets.common.balanced_instance_weights_generator import BalancedInstanceWeightsGenerator
+        instance_weights = BalancedInstanceWeightsGenerator.generate(manifest)
+        new_manifest = manifest.spawn(dst_size, instance_weights=instance_weights)
+        self.assertIsInstance(new_manifest, DatasetManifest)
 
 
 class TestCocoGeneration(unittest.TestCase):

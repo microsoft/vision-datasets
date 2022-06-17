@@ -1,6 +1,4 @@
-"""Instance weights generator for DataManifest. Only works for classification, detection, multitask. Adapted from irispy:
-https://msazure.visualstudio.com/Cognitive%20Services/_git/API-CustomVision-Irispy?path=/irispy/datasets/balanced_instance_weights_generator.py&version=GBmaster&_a=contents
-"""
+"""Generate instance weights from DatasetManifest, which can be used for balancing the dataset by sampling instances based on the weights. Only works for classification, detection, multitask."""
 
 import logging
 from collections import Counter
@@ -15,7 +13,7 @@ class BalancedInstanceWeightsGenerator(object):
 
     @staticmethod
     def generate(data_manifest, soft=True, weight_upper=5, weight_lower=0.2):
-        assert data_manifest
+        assert data_manifest is not None
 
         logging.info("Generating instance weights for dataset balancing.")
         image_tags = [BalancedInstanceWeightsGenerator._process_tags(x.labels) for x in data_manifest.images]

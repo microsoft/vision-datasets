@@ -485,27 +485,26 @@ class DatasetManifest:
 
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
-    def spawn(self, num_samples, balanced=False, random_seed=0, **args):
+    def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
         """Spawn manifest to a size.
         To ensure each class has samples after spawn, we first keep a copy of original data, then merge with sampled data.
-        If not balanced, spawn follows class distribution. Otherwise try to balance classes in the spawned manifest.
+        If instance_weights is not provided, spawn follows class distribution.
+        Otherwise spawn the dataset so that the instances follow the given weights. In this case the spawned size is not guranteed to be num_samples.
 
         Args:
             num_samples (int): size of spawned manifest. Should be larger than the current size.
-            balanced (bool): whether the spawned dataset is balanced.
             random_seed (int): Random seed to use.
-            **args: args reserved for balanced weights generator
+            instance_weights (list): weight of each instance to spawn.
 
         Returns:
             Spawned dataset (DatasetManifest)
         """
         assert num_samples > len(self)
-        if balanced:
-            from .balanced_instance_weights_generator import BalancedInstanceWeightsGenerator
-            image_weights = BalancedInstanceWeightsGenerator.generate(self, **args)
-            sum_weights = sum(image_weights)
+        if instance_weights is not None:
+            assert len(instance_weights) == len(self)
+            sum_weights = sum(instance_weights)
             # Distribute the number of num_samples to each image by the weights. The original image is subtracted.
-            image_multipliers = [round(w / sum_weights * num_samples - 1) for w in image_weights]
+            image_multipliers = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
             spawned_images = []
             for image, multiplier in zip(self.images, image_multipliers):
                 spawned_images += [image] * multiplier
