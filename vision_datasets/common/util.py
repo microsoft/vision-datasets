@@ -53,7 +53,7 @@ class FileReader:
     def __init__(self):
         self.zip_files = {}
 
-    def open(self, name, mode='r'):
+    def open(self, name, mode='r', encoding='utf-8'):
         # read file from url
         if is_url(name):
             return urlopen(self._encode_non_ascii(name))
@@ -63,10 +63,10 @@ class FileReader:
             zip_path, file_path = name.split('@')
             if zip_path not in self.zip_files:
                 self.zip_files[zip_path] = MultiProcessZipFile(zip_path)
-            return self.zip_files[zip_path].open(file_path)
+            return self.zip_files[zip_path].open(file_path, mode)
 
         # read file from local dir
-        return open(name, mode)
+        return open(name, mode, encoding=encoding)
 
     def close(self):
         for zip_file in self.zip_files.values():

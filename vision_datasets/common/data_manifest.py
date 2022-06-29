@@ -529,8 +529,9 @@ class DatasetManifest:
         """
 
         assert len(args) >= 1, 'less than one manifests provided, not possible to merged.'
-        assert all(args), '"None" manifest found'
+        assert all([arg is not None for arg in args]), '"None" manifest found'
 
+        args = [arg for arg in args if arg]
         if len(args) == 1:
             logger.warning('Only one manifest provided. Nothing to be merged.')
             return args[0]
