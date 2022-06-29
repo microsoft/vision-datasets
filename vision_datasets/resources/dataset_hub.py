@@ -25,7 +25,7 @@ class DatasetHub(object):
 
         self.dataset_registry = DatasetRegistry(dataset_json_str)
 
-    def create_manifest_dataset(self, container_sas: str, local_dir: str, name: str, version: int = None, usage: str = Usages.TRAIN_PURPOSE, coordinates: str = 'relative',
+    def create_manifest_dataset(self, container_sas: str, local_dir: str, name: str, version: int = None, usage: Union[str, List] = Usages.TRAIN_PURPOSE, coordinates: str = 'relative',
                                 few_shot_samples_per_class=None, rnd_seed=0):
         """Create manifest dataset.
             If local_dir is provided, manifest_dataset consumes data from local disk. If data not present on local disk, it will be automatically downloaded.

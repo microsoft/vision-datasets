@@ -71,7 +71,7 @@ class TestManifestDataset(unittest.TestCase):
         assert len(ManifestDataset(DatasetInfo(DetectionTestFixtures.DATASET_INFO_DICT), dataset_manifest)) == 0
 
 
-class TestCOCOManifestDataset(unittest.TestCase):
+class TestCocoManifestDataset(unittest.TestCase):
     DATASET_INFO_DICT = {
         "name": "dummy",
         "version": 1,
@@ -90,17 +90,17 @@ class TestCOCOManifestDataset(unittest.TestCase):
     }
 
     MATTING_JSON_COCO_FORMAT = {
-        "images": [{"id": 1, "file_name": "test.zip@0.jpg"},
+        "images": [{"id": 1, "file_name": "0.jpg", "zip_file": "test.zip"},
                    {"id": 2, "file_name": "test.zip@1.jpg"}],
         "annotations": [
-            {"id": 1, "image_id": 1, "label": "mask.zip@0.png"},
+            {"id": 1, "image_id": 1, "label": "0.png", "zip_file": "mask.zip"},
             {"id": 2, "image_id": 2, "label": "mask.zip@1.png"},
         ]
     }
 
     @staticmethod
     def _create_an_image_matting_dataset():
-        dataset_dict = copy.deepcopy(TestCOCOManifestDataset.DATASET_INFO_DICT)
+        dataset_dict = copy.deepcopy(TestCocoManifestDataset.DATASET_INFO_DICT)
         tempdir = tempfile.TemporaryDirectory()
         dataset_dict['root_folder'] = tempdir.name
         images = [Image.new('RGB', (100, 100)), Image.new('RGB', (100, 100)), Image.new('L', (100, 100)), Image.new('L', (100, 100))]
@@ -118,7 +118,7 @@ class TestCOCOManifestDataset(unittest.TestCase):
             zf.write(pathlib.Path(tempdir.name) / '1.png', '1.png')
 
         with open(pathlib.Path(tempdir.name) / 'test.json', 'w') as f:
-            json.dump(TestCOCOManifestDataset.MATTING_JSON_COCO_FORMAT, f)
+            json.dump(TestCocoManifestDataset.MATTING_JSON_COCO_FORMAT, f)
 
         dataset_info = DatasetInfo(dataset_dict)
         dataset_manifest = CocoManifestAdaptor.create_dataset_manifest(dataset_info.test_path, dataset_info.type, dataset_info.root_folder)
