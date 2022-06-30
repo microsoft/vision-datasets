@@ -121,6 +121,25 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertEqual(dataset_manifest.images[0].labels, img_0_caption)
         self.assertEqual(dataset_manifest.images[1].labels, img_1_caption)
 
+    def test_multilingual_manifest(self):
+        cap_manifests = {
+            "images": [{"id": 1, "file_name": "1.jpg", 'zip_file': 'train_images.zip'},
+                       {"id": 2, "file_name": "2.jpg", 'zip_file': 'train_images.zip'}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "caption": "今天天气不错."},
+                {"id": 2, "image_id": 2, "caption": "今天天气还可以."},
+                {"id": 3, "image_id": 2, "caption": "今日は良い天気."},
+                {"id": 4, "image_id": 2, "caption": "Das Wetter ist heute schön."},
+            ]
+        }
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            caption_coco_file_path = pathlib.Path(tempdir) / 'caption_test.json'
+            caption_coco_file_path.write_text(json.dumps(cap_manifests))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(caption_coco_file_path, DatasetTypes.IMCAP)
+            caps = [x for img in manifest.images for x in img.labels]
+            assert [x['caption'] for x in cap_manifests['annotations']] == caps
+
     def test_multitask_ic_multilabel_and_image_caption(self):
         classfication_manifest_dict = TestCases.ic_manifest_dicts[0]
         imcap_manifest_dict = TestCases.cap_manifest_dicts[2]

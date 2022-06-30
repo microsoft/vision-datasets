@@ -3,8 +3,9 @@ import copy
 import json
 import logging
 import os
+import pathlib
 import random
-from typing import List, Dict
+from typing import List, Dict, Union
 from urllib import parse as urlparse
 from PIL import Image
 import numpy as np
@@ -16,8 +17,11 @@ from .util import is_url, FileReader
 logger = logging.getLogger(__name__)
 
 
-def _unix_path(path):
+def _unix_path(path: Union[pathlib.Path, str]):
     assert path is not None
+
+    if isinstance(path, pathlib.Path):
+        path = path.as_posix()
 
     return path.replace('\\', '/')
 
@@ -35,7 +39,9 @@ def _construct_full_path_generator(dirs: List[str]):
     dirs = [x for x in dirs if x]
 
     if dirs:
-        def full_path_func(path):
+        def full_path_func(path: Union[pathlib.Path, str]):
+            if isinstance(path, pathlib.Path):
+                path = path.as_posix()
             to_join = [x for x in dirs + [path] if x]
             return _unix_path(os.path.join(*to_join))
     else:
@@ -683,7 +689,7 @@ class IrisManifestAdaptor:
             logger.warning(f'{dataset_info.name}: labelmap is missing!')
         else:
             # read tag names
-            with file_reader.open(get_full_sas_or_path(dataset_info.labelmap)) as file_in:
+            with file_reader.open(get_full_sas_or_path(dataset_info.labelmap), encoding='utf-8') as file_in:
                 labelmap = [IrisManifestAdaptor._purge_line(line) for line in file_in if IrisManifestAdaptor._purge_line(line) != '']
 
         # read image width and height
@@ -765,10 +771,10 @@ class CocoManifestAdaptor:
     """
 
     @staticmethod
-    def create_dataset_manifest(coco_file_path_or_url, data_type, container_sas_or_root_dir: str = None):
+    def create_dataset_manifest(coco_file_path_or_url: Union[str, dict, pathlib.Path], data_type, container_sas_or_root_dir: str = None):
         """ construct a dataset manifest out of coco file
         Args:
-            coco_file_path_or_url (str or dict): path or url to coco file. dict if multitask
+            coco_file_path_or_url (str or pathlib.Path or dict): path or url to coco file. dict if multitask
             data_type (str or dict): type of dataset. dict if multitask
             container_sas_or_root_dir (str): container sas if resources are store in blob container, or a local dir
         """
@@ -790,7 +796,7 @@ class CocoManifestAdaptor:
         file_reader = FileReader()
         # read image index files
         coco_file_path_or_url = coco_file_path_or_url if is_url(coco_file_path_or_url) else get_full_sas_or_path(coco_file_path_or_url)
-        with file_reader.open(coco_file_path_or_url) as file_in:
+        with file_reader.open(coco_file_path_or_url, encoding='utf-8') as file_in:
             coco_manifest = json.load(file_in)
 
         file_reader.close()
