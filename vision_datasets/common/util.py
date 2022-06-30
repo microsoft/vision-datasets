@@ -16,6 +16,9 @@ def is_url(candidate: str):
 
     """
     try:
+        if not isinstance(candidate, str):
+            return False
+
         result = urlparse.urlparse(candidate)
         return result.scheme and result.netloc
     except ValueError:
@@ -53,7 +56,7 @@ class FileReader:
     def __init__(self):
         self.zip_files = {}
 
-    def open(self, name, mode='r'):
+    def open(self, name, mode='r', encoding=None):
         # read file from url
         if is_url(name):
             return urlopen(self._encode_non_ascii(name))
@@ -66,7 +69,7 @@ class FileReader:
             return self.zip_files[zip_path].open(file_path)
 
         # read file from local dir
-        return open(name, mode)
+        return open(name, mode, encoding=encoding)
 
     def close(self):
         for zip_file in self.zip_files.values():
