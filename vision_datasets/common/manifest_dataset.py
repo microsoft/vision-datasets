@@ -1,5 +1,6 @@
 import logging
 import os.path
+import io
 import pathlib
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -282,7 +283,12 @@ class LocalFolderCacheDecorator(BaseDataset):
         """
 
         images = []
-        for idx in tqdm(range(len(self)), desc='Generating manifest...'):
+        logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s')
+        logger_tqdm = logging.getLogger()
+        logger_tqdm.setLevel(logging.DEBUG)
+
+        tqdm_out = TqdmToLogger(logger_tqdm,level=logging.DEBUG)
+        for idx in tqdm(range(len(self)),file=tqdm_out, mininterval=len(self), ascii=False, desc='Generating manifest...'):
             img, labels, _ = self._get_single_item(idx)  # make sure
             width, height = img.size
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
@@ -387,3 +393,17 @@ class VisionAsImageTextDataset(BaseDataset):
 
     def close(self):
         self._dataset.close()
+        
+class TqdmToLogger(io.StringIO):
+    logger = None
+    level = None
+    buf = ''
+    def __init__(self,logger,level=None):
+        super(TqdmToLogger, self).__init__()
+        self.logger = logger
+        self.level = level or logging.INFO
+        
+    def write(self,buf):
+        self.buf = buf.strip('\r\n\t ')
+    def flush(self):
+        self.logger.log(self.level, self.buf)
