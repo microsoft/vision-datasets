@@ -7,6 +7,7 @@ from copy import deepcopy
 import random
 from PIL import Image
 from tqdm import tqdm
+from logging import Formatter, StreamHandler
 
 from .base_dataset import BaseDataset
 from .constants import DatasetTypes
@@ -283,11 +284,18 @@ class LocalFolderCacheDecorator(BaseDataset):
         """
 
         images = []
-        logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s')
-        logger_tqdm = logging.getLogger()
-        logger_tqdm.setLevel(logging.DEBUG)
+        tqdm_logger = logging.getLogger()
+        tqdm_logger.handlers = [h for h in tqdm_logger.handlers if not isinstance(h, logging.StreamHandler)]
+        tqdm_logger.setLevel(logging.DEBUG)
+        
+        tqdm_handler = StreamHandler()  
+        formatter = Formatter('%(asctime)s [%(levelname)-8s] %(message)s')
+        tqdm_handler.setFormatter(formatter)
+        tqdm_handler.setLevel(logging.DEBUG)
+        
+        tqdm_logger.addHandler(tqdm_handler)
 
-        tqdm_out = TqdmToLogger(logger_tqdm,level=logging.DEBUG)
+        tqdm_out = TqdmToLogger(tqdm_logger,level=logging.DEBUG)
         for idx in tqdm(range(len(self)),file=tqdm_out, mininterval=len(self), ascii=False, desc='Generating manifest...'):
             img, labels, _ = self._get_single_item(idx)  # make sure
             width, height = img.size
