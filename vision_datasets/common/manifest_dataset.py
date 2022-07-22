@@ -65,7 +65,9 @@ class ManifestDataset(BaseDataset):
         full_path = filepath.replace('\\', '/')
         try:
             with self._file_reader.open(full_path, 'rb') as f:
-                return PILImageLoader.load_from_stream(f)
+                img = PILImageLoader.load_from_stream(f)
+                logger.debug(f'Loaded image from path: {full_path}')
+                return img
         except Exception:
             logger.exception(f'Failed to load an image with path: {full_path}')
             raise
