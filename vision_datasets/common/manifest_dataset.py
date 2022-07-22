@@ -1,6 +1,5 @@
 import logging
 import os.path
-import io
 import pathlib
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -14,7 +13,7 @@ from .constants import DatasetTypes
 from .dataset_info import BaseDatasetInfo
 from .data_manifest import DatasetManifest, ImageDataManifest
 from .image_loader import PILImageLoader
-from .util import FileReader
+from .util import FileReader, TqdmToLogger
 
 logger = logging.getLogger(__name__)
 
@@ -284,19 +283,9 @@ class LocalFolderCacheDecorator(BaseDataset):
         """
 
         images = []
-        tqdm_logger = logging.getLogger()
-        tqdm_logger.handlers = [h for h in tqdm_logger.handlers if not isinstance(h, logging.StreamHandler)]
-        tqdm_logger.setLevel(logging.DEBUG)
+        tqdm_out = TqdmToLogger(logger,level=logging.DEBUG)
         
-        tqdm_handler = StreamHandler()  
-        formatter = Formatter('%(asctime)s [%(levelname)-8s] %(message)s')
-        tqdm_handler.setFormatter(formatter)
-        tqdm_handler.setLevel(logging.DEBUG)
-        
-        tqdm_logger.addHandler(tqdm_handler)
-
-        tqdm_out = TqdmToLogger(tqdm_logger,level=logging.DEBUG)
-        for idx in tqdm(range(len(self)),file=tqdm_out, mininterval=len(self), ascii=False, desc='Generating manifest...'):
+        for idx in tqdm(range(len(self)),file=tqdm_out, mininterval=len(self) / 100, ascii=False, desc='Generating manifest...'):
             img, labels, _ = self._get_single_item(idx)  # make sure
             width, height = img.size
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
@@ -401,17 +390,3 @@ class VisionAsImageTextDataset(BaseDataset):
 
     def close(self):
         self._dataset.close()
-        
-class TqdmToLogger(io.StringIO):
-    logger = None
-    level = None
-    buf = ''
-    def __init__(self,logger,level=None):
-        super(TqdmToLogger, self).__init__()
-        self.logger = logger
-        self.level = level or logging.INFO
-        
-    def write(self,buf):
-        self.buf = buf.strip('\r\n\t ')
-    def flush(self):
-        self.logger.log(self.level, self.buf)

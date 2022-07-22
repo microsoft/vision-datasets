@@ -1,4 +1,5 @@
 import os
+import io
 import zipfile
 from urllib import parse as urlparse
 from urllib.parse import quote
@@ -79,3 +80,16 @@ class FileReader:
     @staticmethod
     def _encode_non_ascii(s):
         return ''.join([c if ord(c) < 128 else quote(c) for c in s])
+    
+    
+class TqdmToLogger(io.StringIO):
+    def __init__(self, logger, level=None):
+        super(TqdmToLogger, self).__init__()
+        self.logger = logger
+        self.level = level or logging.INFO
+        
+    def write(self, buf):
+        self.buf = buf.strip('\r\n\t ')
+        
+    def flush(self):
+        self.logger.log(self.level, self.buf)
