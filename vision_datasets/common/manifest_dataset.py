@@ -6,13 +6,14 @@ from copy import deepcopy
 import random
 from PIL import Image
 from tqdm import tqdm
+from logging import Formatter, StreamHandler
 
 from .base_dataset import BaseDataset
 from .constants import DatasetTypes
 from .dataset_info import BaseDatasetInfo
 from .data_manifest import DatasetManifest, ImageDataManifest
 from .image_loader import PILImageLoader
-from .util import FileReader
+from .util import FileReader, TqdmToLogger
 
 logger = logging.getLogger(__name__)
 
@@ -284,7 +285,9 @@ class LocalFolderCacheDecorator(BaseDataset):
         """
 
         images = []
-        for idx in tqdm(range(len(self)), desc='Generating manifest...'):
+        tqdm_out = TqdmToLogger(logger,level=logging.DEBUG)
+        
+        for idx in tqdm(range(len(self)),file=tqdm_out, mininterval=len(self) / 100, ascii=False, desc='Generating manifest...'):
             img, labels, _ = self._get_single_item(idx)  # make sure
             width, height = img.size
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
