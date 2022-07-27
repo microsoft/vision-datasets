@@ -1,6 +1,6 @@
 # Coco format
 
-In coco, we use `file_name` and `zip_file` to construct the file_path in `ImageDataManifest` mentioned in `README.md`. If `zip_file` is present, it means that the image is zipped into a zip file for storage and access and the image path would be `{zip_file}@{file_name}`. If `zip_file` is not present, the image path would just be `file_name`.
+In coco, we use `file_name` and `zip_file` to construct the file_path in `ImageDataManifest` mentioned in `README.md`. If `zip_file` is present, it means that the image is zipped into a zip file for storage & access, and the path within the zip is `file_name`. If `zip_file` is not present, the image path would just be `file_name`.
 
 ## Image classification (multiclass and multilabel)
 
