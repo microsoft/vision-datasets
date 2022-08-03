@@ -44,7 +44,7 @@ def main():
     image_id = 1
     annotations_id = 1
     categories_id = 1
-    dir_id_WH = {}
+    dir_id_width_height = {}
 
     if not os.path.exists(args.images_txt_path):
         logger.info(f'imageTextPath {args.images_txt_path} does not exist.')
@@ -58,7 +58,7 @@ def main():
         train_images = json.load(f)
         for line in train_images:
             image = {}
-            WH = []
+            width_height = []
 
             image_path_zip, label_path_zip = line.strip().split(' ')
             image_path = '/'.join(image_path_zip.split('.zip@'))
@@ -76,9 +76,9 @@ def main():
             image['absolute_url'] = args.absolute_url + '/' + image_path
             image['date_captured'] = args.date_captured
 
-            WH.append(width)
-            WH.append(height)
-            dir_id_WH[image['id']] = WH
+            width_height.append(width)
+            width_height.append(height)
+            dir_id_width_height[image['id']] = width_height
             image_id += 1
 
             images.append(image)
@@ -95,10 +95,10 @@ def main():
 
                     if args.has_bbox:
                         bbox = []
-                        bbox.append(int(entry[1])/int(dir_id_WH[image['id']][0]))
-                        bbox.append(int(entry[2])/int(dir_id_WH[image['id']][1]))
-                        bbox.append((int(entry[3]) - int(entry[1]))/int(dir_id_WH[image['id']][0]))
-                        bbox.append((int(entry[4]) - int(entry[2]))/int(dir_id_WH[image['id']][1]))
+                        bbox.append(int(entry[1])/int(dir_id_width_height[image['id']][0]))
+                        bbox.append(int(entry[2])/int(dir_id_width_height[image['id']][1]))
+                        bbox.append((int(entry[3]) - int(entry[1]))/int(dir_id_width_height[image['id']][0]))
+                        bbox.append((int(entry[4]) - int(entry[2]))/int(dir_id_width_height[image['id']][1]))
                         annotation['bbox'] = bbox
 
                     annotations.append(annotation)
