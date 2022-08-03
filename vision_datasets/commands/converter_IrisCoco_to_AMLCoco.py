@@ -10,6 +10,7 @@ has_bbox = True
 """
 import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +38,10 @@ def main():
     standard_images = []
     dir_id_width_height = {}
     standard_annotations = []
+
+    if not os.path.exists(args.iris_coco_path):
+        logger.info(f'inputCocoName {args.iris_coco_path} does not exist.')
+        return
 
     with open(args.iris_coco_path) as f:
         iris_file = json.load(f)

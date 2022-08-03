@@ -12,6 +12,7 @@ has_bbox = True
 from PIL import Image
 import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +45,14 @@ def main():
     annotations_id = 1
     categories_id = 1
     dir_id_WH = {}
+
+    if not os.path.exists(args.images_txt_path):
+        logger.info(f'imageTextPath {args.images_txt_path} does not exist.')
+        return
+
+    if not os.path.exists(args.label_name_path):
+        logger.info(f'labelTextPath {args.label_name_path} does not exist.')
+        return
 
     with open(args.images_txt_path) as f:
         train_images = json.load(f)
