@@ -48,6 +48,6 @@ setuptools.setup(name='vision_datasets',
                                          'vision_tsv_to_coco=vision_datasets.commands.converter_tsv_to_coco:main',
                                          'vision_yolo_to_iris=vision_datasets.commands.converter_yolo_darknet_to_iris:main',
                                          'vision_gen_metafile=vision_datasets.commands.generate_image_meta_info:main',
-                                         'vision_IrisCoco_to_AMLCoco=vision_datasets.commands.converter_IrisCoco_to_AMLCoco:main',
-                                         'vision_IrisDataset_to_AMLCoco=vision_datasets.commands.converter_IrisDataset_to_AMLCoco:main']
+                                         'vision_iriscoco_to_amlcoco=vision_datasets.commands.converter_iriscoco_to_amlcoco:main',
+                                         'vision_irisdataset_to_amlcoco=vision_datasets.commands.converter_irisdataset_to_amlcoco:main']
                  })
