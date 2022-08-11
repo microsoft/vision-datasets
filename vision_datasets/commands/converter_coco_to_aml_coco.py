@@ -9,9 +9,9 @@ logging.basicConfig(level=logging.INFO)
 def create_arg_parser():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Convert IRIS coco to AML coco format.')
-    parser.add_argument('-i', '--standard_coco_file', required=True, type=str, help='Standard coco file to convert.')
-    parser.add_argument('-o', '--output_file', required=True, type=str, default='AML_coco.json', help='output coco file name.')
+    parser = argparse.ArgumentParser(description='Convert coco to AML coco format.')
+    parser.add_argument('-i', '--standard_coco_file', required=True, type=str, help='standard coco file to be converted.')
+    parser.add_argument('-o', '--output_file', required=True, type=str, default='aml_coco.json', help='output aml coco file name.')
     parser.add_argument('-u', '--blob_base_url', required=True, type=str, help='blob base url for blob container.')
 
     return parser
@@ -26,15 +26,15 @@ def main():
     dimensions = {}
 
     if not os.path.exists(args.standard_coco_file):
-        logger.info(f'inputCocoName {args.standard_coco_file} does not exist.')
+        logger.error(f'Input COCO file {args.standard_coco_file} does not exist.')
         return
 
     with open(args.standard_coco_file) as f:
-        iris_file = json.load(f)
+        coco_file = json.load(f)
 
-        images = iris_file['images']
-        annotations = iris_file["annotations"]
-        categories = iris_file['categories']
+        images = coco_file['images']
+        annotations = coco_file["annotations"]
+        categories = coco_file['categories']
 
         for image in images:
             image_tmp = {}
@@ -55,7 +55,6 @@ def main():
             annotation_tmp['id'] = annotation['id']
             annotation_tmp['category_id'] = annotation['category_id']
             annotation_tmp['image_id'] = annotation['image_id']
-            annotation_tmp['area'] = annotation['area']
 
             if 'bbox' in annotation:
                 bbox = []
@@ -64,9 +63,11 @@ def main():
                     bbox.append(annotation['bbox'][1]/dimensions[annotation['image_id']][1])
                     bbox.append(annotation['bbox'][2]/dimensions[annotation['image_id']][0])
                     bbox.append(annotation['bbox'][3]/dimensions[annotation['image_id']][1])
+                    annotation_tmp['area'] = annotation['area'] / (dimensions[annotation['image_id']][0] * dimensions[annotation['image_id']][1])
                     annotation_tmp['bbox'] = bbox
                 else:
-                    annotation_tmp['bbox'] = annotation['bbox'][0]
+                    annotation_tmp['area'] = annotation['area']
+                    annotation_tmp['bbox'] = annotation['bbox']
 
             aml_annotations.append(annotation_tmp)
 

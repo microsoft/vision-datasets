@@ -10,10 +10,10 @@ logging.basicConfig(level=logging.INFO)
 def create_arg_parser():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Convert IRIS coco to AML coco format.')
-    parser.add_argument('-i', '--images_txt_file', required=True, type=str, default='test_images.txt', help='image Text file name.')
-    parser.add_argument('-l', '--label_name_file', required=True, type=str, default='labels.txt', help='label Text file name.')
-    parser.add_argument('-o', '--output_file', required=True, type=str, default='AML_coco.json', help='output json name.')
+    parser = argparse.ArgumentParser(description='Convert dataset to AML coco format.')
+    parser.add_argument('-i', '--images_map', required=True, type=str, help='image map file name.')
+    parser.add_argument('-l', '--label_map', required=True, type=str, help='label map file name.')
+    parser.add_argument('-o', '--output_file', required=True, type=str, default='aml_coco.json', help='output aml coco file name.')
     parser.add_argument('-u', '--blob_base_url', required=True, type=str, help='blob base url url for blob container.')
 
     return parser
@@ -32,15 +32,15 @@ def main():
     categories_id = 1
     dimensions = {}
 
-    if not os.path.exists(args.images_txt_file):
-        logger.info(f'imageTextPath {args.images_txt_file} does not exist.')
+    if not os.path.exists(args.images_map):
+        logger.error(f'Image map file {args.images_map} does not exist.')
         return
 
-    if not os.path.exists(args.label_name_file):
-        logger.info(f'labelTextPath {args.label_name_file} does not exist.')
+    if not os.path.exists(args.label_map):
+        logger.error(f'Label map file {args.label_map} does not exist.')
         return
 
-    with open(args.images_txt_file) as images_txt:
+    with open(args.images_map) as images_txt:
         for line in images_txt:
             image = {}
 
@@ -90,7 +90,7 @@ def main():
 
                     annotations.append(annotation)
 
-    with open(args.label_name_file) as labels:
+    with open(args.label_map) as labels:
         for label in labels:
             category = {}
             category['id'] = categories_id
