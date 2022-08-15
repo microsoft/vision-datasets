@@ -370,6 +370,7 @@ class DatasetManifest:
         else:
             sampled_images = [rnd.choice(self.images) for _ in range(num_samples)]
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shot_subset(self, num_samples_per_class, random_seed=0):
@@ -417,6 +418,7 @@ class DatasetManifest:
             if min(n_imgs_by_class) >= num_samples_per_class:
                 break
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_subset_by_ratio(self, sampling_ratio):
@@ -451,7 +453,7 @@ class DatasetManifest:
         for image_ids in label_image_map.values():
             sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
 
-        sampled_images = [self.images[i] for i in sampled_image_ids]
+        sampled_images = [copy.deepcopy(self.images[i]) for i in sampled_image_ids]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shots_subset_greedy(self, num_min_samples_per_class, random_seed=0):
@@ -491,6 +493,7 @@ class DatasetManifest:
         if +total_counter:
             raise RuntimeError(f"Couldn't find {num_min_samples_per_class} samples for some classes: {+total_counter}")
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
