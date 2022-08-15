@@ -502,7 +502,7 @@ class DatasetManifest:
         Args:
             num_samples (int): size of spawned manifest. Should be larger than the current size.
             random_seed (int): Random seed to use.
-            instance_weights (list): weight of each instance to spawn.
+            instance_weights (list): weight of each instance to spawn, >= 0.
 
         Returns:
             Spawned dataset (DatasetManifest)
@@ -510,15 +510,19 @@ class DatasetManifest:
         assert num_samples > len(self)
         if instance_weights is not None:
             assert len(instance_weights) == len(self)
+            assert all([x >= 0 for x in instance_weights])
+
             sum_weights = sum(instance_weights)
             # Distribute the number of num_samples to each image by the weights. The original image is subtracted.
-            image_multipliers = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
+            n_copies_per_sample = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
             spawned_images = []
-            for image, multiplier in zip(self.images, image_multipliers):
-                spawned_images += [image] * multiplier
+            for image, n_copies in zip(self.images, n_copies_per_sample):
+                spawned_images += [copy.deepcopy(image) for _ in range(n_copies)]
+
             sampled_manifest = DatasetManifest(spawned_images, self.labelmap, self.data_type)
         else:
             sampled_manifest = self.sample_subset(num_samples - len(self), with_replacement=True, random_seed=random_seed)
+
         # Merge with the copy of the original dataset to ensure each class has sample.
         return DatasetManifest.merge(self, sampled_manifest, flavor=0)
 
