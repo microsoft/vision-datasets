@@ -370,6 +370,7 @@ class DatasetManifest:
         else:
             sampled_images = [rnd.choice(self.images) for _ in range(num_samples)]
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shot_subset(self, num_samples_per_class, random_seed=0):
@@ -417,6 +418,7 @@ class DatasetManifest:
             if min(n_imgs_by_class) >= num_samples_per_class:
                 break
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_subset_by_ratio(self, sampling_ratio):
@@ -451,7 +453,7 @@ class DatasetManifest:
         for image_ids in label_image_map.values():
             sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
 
-        sampled_images = [self.images[i] for i in sampled_image_ids]
+        sampled_images = [copy.deepcopy(self.images[i]) for i in sampled_image_ids]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shots_subset_greedy(self, num_min_samples_per_class, random_seed=0):
@@ -491,6 +493,7 @@ class DatasetManifest:
         if +total_counter:
             raise RuntimeError(f"Couldn't find {num_min_samples_per_class} samples for some classes: {+total_counter}")
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
@@ -502,7 +505,7 @@ class DatasetManifest:
         Args:
             num_samples (int): size of spawned manifest. Should be larger than the current size.
             random_seed (int): Random seed to use.
-            instance_weights (list): weight of each instance to spawn.
+            instance_weights (list): weight of each instance to spawn, >= 0.
 
         Returns:
             Spawned dataset (DatasetManifest)
@@ -510,15 +513,19 @@ class DatasetManifest:
         assert num_samples > len(self)
         if instance_weights is not None:
             assert len(instance_weights) == len(self)
+            assert all([x >= 0 for x in instance_weights])
+
             sum_weights = sum(instance_weights)
             # Distribute the number of num_samples to each image by the weights. The original image is subtracted.
-            image_multipliers = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
+            n_copies_per_sample = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
             spawned_images = []
-            for image, multiplier in zip(self.images, image_multipliers):
-                spawned_images += [image] * multiplier
+            for image, n_copies in zip(self.images, n_copies_per_sample):
+                spawned_images += [copy.deepcopy(image) for _ in range(n_copies)]
+
             sampled_manifest = DatasetManifest(spawned_images, self.labelmap, self.data_type)
         else:
             sampled_manifest = self.sample_subset(num_samples - len(self), with_replacement=True, random_seed=random_seed)
+
         # Merge with the copy of the original dataset to ensure each class has sample.
         return DatasetManifest.merge(self, sampled_manifest, flavor=0)
 
