@@ -402,15 +402,18 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
         for n in _get_instance_count_per_class(sampled).values():
             self.assertGreaterEqual(n, 10)
 
-    def test_random_seed(self):
+    def test_consistency_random_seed(self):
         num_classes = 100
         images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i]) for i in range(num_classes)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTICLASS)
 
         for i in range(10):
-            sampled = dataset_manifest.sample_few_shots_subset_greedy(1, random_seed=i)
-            sampled2 = dataset_manifest.sample_few_shots_subset_greedy(1, random_seed=i)
-            self.assertEqual(sampled.images, sampled2.images)
+            n_sample_per_class = 1
+            sampled = dataset_manifest.sample_few_shots_subset_greedy(n_sample_per_class, random_seed=i)
+            sampled2 = dataset_manifest.sample_few_shots_subset_greedy(n_sample_per_class, random_seed=i)
+            self.assertEqual(len(sampled), 100)
+            self.assertEqual(len(sampled), len(sampled2))
+            self.assertEqual([x.id for x in sampled.images], [x.id for x in sampled2.images])
 
 
 class TestManifestSplit(unittest.TestCase):
