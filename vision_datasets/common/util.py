@@ -63,7 +63,7 @@ class FileReader:
 
         # read file from local zip: <zip_filename>@<entry_name>, e.g. images.zip@1.jpg
         if '@' in name:
-            zip_path, file_path = name.split('@')
+            zip_path, file_path = name.split('@', 1)
             if zip_path not in self.zip_files:
                 self.zip_files[zip_path] = MultiProcessZipFile(zip_path)
             return self.zip_files[zip_path].open(file_path)
