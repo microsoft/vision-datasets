@@ -40,11 +40,9 @@ def check_images(dataset: ManifestDataset, err_msg_file: pathlib.Path):
             _ = dataset[i]
         except (KeyError, FileNotFoundError) as e:
             file_not_found_list.append(str(e))
+
     if file_not_found_list:
-        if err_msg_file:
-            err_msg_file.write_text('\n'.join(file_not_found_list))
-        else:
-            logger.error(f'Files not found: {file_not_found_list}')
+        err_msg_file.write_text('\n'.join(file_not_found_list))
 
 
 def classification_detection_check(dataset):
@@ -86,7 +84,6 @@ def main():
     parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
     parser.add_argument('--folder_to_check', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder.')
     parser.add_argument('--quick_check', '-q', action='store_true', default=False, help='Randomly check a few data samples from the dataset.')
-    parser.add_argument('--err_msg_file', '-e', type=pathlib.Path, default=pathlib.Path('err.txt'), help='Error info file name.')
 
     args = parser.parse_args()
     prefix = logging_prefix(args.name, args.version)
@@ -109,10 +106,11 @@ def main():
         # if args.folder_to_check is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
         dataset = vision_datasets.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.folder_to_check, name=dataset_info.name, version=args.version, usage=usage)
         if dataset:
+            err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             if args.quick_check:
                 quick_check_images(dataset)
             else:
-                check_images(dataset, err_msg_file=args.err_msg_file)
+                check_images(dataset, err_msg_file)
         else:
             logger.info(f'{prefix} No split for {usage} available.')
 
