@@ -3,6 +3,7 @@ import logging
 import os.path
 import pathlib
 import random
+import json
 from tqdm import tqdm
 from vision_datasets import DatasetRegistry, Usages, DatasetHub, DatasetTypes, ManifestDataset
 logger = logging.getLogger(__name__)
@@ -76,11 +77,32 @@ def classification_detection_check(dataset):
     logger.info(str(stats))
 
 
+def _generate_reg_json(name, type, coco_path):
+    data_info = [
+        {
+            'name': name,
+            'version': 1,
+            'type': type,
+            'format': 'coco',
+            'root_folder': '',
+            'train': {
+                'index_path': coco_path.name
+            }
+        }
+    ]
+
+    return json.dumps(data_info)
+
+
 def main():
     parser = argparse.ArgumentParser('Check if a dataset is valid')
     parser.add_argument('name', type=str, help='Dataset name.')
-    parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=True)
+    parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
     parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
+
+    parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
+    parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
+
     parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
     parser.add_argument('--folder_to_check', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder.')
     parser.add_argument('--quick_check', '-q', action='store_true', default=False, help='Randomly check a few data samples from the dataset.')
@@ -88,7 +110,15 @@ def main():
     args = parser.parse_args()
     prefix = logging_prefix(args.name, args.version)
 
-    data_reg_json = args.reg_json.read_text()
+    if args.reg_json:
+        usages = [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]
+        data_reg_json = args.reg_json.read_text()
+    else:
+        assert args.coco_json, '--coco_json not provided'
+        assert args.data_type, '--data_type not provided'
+        usages = [Usages.TRAIN_PURPOSE]
+        data_reg_json = _generate_reg_json(args.name, args.data_type, args.coco_json)
+
     dataset_info = DatasetRegistry(data_reg_json).get_dataset_info(args.name, args.version)
     if not dataset_info:
         logger.error(f'{prefix} dataset does not exist.')
@@ -98,7 +128,7 @@ def main():
 
     vision_datasets = DatasetHub(data_reg_json)
 
-    for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
+    for usage in usages:
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
         if args.folder_to_check and not args.folder_to_check.exists():
             os.mkdir(args.folder_to_check)

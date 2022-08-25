@@ -81,12 +81,13 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
 
 Coco annotation format details w.r.t. `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
-
 #### Iris format
 
 Iris format is a legacy format which can be found in `IRIS_DATA_FORMAT.md`. Only `multiclass/label_classification`, `object_detection` and `multitask` are supported.
 
 ## Dataset management and access
+
+Check [DATA_PREPARATION.md](DATA_PREPARATION.md) for complete guide on how to prepare datasets in steps.
 
 Once you have multiple datasets, it is more convenient to have all the `DatasetInfo` in one place and instantiate `DatasetManifest` or even `ManifestDataset` by just using the dataset name, usage (
 train, val ,test) and version.
@@ -128,12 +129,3 @@ When data exists on local disk, `blob_container_sas` can be `None`.
 ### Training with PyTorch
 
 Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
-
-### Managing datasets with DatasetHub on cloud storage
-
-If you are using `DatasetHub` to manage datasets in cloud storage, we recommend zipping (with uncompressed mode) the images into one or multiple zip files before uploading it and update the file path in index files to be like `train.zip@train/1.jpg` from `train/1.jpg`. For coco format, you can specify `"file_name": "train/1.jpg"` and `"zip_file": "train.zip"`.  You can do it with `7zip` (set compression level to 'store') on Windows or [zip](https://superuser.com/questions/411394/zip-files-without-compression) command on Linux.
-
-If you upload folders of images directly to cloud storage:
-
-- you will need to list all images in `"files_for_local_usage"`, which can be millions of entries
-- downloading images one by one (even with multithreading) is much slower than downloading a few zip files
