@@ -36,7 +36,7 @@ Once zipped, you can specify `"zip_file": "train_images.zip"` in the coco json f
 ### Zip principles
 
 1. **Store train, val and test splits in different zip files.** For example, when doing zero-shot evaluation, all we need is the test split. By zipping them into different zips, we won't have to download a huge zip including training or val images when we just need the test images.
-2. **Make each zip file small: <= 2GB**. It is more likely for a large file to suffer from network issue or download error, so please keep each zip small. It is ok to have multiple smaller zip files.
+2. **Make each zip file small: <= 5GB**. Given our existing download client, it is more likely for a large file to suffer from network issue or download error, so please keep each zip small. It is ok to have multiple smaller zip files. If you are using your own Azure Blob Client to manage the download or data access, then file size might not be an issue.
 
 ### File name and path
 
