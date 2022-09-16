@@ -1,7 +1,8 @@
-from PIL import Image
 import json
 import logging
-import os
+from vision_datasets import DatasetHub
+from vision_datasets.common.constants import DatasetTypes
+import pathlib
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -11,10 +12,11 @@ def create_arg_parser():
     import argparse
 
     parser = argparse.ArgumentParser(description='Convert dataset to AML coco format.')
-    parser.add_argument('-i', '--images_map', required=True, type=str, help='image map file name.')
-    parser.add_argument('-l', '--label_map', required=True, type=str, help='label map file name.')
+    parser.add_argument('-r', '--dataset_reg_file', required=True, type=pathlib.Path, help='dataset registration json path.')
+    parser.add_argument('-l', '--local_dir', required=True, type=pathlib.Path, help='local directory for storage.')
     parser.add_argument('-o', '--output_file', required=True, type=str, default='aml_coco.json', help='output aml coco file name.')
-    parser.add_argument('-u', '--blob_base_url', required=True, type=str, help='blob base url url for blob container.')
+    parser.add_argument('-b', '--blob_container_sas', required=True, type=str, help='blob base url url for blob container.')
+    parser.add_argument('-n', '--dataset_name', required=True, type=str, help='dataset name.')
 
     return parser
 
@@ -23,6 +25,13 @@ def main():
     args = create_arg_parser().parse_args()
     logger.info(args.__dict__)
 
+    dataset_resources = DatasetHub(pathlib.Path(args.dataset_reg_file).read_text())
+    dataset = dataset_resources.create_manifest_dataset(args.blob_container_sas, args.local_dir, args.dataset_name, version=1, usage='train')
+
+    if not dataset:
+        logger.info(f'Skipping non-existent dataset_reg_file {args.dataset_reg_file}.')
+        return
+
     aml_coco = {}
     images = []
     annotations = []
@@ -30,73 +39,47 @@ def main():
     image_id = 1
     annotations_id = 1
     categories_id = 1
-    dimensions = {}
 
-    if not os.path.exists(args.images_map):
-        logger.error(f'Image map file {args.images_map} does not exist.')
-        return
+    for img_man in dataset.images:
+        image = {}
+        image['id'] = image_id
+        image['width'] = img_man.width
+        image['height'] = img_man.height
+        image['file_name'] = img_man.img_path
+        image['coco_url'] = f'{args.blob_base_url}/{img_man.img_path}'
 
-    if not os.path.exists(args.label_map):
-        logger.error(f'Label map file {args.label_map} does not exist.')
-        return
+        images.append(image)
 
-    with open(args.images_map) as images_txt:
-        for line in images_txt:
-            image = {}
+        for ann in img_man.labels:
+            coco_ann = {
+                'id': annotations_id,
+                'image_id': image_id,
+            }
+            annotations_id += 1
+            if DatasetTypes.is_classification(img_man.data_type):
+                coco_ann['category_id'] = ann + 1
+            elif img_man.data_type == DatasetTypes.OD:
+                coco_ann['category_id'] = ann[0] + 1
+                coco_ann['area'] = abs(ann[1] - ann[3]) * abs(ann[2] - ann[4])
+                if ann[1] > 1 or ann[2] > 1 or ann[3] > 1 or ann[4] > 1:
+                    coco_ann['bbox'] = [ann[1], ann[2], ann[3] - ann[1], ann[4] - ann[2]]
+                else:
+                    coco_ann['bbox'] = [ann[1]/img_man.width, ann[2]/img_man.height, (ann[3] - ann[1])/img_man.width, (ann[4] - ann[2])/img_man.height]
+            elif img_man.data_type == DatasetTypes.IMCAP:
+                coco_ann['caption'] = ann
+            else:
+                raise ValueError(f'Unsupported data type {img_man.data_type}')
 
-            image_path_zip, label_path_zip = line.strip().split(' ')
-            image_path = '/'.join(image_path_zip.split('.zip@'))
-            label_path = '/'.join(label_path_zip.split('.zip@'))
+            annotations.append(coco_ann)
 
-            with Image.open(image_path) as img:
-                width = img.width
-                height = img.height
+        image_id += 1
 
-            image['id'] = image_id
-            image['width'] = width
-            image['height'] = height
-            image['file_name'] = image_path
-            image['coco_url'] = f'{args.blob_base_url}/{image_path}'
-
-            dimensions[image['id']] = (width, height)
-
-            image_id += 1
-            images.append(image)
-
-            with open(label_path, 'r') as labels:
-                for label in labels:
-                    entry = label.strip().split(' ')
-                    annotation = {}
-                    annotation['id'] = annotations_id
-                    annotations_id += 1
-                    annotation['category_id'] = int(entry[0]) + 1
-                    annotation['image_id'] = image['id']
-                    annotation['area'] = abs(int(entry[1]) - int(entry[3])) * abs(int(entry[2]) - int(entry[4]))
-
-                    if len(entry) > 1:
-                        bbox = []
-                        if float(entry[1]) > 1 or float(entry[2]) > 1 or float(entry[3]) > 1 or float(entry[4]) > 1:
-                            bbox.append(int(entry[1])/int(dimensions[image['id']][0]))
-                            bbox.append(int(entry[2])/int(dimensions[image['id']][1]))
-                            bbox.append((int(entry[3]) - int(entry[1]))/int(dimensions[image['id']][0]))
-                            bbox.append((int(entry[4]) - int(entry[2]))/int(dimensions[image['id']][1]))
-                        else:
-                            bbox.append(entry[1])
-                            bbox.append(entry[2])
-                            bbox.append(float(entry[3]) - float(entry[1]))
-                            bbox.append(float(entry[4]) - float(entry[2]))
-
-                        annotation['bbox'] = bbox
-
-                    annotations.append(annotation)
-
-    with open(args.label_map) as labels:
-        for label in labels:
-            category = {}
-            category['id'] = categories_id
-            category['name'] = label.strip()
-            categories_id += 1
-            categories.append(category)
+    for label in dataset.labelmap:
+        category = {}
+        category['id'] = categories_id
+        category['name'] = label
+        categories_id += 1
+        categories.append(category)
 
     aml_coco['images'] = images
     aml_coco['annotations'] = annotations
