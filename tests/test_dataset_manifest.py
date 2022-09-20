@@ -201,13 +201,40 @@ class TestCases:
             ]
         }]
 
+    regression_manifest_dicts = [
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 1.0},
+                {"id": 2, "image_id": 2, "target": 2.0},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 3.0},
+                {"id": 2, "image_id": 2, "target": 4.0},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 5.0},
+                {"id": 2, "image_id": 2, "target": 6.0},
+            ],
+        }]
+
     manifest_dict_by_data_type = {
         DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
         DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
         DatasetTypes.OD: od_manifest_dicts,
         DatasetTypes.IMCAP: cap_manifest_dicts,
         DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts,
-        DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts
+        DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts,
+        DatasetTypes.REGRESSION: regression_manifest_dicts
     }
 
     @staticmethod
