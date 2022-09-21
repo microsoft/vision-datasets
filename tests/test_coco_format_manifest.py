@@ -223,3 +223,19 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertTrue(np.array_equal(dataset_manifest.images[0].labels['task2'][0], img_0_matting, equal_nan=True))
         self.assertEqual(dataset_manifest.images[1].labels['task1'],  [0, 1])
         self.assertTrue(np.array_equal(dataset_manifest.images[1].labels['task2'][0], img_1_matting, equal_nan=True))
+
+    def test_regression_manifest(self):
+        regression_manifest = {
+            "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 1.0},
+                {"id": 2, "image_id": 2, "target": 2.0},
+            ]
+        }
+
+        dataset_manifest = TestCases.get_manifest(DatasetTypes.REGRESSION, 0)
+        self.assertIsInstance(dataset_manifest, DatasetManifest)
+        self.assertEqual(len(dataset_manifest.images), 2)
+        self.assertEqual(dataset_manifest.images[0].labels, regression_manifest["annotations"][0]["target"])
+        self.assertEqual(dataset_manifest.images[1].labels, regression_manifest["annotations"][1]["target"])

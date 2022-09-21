@@ -627,7 +627,7 @@ class TestSpawn(unittest.TestCase):
 
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
-        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP]:
+        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.REGRESSION]:
             for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
                 manifest = TestCases.get_manifest(data_type, i)
                 coco_dict = manifest.generate_coco_annotations()
