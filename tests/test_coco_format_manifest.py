@@ -237,5 +237,5 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.REGRESSION, 0)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
-        self.assertEqual(dataset_manifest.images[0].labels, regression_manifest["annotations"][0]["target"])
-        self.assertEqual(dataset_manifest.images[1].labels, regression_manifest["annotations"][1]["target"])
+        self.assertEqual(dataset_manifest.images[0].labels, [regression_manifest["annotations"][0]["target"]])
+        self.assertEqual(dataset_manifest.images[1].labels, [regression_manifest["annotations"][1]["target"]])
