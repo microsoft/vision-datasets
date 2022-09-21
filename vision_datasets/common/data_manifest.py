@@ -102,7 +102,7 @@ class ImageDataManifest:
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
-                regression: [target1, target2, ...].
+                image_regression: [target1].
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -256,7 +256,7 @@ class DatasetManifest:
                     coco_ann['bbox'] = [ann[1], ann[2], ann[3] - ann[1], ann[4] - ann[2]]
                 elif self.data_type == DatasetTypes.IMCAP:
                     coco_ann['caption'] = ann
-                elif self.data_type == DatasetTypes.REGRESSION:
+                elif self.data_type == DatasetTypes.IMAGE_REGRESSION:
                     coco_ann['target'] = ann
                 else:
                     raise ValueError(f'Unsupported data type {self.data_type}')
@@ -264,7 +264,7 @@ class DatasetManifest:
                 annotations.append(coco_ann)
 
         coco_dict = {'images': images, 'annotations': annotations}
-        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.REGRESSION]:
+        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
 
         return coco_dict
@@ -580,7 +580,7 @@ class DatasetManifest:
     def _merge_with_concat(*args):
         data_type = args[0].data_type
 
-        if data_type in [DatasetTypes.IMCAP, DatasetTypes.REGRESSION]:
+        if data_type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             return DatasetManifest._merge_with_same_labelmap(args)
 
         if isinstance(data_type, dict):  # multitask
@@ -680,7 +680,7 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING, DatasetTypes.REGRESSION]:
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING, DatasetTypes.IMAGE_REGRESSION]:
             raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
@@ -830,7 +830,7 @@ class CocoManifestAdaptor:
             def process_labels_without_categories(image):
                 image.label_file_paths = image.label_file_paths or []
                 image.label_file_paths.append(get_file_path(annotation, annotation['label']))
-        elif data_type == DatasetTypes.REGRESSION:
+        elif data_type == DatasetTypes.IMAGE_REGRESSION:
             def process_labels_without_categories(image):
                 image.labels.append(annotation['target'])
 
