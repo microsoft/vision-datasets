@@ -201,7 +201,7 @@ class TestCases:
             ]
         }]
 
-    regression_manifest_dicts = [
+    image_regression_manifest_dicts = [
         {
             "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
                        {"id": 2, "file_name": "train_images.zip@2.jpg"}],
@@ -234,7 +234,7 @@ class TestCases:
         DatasetTypes.IMCAP: cap_manifest_dicts,
         DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts,
         DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts,
-        DatasetTypes.REGRESSION: regression_manifest_dicts
+        DatasetTypes.IMAGE_REGRESSION: image_regression_manifest_dicts
     }
 
     @staticmethod
@@ -627,7 +627,7 @@ class TestSpawn(unittest.TestCase):
 
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
-        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.REGRESSION]:
+        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
                 manifest = TestCases.get_manifest(data_type, i)
                 coco_dict = manifest.generate_coco_annotations()
