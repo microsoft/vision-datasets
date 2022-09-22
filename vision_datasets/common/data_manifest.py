@@ -225,7 +225,7 @@ class DatasetManifest:
 
     def generate_coco_annotations(self):
         """
-        Generate coco annotations, working for single task classification, detection and caption only
+        Generate coco annotations, working for single task classification, detection, caption, and image regression only
 
         Returns:
             A dict of annotation data ready for coco json dump
@@ -832,6 +832,7 @@ class CocoManifestAdaptor:
                 image.label_file_paths.append(get_file_path(annotation, annotation['label']))
         elif data_type == DatasetTypes.IMAGE_REGRESSION:
             def process_labels_without_categories(image):
+                assert len(image.labels) == 0, f"There should be exactly one label per image for image_regression datasets, but image with id {annotation['image_id']} has more than one"
                 image.labels.append(annotation['target'])
 
         if process_labels_without_categories:
