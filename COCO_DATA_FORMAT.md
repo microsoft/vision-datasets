@@ -94,3 +94,18 @@ Specifically, **only** image files are supported for the label files. The ground
     ]
 }
 ```
+
+## Image regression
+
+Here is one example of the json file for the image regression task, where the "target" in the "annotations" field is a real-valued number (e.g. a score, an age, etc.). Note that each image should only have one regression target (i.e. there should be exactly one annotation for each image).
+
+``` {json}
+{
+    "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/image_1.jpg", "zip_file": "train_images.zip"},
+              {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/image_2.jpg", "zip_file": "train_images.zip"}],
+    "annotations": [
+        {"id": 1, "image_id": 1, "target": 102.0},
+        {"id": 2, "image_id": 2, "target": 28.5}
+    ]
+}
+```

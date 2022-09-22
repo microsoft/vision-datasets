@@ -46,7 +46,7 @@ def check_images(dataset: ManifestDataset, err_msg_file: pathlib.Path):
         err_msg_file.write_text('\n'.join(file_not_found_list))
 
 
-def classification_detection_check(dataset):
+def classification_detection_check(dataset: ManifestDataset):
     n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
     for sample in dataset.dataset_manifest.images:
         labels = sample.labels
@@ -141,6 +141,9 @@ def main():
                 quick_check_images(dataset)
             else:
                 check_images(dataset, err_msg_file)
+                
+            if args.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]:
+                classification_detection_check(dataset)
         else:
             logger.info(f'{prefix} No split for {usage} available.')
 
