@@ -19,8 +19,9 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='Merge different datasets of the same type into one.')
     parser.add_argument('-n', '--names', nargs='+', help='names of datasets to be merged.', required=True)
     parser.add_argument('-i', '--new_name', type=str, help='name of the merged dataset.', required=True)
-    parser.add_argument('-r', '--reg_json_path', type=pathlib.Path, default=None, help="dataset registration json path.", required=True)
-    parser.add_argument('-k', '--sas', type=str, help="sas url.", required=False, default=None)
+    parser.add_argument('-r', '--reg_json', type=pathlib.Path, default=None, help="dataset registration json path.", required=True)
+    parser.add_argument('-k', '--blob_container', type=str, help="blob container url.", required=False, default=None)
+    parser.add_argument('-f', '--local_dir', type=pathlib.Path, help="local dir for dataet files.", default='./', required=False, default=None)
 
     return parser
 
@@ -47,7 +48,7 @@ def main():
     if len(args.names) <= 1:
         raise ValueError('No datasets to be merged.')
 
-    dataset_resources = DatasetHub(args.reg_json_path.read_text())
+    dataset_resources = DatasetHub(args.reg_json.read_text())
     manifests = []
     merged_dataset_info_dict = {
         'name': args.new_name,
@@ -56,6 +57,7 @@ def main():
         'root_folder': '',
         'version': 1,
     }
+
     for name in args.names:
         dataset_info = dataset_resources.dataset_registry.get_dataset_info(name)
         merged_dataset_info_dict = update_dataset_info(merged_dataset_info_dict, dataset_info)
@@ -63,7 +65,7 @@ def main():
     for phase in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
         manifests.clear()
         for name in args.names:
-            manifest = dataset_resources.create_dataset_manifest(args.sas, './', name, usage=phase)[0]
+            manifest = dataset_resources.create_dataset_manifest(args.blob_container, str(args.local_dir.as_posix()), name, usage=phase)[0]
             if not manifest:
                 continue
 
