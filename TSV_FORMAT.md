@@ -5,11 +5,13 @@ TSV format uses a single or multiple *.tvs format to store both the image annota
 - **second column** being the annotaion
 - **third column** being the [base64-encoded](https://en.wikipedia.org/wiki/Base64) string of the image data.
 
-This repo does not support consuming TSV format, but we provide tools for converting to/from TSV format from/to coco, for limited tasks and data.
+This repo does not support consuming TSV format, but we provide tools for converting to/from TSV format from/to coco, for limited tasks and data, such as
 
 ```bash
 vision_convert_to_tsv {dataset_name} -r {dataset_registry_json} -k {data storage url} -f {local_dir} [-u Usages]
 ```
+
+For more commands and help related to TSV, check out [UTIL_COMMANDS.md](./UTIL_COMMANDS.md).
 
 # Task-wise Format
 
