@@ -18,7 +18,7 @@ def logging_prefix(dataset_name, version):
 def main():
     parser = argparse.ArgumentParser('Convert a dataset to TSV(s)')
     add_args_to_locate_dataset(parser)
-    parser.add_argument('--output_dir', '-o', type=pathlib.Path, required=False, default='./', help='TSV file(s) will be saved here.')
+    parser.add_argument('--output_dir', '-o', type=pathlib.Path, required=False, default=pathlib.Path('./'), help='TSV file(s) will be saved here.')
 
     args = parser.parse_args()
     prefix = logging_prefix(args.name, args.version)

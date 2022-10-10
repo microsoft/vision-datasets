@@ -17,11 +17,11 @@ def create_arg_parser():
     import argparse
 
     parser = argparse.ArgumentParser(description='Merge different datasets of the same type into one.')
-    parser.add_argument('-n', '--names', nargs='+', help='names of datasets to be merged.', required=True)
+    parser.add_argument('names', nargs='+', help='names of datasets to be merged.')
     parser.add_argument('-i', '--new_name', type=str, help='name of the merged dataset.', required=True)
     parser.add_argument('-r', '--reg_json', type=pathlib.Path, default=None, help="dataset registration json path.", required=True)
     parser.add_argument('-k', '--blob_container', type=str, help="blob container url.", required=False, default=None)
-    parser.add_argument('-f', '--local_dir', type=pathlib.Path, help="local dir for dataet files.", default='./', required=False, default=None)
+    parser.add_argument('-f', '--local_dir', type=pathlib.Path, help="local dir for dataet files.", default=pathlib.Path('./'), required=False)
 
     return parser
 
@@ -65,9 +65,10 @@ def main():
     for phase in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
         manifests.clear()
         for name in args.names:
-            manifest = dataset_resources.create_dataset_manifest(args.blob_container, str(args.local_dir.as_posix()), name, usage=phase)[0]
+            manifest = dataset_resources.create_dataset_manifest(args.blob_container, str(args.local_dir.as_posix()), name, usage=phase)
             if not manifest:
                 continue
+            manifest = manifest[0]
 
             manifests.append(manifest)
 
