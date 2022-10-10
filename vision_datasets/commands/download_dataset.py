@@ -6,8 +6,8 @@ import argparse
 import os
 import tempfile
 import pathlib
-from vision_datasets.commands.utils import convert_to_tsv, set_up_cmd_logger
-from vision_datasets import Usages, DatasetRegistry, DatasetHub, DatasetTypes
+from vision_datasets.commands.utils import add_args_to_locate_dataset_from_name_and_reg_json, convert_to_tsv, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
+from vision_datasets import DatasetRegistry, DatasetHub, DatasetTypes
 
 logger = set_up_cmd_logger(__name__)
 
@@ -20,45 +20,39 @@ def list_datasets(registry: DatasetRegistry):
 
 
 def main():
-    parser = argparse.ArgumentParser('Download datasets from the shared storage')
-    parser.add_argument('dataset_names', nargs='+', help='Dataset name. If not specified, show a list of available datasets')
-    parser.add_argument('--dataset_reg_json', '-r', type=pathlib.Path, required=True)
-    parser.add_argument('--output', '-o', help='Output directory.', type=pathlib.Path, required=True)
-    parser.add_argument('--dataset_sas_url', '-k', help='url to dataset folder.', required=True)
+    parser = argparse.ArgumentParser('Download dataset from the shared storage')
+    add_args_to_locate_dataset_from_name_and_reg_json(parser)
+
     parser.add_argument('--to_tsv', '-t', help='to tsv format or not.', action='store_true')
 
     args = parser.parse_args()
-    dataset_names = args.dataset_names
-    dataset_hub = DatasetHub(args.dataset_reg_json.read_text())
-    if not dataset_names:
-        list_datasets(dataset_hub.dataset_registry)
-        return
+    dataset_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
+    dataset_hub = DatasetHub(dataset_reg_json)
+    name = args.name
+    dataset_info = dataset_hub.dataset_registry.get_dataset_info(name)
+    if not args.local_dir.exists():
+        os.makedirs(args.local_dir)
 
-    if not args.output.exists():
-        os.makedirs(args.output)
+    if args.to_tsv:
+        if dataset_info.type not in TSV_SUPPORTED_TYPES:
+            logger.error(f'Unsupported data type for converting to TSV: {dataset_info.type}.')
+            return
 
-    for dataset_name in dataset_names:
-        dataset_info = dataset_hub.dataset_registry.get_dataset_info(dataset_name)
-        if args.to_tsv:
-            if dataset_info.type not in TSV_SUPPORTED_TYPES:
-                logger.warn(f'Unsupported data type for converting to TSV: {dataset_info.type}.')
-                continue
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dataset_info.root_folder = temp_dir / pathlib.Path(dataset_info.root_folder)
+            logger.info(f'downloading {name}...')
+            for usage in usages:
+                dataset_manifest = dataset_hub.create_dataset_manifest(args.blob_container, temp_dir, name, usage=usage)
+                if not dataset_manifest:
+                    continue
 
-            with tempfile.TemporaryDirectory() as temp_dir:
-                dataset_info.root_folder = temp_dir / pathlib.Path(dataset_info.root_folder)
-                logger.info(f'downloading {dataset_name}...')
-                for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
-                    dataset_manifest = dataset_hub.create_dataset_manifest(args.dataset_sas_url, temp_dir, dataset_name, usage=usage)
-                    if not dataset_manifest:
-                        continue
+                dataset_manifest = dataset_manifest[0]
 
-                    dataset_manifest = dataset_manifest[0]
-
-                    logger.info(f'converting {dataset_name}, usage {usage} to TSV format...')
-                    convert_to_tsv(dataset_manifest, pathlib.Path(args.output) / f'{dataset_name}-{usage}.tsv', '')
-        else:
-            for usage in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
-                dataset_hub.create_manifest_dataset(args.dataset_sas_url, args.output, dataset_name, usage=usage)
+                logger.info(f'converting {name}, usage {usage} to TSV format...')
+                convert_to_tsv(dataset_manifest, pathlib.Path(args.local_dir) / f'{name}-{usage}.tsv', '')
+    else:
+        for usage in usages:
+            dataset_hub.create_manifest_dataset(args.blob_container, args.local_dir, name, usage=usage)
 
 
 if __name__ == '__main__':

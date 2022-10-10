@@ -31,6 +31,8 @@ class Base64Utils:
         return PILImageLoader.load_from_stream(io.BytesIO(base64.b64decode(img_b64_str)))
 
     def file_to_b64_str(filepath: pathlib.Path):
+        assert filepath
+
         fr = FileReader()
         with fr.open(filepath.as_posix(), "rb") as file_in:
             return base64.b64encode(file_in.read()).decode('utf-8')
@@ -43,18 +45,22 @@ class Base64Utils:
             file_out.write(base64.b64decode(b64_str))
 
 
-def add_args_to_locate_dataset(parser):
+def add_args_to_locate_dataset_from_name_and_reg_json(parser):
     parser.add_argument('name', type=str, help='Dataset name.')
     parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
     parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
     parser.add_argument('--usages', '-u', nargs='+', choices=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE],
                         help='Usage(s) to check.', default=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE])
 
+    parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
+    parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
+
+def add_args_to_locate_dataset(parser):
+    add_args_to_locate_dataset_from_name_and_reg_json(parser)
+
     parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
     parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
 
-    parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
-    parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
 
 
 def get_or_generate_data_reg_json_and_usages(args):
@@ -144,7 +150,7 @@ def convert_to_tsv(manifest: DatasetManifest, file_path, idx_prefix=''):
                 converted_labels.append(converted_label)
 
             b64img = Base64Utils.file_to_b64_str(pathlib.Path(img.img_path))
-            file_out.write(f'{img_id}\t{json.dumps(converted_labels, ensure_ascii=False)}\t{b64img}\n')
+            file_out.write(f'{img.id}\t{json.dumps(converted_labels, ensure_ascii=False)}\t{b64img}\n')
             idx += 1
 
 
