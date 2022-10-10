@@ -109,3 +109,30 @@ Here is one example of the json file for the image regression task, where the "t
     ]
 }
 ```
+
+## MultiTask dataset
+
+Multitask dataset represents the kind of dataset, where a single set of images possesses multiple sets of annotations for different tasks of single/mutiple tasks mentioned above.
+
+For example, a set of people images can have different attributes: gender/classification {make, female, other}, height/regression: {0-300cm}, person location/detection: {x, y, w, h}, etc.
+
+To represent this kind of dataset, it is simple: create one independent coco file for each task:
+
+```
+people_dataset/
+    train_images/
+        ...
+    test_images/
+        ...
+
+    train_images.zip
+    test_images.zip
+    
+    train_coco_gender.json
+    test_coco_gender.json
+    train_coco_height.json
+    test_coco_height.json
+    train_coco_location.json
+    test_coco_location.json
+```
+```

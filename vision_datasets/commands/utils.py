@@ -1,15 +1,89 @@
 import base64
 import io
+import locale
 import logging
 import os
-
+import pathlib
+import json
+from typing import Union
+from vision_datasets import DatasetTypes, DatasetManifest, Usages
 from vision_datasets.common.image_loader import PILImageLoader
+from vision_datasets.common.util import FileReader
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+
+def set_up_cmd_logger(name):
+    logger = logging.getLogger(name)
+    logging.basicConfig(level=logging.INFO)
+
+    return logger
+
+
+logger = set_up_cmd_logger(__name__)
 
 TSV_FORMAT_LTRB = 'ltrb'
 TSV_FORMAT_LTWH_NORM = 'ltwh-normalized'
+
+
+class Base64Utils:
+    def b64_str_to_pil(img_b64_str: str):
+        assert img_b64_str
+
+        return PILImageLoader.load_from_stream(io.BytesIO(base64.b64decode(img_b64_str)))
+
+    def file_to_b64_str(filepath: pathlib.Path):
+        fr = FileReader()
+        with fr.open(filepath.as_posix(), "rb") as file_in:
+            return base64.b64encode(file_in.read()).decode('utf-8')
+
+    def b64_str_to_file(b64_str: str, file_name: Union[pathlib.Path, str]):
+        assert b64_str
+        assert file_name
+
+        with open(file_name, 'wb') as file_out:
+            file_out.write(base64.b64decode(b64_str))
+
+
+def add_args_to_locate_dataset(parser):
+    parser.add_argument('name', type=str, help='Dataset name.')
+    parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
+    parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
+    parser.add_argument('--usages', '-u', nargs='+', choices=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE],
+                        help='Usage(s) to check.', default=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE])
+
+    parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
+    parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
+
+    parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
+    parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
+
+
+def get_or_generate_data_reg_json_and_usages(args):
+    def _generate_reg_json(name, type, coco_path):
+        data_info = [
+            {
+                'name': name,
+                'version': 1,
+                'type': type,
+                'format': 'coco',
+                'root_folder': '',
+                'train': {
+                    'index_path': coco_path.name
+                }
+            }
+        ]
+
+        return json.dumps(data_info)
+
+    if args.reg_json:
+        usages = args.usages or [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]
+        data_reg_json = args.reg_json.read_text()
+    else:
+        assert args.coco_json, '--coco_json not provided'
+        assert args.data_type, '--data_type not provided'
+        usages = [Usages.TRAIN_PURPOSE]
+        data_reg_json = _generate_reg_json(args.name, args.data_type, args.coco_json)
+
+    return data_reg_json, usages
 
 
 def zip_folder(folder_name):
@@ -30,19 +104,56 @@ def zip_folder(folder_name):
     zip_file.close()
 
 
-def decode64_to_pil(img_b64_str):
-    assert img_b64_str
+def generate_reg_json(name, type, coco_path):
+    data_info = [
+        {
+            'name': name,
+            'version': 1,
+            'type': type,
+            'format': 'coco',
+            'root_folder': '',
+            'train': {
+                'index_path': coco_path.name
+            }
+        }
+    ]
 
-    return PILImageLoader.load_from_stream(io.BytesIO(base64.b64decode(img_b64_str)))
+    return json.dumps(data_info)
 
 
-def guess_encoding(csv_file):
+def convert_to_tsv(manifest: DatasetManifest, file_path, idx_prefix=''):
+    import json
+    from tqdm import tqdm
+
+    idx = 0
+    with open(file_path, 'w', encoding='utf-8') as file_out:
+        for img in tqdm(manifest.images, desc=f'Writing to {file_path}'):
+            img_id = f'{idx_prefix}{idx}'
+            converted_labels = []
+            for label in img.labels:
+                if manifest.data_type in [DatasetTypes.IC_MULTILABEL, DatasetTypes.IC_MULTICLASS]:
+                    tag_name = manifest.labelmap[label]
+                    converted_label = {'class': tag_name}
+                elif manifest.data_type == DatasetTypes.OD:
+                    tag_name = manifest.labelmap[label[0]]
+                    rect = label[1:5]
+                    converted_label = {'class': tag_name, 'rect': rect}
+                elif manifest.data_type == DatasetTypes.IMCAP:
+                    converted_label = {'caption': label}
+
+                converted_labels.append(converted_label)
+
+            b64img = Base64Utils.file_to_b64_str(pathlib.Path(img.img_path))
+            file_out.write(f'{img_id}\t{json.dumps(converted_labels, ensure_ascii=False)}\t{b64img}\n')
+            idx += 1
+
+
+def guess_encoding(tsv_file):
     """guess the encoding of the given file https://stackoverflow.com/a/33981557/
     """
-    import io
-    import locale
+    assert tsv_file
 
-    with io.open(csv_file, 'rb') as f:
+    with io.open(tsv_file, 'rb') as f:
         data = f.read(5)
     if data.startswith(b'\xEF\xBB\xBF'):  # UTF-8 with a "BOM"
         return 'utf-8-sig'
@@ -51,7 +162,7 @@ def guess_encoding(csv_file):
     else:  # in Windows, guessing utf-8 doesn't work, so we have to try
         # noinspection PyBroadException
         try:
-            with io.open(csv_file, encoding='utf-8') as f:
+            with io.open(tsv_file, encoding='utf-8') as f:
                 f.read(222222)
                 return 'utf-8'
         except Exception:

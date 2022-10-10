@@ -1,13 +1,16 @@
+"""
+Merge multiple datasets
+"""
+
 import json
-import logging
 import pathlib
 from pathlib import PurePosixPath
 
 from vision_datasets import DatasetHub, Usages, DatasetInfo, DatasetManifest
 from vision_datasets.common.constants import Formats
+from .utils import set_up_cmd_logger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = set_up_cmd_logger(__name__)
 
 
 def create_arg_parser():
@@ -16,7 +19,7 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='Merge different datasets of the same type into one.')
     parser.add_argument('-n', '--names', nargs='+', help='names of datasets to be merged.', required=True)
     parser.add_argument('-i', '--new_name', type=str, help='name of the merged dataset.', required=True)
-    parser.add_argument('-r', '--reg_json_path', type=str, default=None, help="dataset registration json path.", required=True)
+    parser.add_argument('-r', '--reg_json_path', type=pathlib.Path, default=None, help="dataset registration json path.", required=True)
     parser.add_argument('-k', '--sas', type=str, help="sas url.", required=False, default=None)
 
     return parser
@@ -44,7 +47,7 @@ def main():
     if len(args.names) <= 1:
         raise ValueError('No datasets to be merged.')
 
-    dataset_resources = DatasetHub(pathlib.Path(args.reg_json_path).read_text())
+    dataset_resources = DatasetHub(args.reg_json_path.read_text())
     manifests = []
     merged_dataset_info_dict = {
         'name': args.new_name,

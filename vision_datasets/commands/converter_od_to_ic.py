@@ -1,26 +1,28 @@
+"""
+Convert a detection dataset into classification dataset
+"""
+
+import argparse
 import json
-import logging
 import multiprocessing
 import os
 import pathlib
 import shutil
 
-from vision_datasets import DatasetHub, Usages
+from vision_datasets import DatasetHub
 from vision_datasets.common.manifest_dataset import DetectionAsClassificationByCroppingDataset
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
+
+logger = set_up_cmd_logger(__name__)
 
 
 def create_arg_parser():
-    import argparse
 
     parser = argparse.ArgumentParser(description='Convert OD dataset to ic dataset.')
-    parser.add_argument('-n', '--name', type=str, required=True, help='dataset name')
-    parser.add_argument('-r', '--reg_json_path', type=str, default=None, help="dataset registration json path.", required=True)
-    parser.add_argument('-k', '--sas', type=str, help="sas url.", required=False, default=None)
-    parser.add_argument('-l', '--local_folder', type=str, help="detection dataset folder.", required=False)
-    parser.add_argument('-o', '--output_folder', type=str, required=True, help='target folder of the converted classification dataset')
+    add_args_to_locate_dataset(parser)
+    parser.add_argument('-o', '--output_folder', type=pathlib.Path, required=True, help='target folder of the converted classification dataset')
+
     parser.add_argument('-zb', '--zoom_ratio_bounds', type=str, required=False,
                         help='lower and bound of the ratio that box height and width can expand (>1) or shrink (0-1), during cropping, e.g, 0.8/1.2')
     parser.add_argument('-sb', '--shift_relative_bounds', type=str, required=False,
@@ -32,27 +34,27 @@ def create_arg_parser():
     return parser
 
 
-def process_phase(params):
-    args, aug_params, phase = params
+def process_usage(params):
+    args, data_reg_json, aug_params, usage = params
 
     logger.info(f'download dataset manifest for {args.name}...')
-    dataset_resources = DatasetHub(pathlib.Path(args.reg_json_path).read_text())
-    dataset = dataset_resources.create_manifest_dataset(args.sas, args.local_folder, args.name, usage=phase, coordinates='absolute')
+    dataset_resources = DatasetHub(data_reg_json)
+    dataset = dataset_resources.create_manifest_dataset(args.blob_container, str(args.local_dir.as_posix()), args.name, usage=usage, coordinates='absolute')
     if not dataset:
-        logger.info(f'Skipping non-existent phase {phase}.')
+        logger.info(f'Skipping non-existent phase {usage}.')
         return
 
     logger.info(f'start conversion for {args.name}...')
     ic_dataset = DetectionAsClassificationByCroppingDataset(dataset, aug_params)
-    manifest = ic_dataset.generate_manifest(dir=phase, n_copies=args.n_copies)
-    if args.zip:
-        for img in manifest.images:
-            img.img_path = f'{phase}.zip@{img.img_path}'
+    manifest = ic_dataset.generate_manifest(dir=usage, n_copies=args.n_copies)
 
     coco = manifest.generate_coco_annotations()
-    with open(f'{args.output_folder}/{phase}.json', 'w') as coco_out:
+    if args.zip:
+        for img in coco['images']:
+            img['zip_file'] = f'{usage}.zip'
+    with open(args.output_folder / f'{usage}.json', 'w') as coco_out:
         coco_out.write(json.dumps(coco, indent=2))
-    shutil.move(f'{phase}', f'{args.output_folder}/', copy_function=shutil.copytree)
+    shutil.move(f'{usage}', f'{args.output_folder.as_posix()}/', copy_function=shutil.copytree)
 
 
 def main():
@@ -73,12 +75,14 @@ def main():
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)
 
-    if args.local_folder and not os.path.exists(args.local_folder):
-        os.makedirs(args.local_folder)
+    if args.local_dir and not args.local_dir.exists:
+        os.makedirs(args.local_dir)
 
-    params = [(args, aug_params, phase) for phase in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]]
-    with multiprocessing.Pool(3) as pool:
-        pool.map(process_phase, params)
+    data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
+    params = [(args, data_reg_json, aug_params, phase) for phase in usages]
+
+    with multiprocessing.Pool(len(usages)) as pool:
+        pool.map(process_usage, params)
 
 
 if __name__ == '__main__':

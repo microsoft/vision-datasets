@@ -12,7 +12,7 @@ from .constants import DatasetTypes
 from .dataset_info import BaseDatasetInfo
 from .data_manifest import DatasetManifest, ImageDataManifest
 from .image_loader import PILImageLoader
-from .util import FileReader
+from .util import FileReader, save_image_matching_quality
 
 logger = logging.getLogger(__name__)
 
@@ -269,7 +269,7 @@ class LocalFolderCacheDecorator(BaseDataset):
         idx_in_epoch = index % len(self._dataset)
         img, annotations, _ = self._dataset[idx_in_epoch]
         local_img_path = self._construct_local_image_path(index, img.format)
-        img.save(local_img_path, img.format)
+        save_image_matching_quality(img, local_img_path)
         self._annotations[index] = annotations
         self._paths[index] = local_img_path
 

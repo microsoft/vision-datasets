@@ -1,8 +1,11 @@
 import os
+import pathlib
+from typing import Union
 import zipfile
 from urllib import parse as urlparse
 from urllib.parse import quote
 from urllib.request import urlopen
+from PIL import JpegImagePlugin
 
 
 def is_url(candidate: str):
@@ -56,7 +59,8 @@ class FileReader:
     def __init__(self):
         self.zip_files = {}
 
-    def open(self, name, mode='r', encoding=None):
+    def open(self, name: Union[pathlib.Path, str], mode='r', encoding=None):
+        name = str(name)
         # read file from url
         if is_url(name):
             return urlopen(self._encode_non_ascii(name))
@@ -79,3 +83,19 @@ class FileReader:
     @staticmethod
     def _encode_non_ascii(s):
         return ''.join([c if ord(c) < 128 else quote(c) for c in s])
+
+
+def save_image_matching_quality(img, fp):
+    """
+    Save the image with mathcing qulaity, try not to compress
+    https://stackoverflow.com/a/56675440/2612496
+    """
+    frmt = img.format
+
+    if frmt == 'JPEG':
+        quantization = getattr(img, 'quantization', None)
+        subsampling = JpegImagePlugin.get_sampling(img)
+        quality = 100 if quantization is None else -1
+        img.save(fp, format=frmt, subsampling=subsampling, qtables=quantization, quality=quality)
+    else:
+        img.save(fp, format=frmt, quality=100)

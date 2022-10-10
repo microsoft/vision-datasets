@@ -1,3 +1,7 @@
+"""
+LEGACY: prepare dataset from local dir to iris format
+"""
+
 import argparse
 import datetime
 import json
@@ -5,16 +9,12 @@ import pathlib
 import os
 import zipfile
 
-from vision_datasets import DatasetTypes
-
-TRAIN_USAGE = 'train'
-VAL_USAGE = 'val'
-TEST_USAGE = 'test'
+from vision_datasets import DatasetTypes, Usages
 
 
 def zipdir(path, ziph):
     # ziph is zipfile handle
-    for root, dirs, files in os.walk(path):
+    for root, _, files in os.walk(path):
         for file in files:
             k = os.path.relpath(os.path.join(root, file), path)
             ziph.write(os.path.join(root, file), k)
@@ -49,12 +49,12 @@ def main():
     }
 
     folder_by_usage = {
-        TRAIN_USAGE: args.train_folder,
-        VAL_USAGE: args.val_folder,
-        TEST_USAGE: args.test_folder
+        Usages.TRAIN_PURPOSE: args.train_folder,
+        Usages.VAL_PURPOSE: args.val_folder,
+        Usages.TEST_PURPOSE: args.test_folder
     }
 
-    classes = os.listdir(folder_by_usage[TRAIN_USAGE])
+    classes = os.listdir(folder_by_usage[Usages.TRAIN_PURPOSE])
     reg_json['num_classes'] = len(classes)
     with open(labelmap_file, 'w') as label_out:
         label_out.write('\n'.join(classes))
