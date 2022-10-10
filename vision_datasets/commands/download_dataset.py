@@ -49,7 +49,7 @@ def main():
                 dataset_manifest = dataset_manifest[0]
 
                 logger.info(f'converting {name}, usage {usage} to TSV format...')
-                convert_to_tsv(dataset_manifest, pathlib.Path(args.local_dir) / f'{name}-{usage}.tsv', '')
+                convert_to_tsv(dataset_manifest, pathlib.Path(args.local_dir) / f'{name}-{usage}.tsv')
     else:
         for usage in usages:
             dataset_hub.create_manifest_dataset(args.blob_container, args.local_dir, name, usage=usage)

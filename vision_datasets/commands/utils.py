@@ -55,12 +55,12 @@ def add_args_to_locate_dataset_from_name_and_reg_json(parser):
     parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
     parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
 
+
 def add_args_to_locate_dataset(parser):
     add_args_to_locate_dataset_from_name_and_reg_json(parser)
 
     parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
     parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
-
 
 
 def get_or_generate_data_reg_json_and_usages(args):
@@ -127,14 +127,13 @@ def generate_reg_json(name, type, coco_path):
     return json.dumps(data_info)
 
 
-def convert_to_tsv(manifest: DatasetManifest, file_path, idx_prefix=''):
+def convert_to_tsv(manifest: DatasetManifest, file_path):
     import json
     from tqdm import tqdm
 
     idx = 0
     with open(file_path, 'w', encoding='utf-8') as file_out:
         for img in tqdm(manifest.images, desc=f'Writing to {file_path}'):
-            img_id = f'{idx_prefix}{idx}'
             converted_labels = []
             for label in img.labels:
                 if manifest.data_type in [DatasetTypes.IC_MULTILABEL, DatasetTypes.IC_MULTICLASS]:
