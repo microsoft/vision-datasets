@@ -6,6 +6,7 @@ from urllib import parse as urlparse
 from urllib.parse import quote
 from urllib.request import urlopen
 from PIL import JpegImagePlugin
+import json
 
 
 def is_url(candidate: str):
@@ -26,6 +27,12 @@ def is_url(candidate: str):
         return result.scheme and result.netloc
     except ValueError:
         return False
+
+
+def write_to_json_file_utf8(dict, filepath: Union[str, pathlib.Path]):
+    assert filepath
+
+    pathlib.Path(filepath).write_text(json.dumps(dict, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
 class MultiProcessZipFile:

@@ -3,7 +3,6 @@ Download a dataset from shared storage either in original format or converted to
 """
 
 import argparse
-import os
 import tempfile
 import pathlib
 from vision_datasets.commands.utils import add_args_to_locate_dataset_from_name_and_reg_json, convert_to_tsv, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
@@ -30,8 +29,7 @@ def main():
     dataset_hub = DatasetHub(dataset_reg_json)
     name = args.name
     dataset_info = dataset_hub.dataset_registry.get_dataset_info(name)
-    if not args.local_dir.exists():
-        os.makedirs(args.local_dir)
+    args.local_dir.mkdir(parents=True, exist_ok=True)
 
     if args.to_tsv:
         if dataset_info.type not in TSV_SUPPORTED_TYPES:

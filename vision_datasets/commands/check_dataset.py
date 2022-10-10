@@ -3,7 +3,6 @@ Check if a dataset is prepared well to be consumed by this pkg
 """
 
 import argparse
-import os.path
 import pathlib
 import random
 from tqdm import tqdm
@@ -47,7 +46,7 @@ def check_images(dataset: ManifestDataset, err_msg_file: pathlib.Path):
 
     if file_not_found_list:
         logger.info(f'Errors => {err_msg_file.as_posix()}')
-        err_msg_file.write_text('\n'.join(file_not_found_list))
+        err_msg_file.write_text('\n'.join(file_not_found_list), encoding='utf-8')
 
 
 def classification_detection_check(dataset: ManifestDataset):
@@ -97,10 +96,11 @@ def main():
         logger.error(f'{prefix} dataset does not exist.')
         return
 
+    if args.blob_container and args.local_dir:
+        args.local_dir.mkdir(parents=True, exist_ok=True)
+
     for usage in usages:
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
-        if args.blob_container and args.local_dir and not args.local_dir.exists():
-            os.mkdir(args.local_dir)
 
         # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
         dataset = dataset_hub.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.local_dir, name=dataset_info.name, version=args.version, usage=usage)

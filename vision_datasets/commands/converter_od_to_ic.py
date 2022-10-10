@@ -3,7 +3,6 @@ Convert a detection dataset into classification dataset
 """
 
 import argparse
-import json
 import multiprocessing
 import os
 import pathlib
@@ -11,6 +10,7 @@ import shutil
 
 from vision_datasets import DatasetHub
 from vision_datasets.common.manifest_dataset import DetectionAsClassificationByCroppingDataset
+from vision_datasets.common.util import write_to_json_file_utf8
 
 from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
 
@@ -52,8 +52,7 @@ def process_usage(params):
     if args.zip:
         for img in coco['images']:
             img['zip_file'] = f'{usage}.zip'
-    with open(args.output_folder / f'{usage}.json', 'w') as coco_out:
-        coco_out.write(json.dumps(coco, indent=2))
+        write_to_json_file_utf8(coco, args.output_folder / f'{usage}.json')
     shutil.move(f'{usage}', f'{args.output_folder.as_posix()}/', copy_function=shutil.copytree)
 
 
@@ -75,8 +74,8 @@ def main():
     if not os.path.exists(args.output_folder):
         os.makedirs(args.output_folder)
 
-    if args.local_dir and not args.local_dir.exists:
-        os.makedirs(args.local_dir)
+    if args.blob_container and args.local_dir:
+        args.local_dir.mkdir(parents=True, exist_ok=True)
 
     data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
     params = [(args, data_reg_json, aug_params, phase) for phase in usages]

@@ -4,12 +4,12 @@ LEGACY: prepare dataset from local dir to iris format
 
 import argparse
 import datetime
-import json
 import pathlib
 import os
 import zipfile
 
 from vision_datasets import DatasetTypes, Usages
+from vision_datasets.common.util import write_to_json_file_utf8
 
 
 def zipdir(path, ziph):
@@ -84,7 +84,7 @@ def main():
             "num_images": n_images[usage]
         }
 
-    pathlib.Path('reg.json').write_text(json.dumps(reg_json, indent=2))
+    write_to_json_file_utf8(reg_json, 'reg.json')
 
 
 if __name__ == '__main__':

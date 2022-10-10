@@ -9,6 +9,8 @@ from typing import Union
 from vision_datasets import DatasetTypes, DatasetManifest, Usages
 from vision_datasets.common.image_loader import PILImageLoader
 from vision_datasets.common.util import FileReader
+from tqdm import tqdm
+import zipfile
 
 
 def set_up_cmd_logger(name):
@@ -93,8 +95,6 @@ def get_or_generate_data_reg_json_and_usages(args):
 
 
 def zip_folder(folder_name):
-    import zipfile
-
     logger.info(f'zipping {folder_name}.')
 
     zip_file = zipfile.ZipFile(f'{folder_name}.zip', 'w', zipfile.ZIP_STORED)
@@ -128,10 +128,6 @@ def generate_reg_json(name, type, coco_path):
 
 
 def convert_to_tsv(manifest: DatasetManifest, file_path):
-    import json
-    from tqdm import tqdm
-
-    idx = 0
     with open(file_path, 'w', encoding='utf-8') as file_out:
         for img in tqdm(manifest.images, desc=f'Writing to {file_path}'):
             converted_labels = []
@@ -150,7 +146,6 @@ def convert_to_tsv(manifest: DatasetManifest, file_path):
 
             b64img = Base64Utils.file_to_b64_str(pathlib.Path(img.img_path))
             file_out.write(f'{img.id}\t{json.dumps(converted_labels, ensure_ascii=False)}\t{b64img}\n')
-            idx += 1
 
 
 def guess_encoding(tsv_file):

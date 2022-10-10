@@ -2,12 +2,12 @@
 Merge multiple datasets
 """
 
-import json
 import pathlib
 from pathlib import PurePosixPath
 
 from vision_datasets import DatasetHub, Usages, DatasetInfo, DatasetManifest
 from vision_datasets.common.constants import Formats
+from vision_datasets.common.util import write_to_json_file_utf8
 from .utils import set_up_cmd_logger
 
 logger = set_up_cmd_logger(__name__)
@@ -78,12 +78,12 @@ def main():
         merged_manifest = DatasetManifest.merge(*manifests, flavor=1)
         coco_json = merged_manifest.generate_coco_annotations()
         index_file = f'{merged_dataset_info_dict["name"]}_{phase}.json'
-        pathlib.Path(index_file).write_text(json.dumps(coco_json, indent=2))
+        write_to_json_file_utf8(coco_json, index_file)
         merged_dataset_info_dict[phase]['index_path'] = index_file
         merged_dataset_info_dict[phase]['num_images'] = len(merged_manifest)
         merged_dataset_info_dict['num_classes'] = len(merged_manifest.labelmap)
 
-    pathlib.Path(f'{args.new_name}_reg.json').write_text(json.dumps([merged_dataset_info_dict], indent=2))
+    write_to_json_file_utf8([merged_dataset_info_dict], f'{args.new_name}_reg.json')
 
 
 if __name__ == '__main__':

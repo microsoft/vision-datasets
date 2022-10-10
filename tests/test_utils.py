@@ -13,7 +13,6 @@ class TestBase64Utils(unittest.TestCase):
 
         imarray = numpy.random.rand(size[0], size[1], 3) * 255
         im = Image.fromarray(imarray.astype('uint8')).convert('RGB')
-        print(im.size)
         return im
 
     def test_b64_to_file_loses_no_info(self):
@@ -25,7 +24,6 @@ class TestBase64Utils(unittest.TestCase):
             img_filepath_2 = temp_dir / 'temp_2.jpg'
             b64str = Base64Utils.file_to_b64_str(img_filepath_1)
             Base64Utils.b64_str_to_file(b64str, img_filepath_2)
-            print(b64str)
             img1 = Image.open(img_filepath_1)
             img2 = Image.open(img_filepath_2)
             assert not ImageChops.difference(img1, img2).getbbox()
