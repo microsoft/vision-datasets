@@ -32,7 +32,7 @@ For multilabel classification,
 
 ## Object Detection
 
-The format of object detection is very similar to mutlilable classification, with an additonal field `rect: [left, top, width, height]`
+The format of object detection is very similar to mutlilable classification, with an additonal field `rect: [left, top, right, bottom]`
 
 ```
 1   [{"class": "dog", "rect": [10, 10, 100, 100]}, {"class": "cat", "rect": [10, 10, 100, 100]}]    /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA.....

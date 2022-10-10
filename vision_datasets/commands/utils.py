@@ -137,7 +137,9 @@ def convert_to_tsv(manifest: DatasetManifest, file_path):
                     converted_label = {'class': tag_name}
                 elif manifest.data_type == DatasetTypes.OD:
                     tag_name = manifest.labelmap[label[0]]
-                    rect = label[1:5]
+                    rect = [int(x) for x in label[1:5]]
+
+                    # to LTRB format
                     converted_label = {'class': tag_name, 'rect': rect}
                 elif manifest.data_type == DatasetTypes.IMCAP:
                     converted_label = {'caption': label}
