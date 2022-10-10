@@ -1,6 +1,9 @@
 # Introduction
 
-TSV format uses a single or multiple *.tvs format to store both the image annotation and image files, where the first column is the image_id, second column being the annotaion, and third column being the [base64-encoded](https://en.wikipedia.org/wiki/Base64) string of the image data.
+TSV format uses a single or multiple *.tvs format to store both the image annotation and image files, where the 
+- **first column** is the image_id, it can be string, int or any unique identifier
+- **second column** being the annotaion
+- **third column** being the [base64-encoded](https://en.wikipedia.org/wiki/Base64) string of the image data.
 
 This repo does not support consuming TSV format, but we provide tools for converting to/from TSV format from/to coco, for limited tasks and data.
 
