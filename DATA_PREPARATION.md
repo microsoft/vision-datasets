@@ -73,7 +73,9 @@ After everything is done, remember to run the commands below to do a final check
 
 ## Host/manage datasets on cloud/disk
 
-`DatasetHub` class is the one that manages access of multiple datasets either from local disk or cloud, using the dataset name and version information. It takes a dataset regisration json file, which contains the meta information of each dataset. For each dataset, there is a corresponding entry in the json:
+`DatasetHub` class is the one that manages access of multiple datasets either from local disk or cloud, using the dataset name and version information. It takes a dataset regisration json file, which contains the meta information of each dataset. For each dataset, there is a corresponding entry in the json.
+
+Below are two examples of single-task datasets:
 
 ```{json}
 [
@@ -109,6 +111,50 @@ After everything is done, remember to run the commands below to do a final check
             "files_for_local_usage": [ "test_images.zip" ],
         }
     },
+]
+```
+
+Below is an example of multitask dataset:
+
+```json
+[
+    {
+        "name": "people-dataset",
+        "description": "people dataset including gender, height, and location information",
+        "version": 1,
+        "format": "coco",
+        "type": "multitask",
+        "root_folder": "multitask/people_dataset",
+        "tasks": {
+            "gender":{
+                "type": "classification_multiclass",
+                "train": {
+                    "index_path": "train_coco_gender.json", "files_for_local_usage": [ "train_images.zip" ],
+                },
+                "test": {
+                    "index_path": "test_coco_gender.json", "files_for_local_usage": [ "test_images.zip" ],
+                }
+            },
+            "height":{
+                "type": "image_regression",
+                "train": {
+                    "index_path": "train_coco_height.json", "files_for_local_usage": [ "train_images.zip" ],
+                },
+                "test": {
+                    "index_path": "test_coco_height.json", "files_for_local_usage": [ "test_images.zip" ],
+                }
+            },
+            "location":{
+                "type": "object_detection",
+                "train": {
+                    "index_path": "train_coco_location.json", "files_for_local_usage": [ "train_images.zip" ],
+                },
+                "test": {
+                    "index_path": "test_coco_location.json", "files_for_local_usage": [ "test_images.zip" ],
+                }
+            },
+        }
+    }
 ]
 ```
 

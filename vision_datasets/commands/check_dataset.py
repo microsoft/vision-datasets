@@ -1,13 +1,15 @@
+"""
+Check if a dataset is prepared well to be consumed by this pkg
+"""
+
 import argparse
-import logging
-import os.path
 import pathlib
 import random
-import json
 from tqdm import tqdm
-from vision_datasets import DatasetRegistry, Usages, DatasetHub, DatasetTypes, ManifestDataset
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+from vision_datasets import DatasetHub, DatasetTypes, ManifestDataset
+from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
+
+logger = set_up_cmd_logger(__name__)
 
 
 def show_dataset_stats(dataset):
@@ -43,7 +45,8 @@ def check_images(dataset: ManifestDataset, err_msg_file: pathlib.Path):
             file_not_found_list.append(str(e))
 
     if file_not_found_list:
-        err_msg_file.write_text('\n'.join(file_not_found_list))
+        logger.info(f'Errors => {err_msg_file.as_posix()}')
+        err_msg_file.write_text('\n'.join(file_not_found_list), encoding='utf-8')
 
 
 def classification_detection_check(dataset: ManifestDataset):
@@ -77,71 +80,37 @@ def classification_detection_check(dataset: ManifestDataset):
     logger.info(str(stats))
 
 
-def _generate_reg_json(name, type, coco_path):
-    data_info = [
-        {
-            'name': name,
-            'version': 1,
-            'type': type,
-            'format': 'coco',
-            'root_folder': '',
-            'train': {
-                'index_path': coco_path.name
-            }
-        }
-    ]
-
-    return json.dumps(data_info)
-
-
 def main():
-    parser = argparse.ArgumentParser('Check if a dataset is valid')
-    parser.add_argument('name', type=str, help='Dataset name.')
-    parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
-    parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
-
-    parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
-    parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
-
-    parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
-    parser.add_argument('--folder_to_check', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder.')
+    parser = argparse.ArgumentParser('Check if a dataset is valid for pkg to consume.')
+    add_args_to_locate_dataset(parser)
     parser.add_argument('--quick_check', '-q', action='store_true', default=False, help='Randomly check a few data samples from the dataset.')
 
     args = parser.parse_args()
     prefix = logging_prefix(args.name, args.version)
 
-    if args.reg_json:
-        usages = [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]
-        data_reg_json = args.reg_json.read_text()
-    else:
-        assert args.coco_json, '--coco_json not provided'
-        assert args.data_type, '--data_type not provided'
-        usages = [Usages.TRAIN_PURPOSE]
-        data_reg_json = _generate_reg_json(args.name, args.data_type, args.coco_json)
+    data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
+    dataset_hub = DatasetHub(data_reg_json)
+    dataset_info = dataset_hub.dataset_registry.get_dataset_info(args.name, args.version)
 
-    dataset_info = DatasetRegistry(data_reg_json).get_dataset_info(args.name, args.version)
     if not dataset_info:
         logger.error(f'{prefix} dataset does not exist.')
         return
-    else:
-        logger.info(f'{prefix} dataset found in registration file.')
 
-    vision_datasets = DatasetHub(data_reg_json)
+    if args.blob_container and args.local_dir:
+        args.local_dir.mkdir(parents=True, exist_ok=True)
 
     for usage in usages:
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
-        if args.folder_to_check and not args.folder_to_check.exists():
-            os.mkdir(args.folder_to_check)
 
-        # if args.folder_to_check is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
-        dataset = vision_datasets.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.folder_to_check, name=dataset_info.name, version=args.version, usage=usage)
+        # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
+        dataset = dataset_hub.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.local_dir, name=dataset_info.name, version=args.version, usage=usage)
         if dataset:
             err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             if args.quick_check:
                 quick_check_images(dataset)
             else:
                 check_images(dataset, err_msg_file)
-                
+
             if args.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]:
                 classification_detection_check(dataset)
         else:

@@ -1,5 +1,5 @@
 """
-Converts YOLO Darknet TXT format to iris format
+LEGACY: Converts YOLO Darknet TXT format to iris format
 """
 
 import argparse

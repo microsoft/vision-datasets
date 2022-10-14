@@ -1,15 +1,13 @@
 """
-Converts tsv format to iris format
+LEGACY: Converts tsv format to iris format
 """
 
 import json
-import logging
 import os
 
-from .utils import guess_encoding, decode64_to_pil, zip_folder, TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM, verify_and_correct_box_or_none
+from .utils import guess_encoding, Base64Utils, zip_folder, TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM, verify_and_correct_box_or_none, set_up_cmd_logger
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logger = set_up_cmd_logger(__name__)
 
 
 def create_arg_parser():
@@ -57,12 +55,12 @@ def main():
                     for img_info in file_in:
                         img_id, labels_json, img_b64 = img_info.split('\t')
 
-                        img = decode64_to_pil(img_b64)
+                        img = Base64Utils.b64_str_to_pil(img_b64)
                         w, h = img.size
 
                         # image data => image file
                         img_file_name = img_id + '.' + img.format
-                        img.save(os.path.join(image_folder_name, img_file_name), img.format)
+                        Base64Utils.b64_str_to_file(img_b64, os.path.join(image_folder_name, img_file_name))
 
                         image_path_id = f'{image_folder_name}.zip@{img_file_name}'
 

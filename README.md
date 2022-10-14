@@ -130,3 +130,8 @@ When data exists on local disk, `blob_container_sas` can be `None`.
 ### Training with PyTorch
 
 Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
+
+
+## Helpful commands
+
+There are a few commands that come with this repo once installed, such as TVS <=> COCO conversion, datset check and download, detection => classification dataset, and so on, check [`UTIL_COMMANDS.md`](./UTIL_COMMANDS.md) for details.
