@@ -32,10 +32,16 @@ def _download(url: str, filepath: pathlib.Path):
 
 
 class AzcopyDownloader:
-    AZCOPY_BY_PLATOFRM = {
+    AZCOPY_URL_BY_PLATOFRM = {
         'Windows': 'https://aka.ms/downloadazcopy-v10-windows',
         'Linux': 'https://aka.ms/downloadazcopy-v10-linux',
         # 'Darwin': 'https://aka.ms/downloadazcopy-v10-mac',
+    }
+
+    AZCOPY_NAME_BY_PLATOFRM = {
+        'Windows': 'azcopy.exe',
+        'Linux': 'azcopy',
+        # 'Darwin': 'azcopy',
     }
 
     def __init__(self, azcopy_path: pathlib.Path = None) -> None:
@@ -44,7 +50,7 @@ class AzcopyDownloader:
         self._azcopy_path = azcopy_path or pathlib.Path(self._temp_dir.name) / 'azcopy'
         if not self._azcopy_path.exists():
             temp_zip_file_path = pathlib.Path(self._temp_dir.name) / 'temp_zip_file'
-            _download(self.AZCOPY_BY_PLATOFRM[self._platform], temp_zip_file_path)
+            _download(self.AZCOPY_URL_BY_PLATOFRM[self._platform], temp_zip_file_path)
             shutil.move(self._unzip(temp_zip_file_path, self._azcopy_path.parent), self._azcopy_path)
 
     @tenacity.retry(stop=tenacity.stop_after_attempt(3))
@@ -63,7 +69,7 @@ class AzcopyDownloader:
             with zipfile.ZipFile(zip_file, 'r') as zip_ref:
                 zip_ref.extractall(target_dir)
 
-        azcopy_path = list(target_dir.rglob('azcopy'))[0]
+        azcopy_path = list(target_dir.rglob(self.AZCOPY_NAME_BY_PLATOFRM[self._platform]))[0]
         return azcopy_path
 
     @staticmethod
