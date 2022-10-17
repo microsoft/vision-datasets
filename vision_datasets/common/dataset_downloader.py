@@ -1,12 +1,16 @@
+from functools import reduce
 import logging
 import os
 import pathlib
 from typing import List
 
+import zipfile
+import subprocess
 import requests
 import shutil
 import tempfile
 import tenacity
+import platform
 from urllib import parse as urlparse
 
 from .dataset_registry import DatasetRegistry
@@ -15,6 +19,69 @@ from .constants import Usages
 from .util import is_url
 
 logger = logging.getLogger(__name__)
+
+
+@tenacity.retry(stop=tenacity.stop_after_attempt(3))
+def _download(url: str, filepath: pathlib.Path):
+    logger.info(f'Downloading from {url} to {filepath.absolute()}.')
+    with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
+        if r.status_code > 200:
+            raise RuntimeError(f'Failed in downloading from {url}, status code {r.status_code}.')
+        with open(filepath, 'wb') as f:
+            shutil.copyfileobj(r.raw, f, length=4194304)
+
+
+class AzcopyDownloader:
+    AZCOPY_URL_BY_PLATOFRM = {
+        'Windows': 'https://aka.ms/downloadazcopy-v10-windows',
+        'Linux': 'https://aka.ms/downloadazcopy-v10-linux',
+        # 'Darwin': 'https://aka.ms/downloadazcopy-v10-mac',
+    }
+
+    AZCOPY_NAME_BY_PLATOFRM = {
+        'Windows': 'azcopy.exe',
+        'Linux': 'azcopy',
+        # 'Darwin': 'azcopy',
+    }
+
+    def __init__(self, azcopy_path: pathlib.Path = None) -> None:
+        self._platform = platform.system()
+        self._temp_dir = tempfile.TemporaryDirectory()
+        self._azcopy_path = azcopy_path or pathlib.Path(self._temp_dir.name) / 'azcopy'
+        if not self._azcopy_path.exists():
+            temp_zip_file_path = pathlib.Path(self._temp_dir.name) / 'temp_zip_file'
+            _download(self.AZCOPY_URL_BY_PLATOFRM[self._platform], temp_zip_file_path)
+            shutil.move(self._unzip(temp_zip_file_path, self._azcopy_path.parent), self._azcopy_path)
+
+    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
+    def download(self, url, target_file_path):
+        result = subprocess.run([self._azcopy_path.absolute(), 'copy', url, target_file_path])
+        if result.returncode != 0:
+            raise RuntimeError('azcopy failed to download {url}.')
+
+    def _unzip(self, zip_file: pathlib.Path, target_dir: pathlib.Path):
+        if self._platform == 'Linux':
+            import tarfile
+            tar = tarfile.open(zip_file, "r:gz")
+            tar.extractall(target_dir)
+            tar.close()
+        else:
+            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+                zip_ref.extractall(target_dir)
+
+        azcopy_path = list(target_dir.rglob(self.AZCOPY_NAME_BY_PLATOFRM[self._platform]))[0]
+        return azcopy_path
+
+    @staticmethod
+    def is_azure_blob_url(url):
+        return 'blob.core.windows.net' in url
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        logger.info(f'Closing temp folder: {self._temp_dir}.')
+        self._temp_dir.__exit__(exc_type, exc_value, traceback)
 
 
 class DownloadedDatasetsResources:
@@ -48,7 +115,7 @@ class DatasetDownloader:
         if not is_url(dataset_sas_url):
             raise RuntimeError('An url to the dataset should be provided.')
 
-        self._dataset_sas_url = dataset_sas_url
+        self._base_url = dataset_sas_url
         self._registry = dataset_registry
 
     def download(self, name: str, version: int = None, target_dir: str = None, purposes=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]):
@@ -59,55 +126,63 @@ class DatasetDownloader:
             raise RuntimeError(f'No dataset matched for the specified condition: {name} ({version})')
 
         target_dir = pathlib.Path(tempfile.mkdtemp()) if target_dir is None else pathlib.Path(target_dir)
-        if not os.path.exists(target_dir / pathlib.Path(dataset_info.root_folder)):
-            os.makedirs(target_dir / pathlib.Path(dataset_info.root_folder))
+        (target_dir / pathlib.Path(dataset_info.root_folder)).mkdir(parents=True, exist_ok=True)
 
         if DatasetInfoFactory.is_multitask(dataset_info.type):
-            for subtask_info in dataset_info.sub_task_infos.values():
-                self._download(subtask_info, target_dir, purposes)
+            task_files_to_download = [self._find_files_to_download(subtask_info, purposes) for subtask_info in dataset_info.sub_task_infos.values()]
+            files_to_download = reduce(lambda x, y: x.union(y), task_files_to_download, {})
         else:
-            self._download(dataset_info, target_dir, purposes)
-
-        return DownloadedDatasetsResources([target_dir])
-
-    def _download(self, dataset_info: DatasetInfo, target_dir, purposes):
-        files_to_download = set()
-
-        for usage in purposes:
-            if usage in dataset_info.index_files:
-                files_to_download.add(os.path.join(dataset_info.root_folder, dataset_info.index_files[usage]))
-            if usage in dataset_info.files_for_local_usage:
-                files_to_download.update([os.path.join(dataset_info.root_folder, x) for x in dataset_info.files_for_local_usage[usage]])
-
-        if dataset_info.labelmap:
-            files_to_download.add(os.path.join(dataset_info.root_folder, dataset_info.labelmap))
-
-        if dataset_info.image_metadata_path:
-            files_to_download.add(os.path.join(dataset_info.root_folder, dataset_info.image_metadata_path))
+            files_to_download = self._find_files_to_download(dataset_info, purposes)
 
         self._download_files(files_to_download, target_dir)
 
-    def _download_files(self, file_paths, target_dir: pathlib.Path):
-        parts = urlparse.urlparse(self._dataset_sas_url)
+        return DownloadedDatasetsResources([target_dir])
+
+    def _find_files_to_download(self, dataset_info: DatasetInfo, purposes: List[str]) -> set:
+        files_to_download = set()
+        rt_dir = pathlib.Path(dataset_info.root_folder)
+        for usage in purposes:
+            if usage in dataset_info.index_files:
+                files_to_download.add(rt_dir / dataset_info.index_files[usage])
+            if usage in dataset_info.files_for_local_usage:
+                files_to_download.update([rt_dir / x for x in dataset_info.files_for_local_usage[usage]])
+
+        if dataset_info.labelmap:
+            files_to_download.add(rt_dir / dataset_info.labelmap)
+
+        if dataset_info.image_metadata_path:
+            files_to_download.add(rt_dir / dataset_info.image_metadata_path)
+
+        return files_to_download
+
+    def _download_files(self, file_paths: List, target_dir: pathlib.Path):
+        parts = urlparse.urlparse(self._base_url)
+        temp_dir = None
         for file_path in file_paths:
             path = os.path.join(parts[2], file_path).replace('\\', '/')
             url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
             target_file_path = target_dir / file_path
             target_file_dir = target_file_path.parent
-            if not target_file_dir.exists():
-                os.makedirs(target_file_dir)
+            target_file_dir.mkdir(parents=True, exist_ok=True)
 
-            if os.path.exists(target_file_path):
+            if target_file_path.exists():
                 logger.info(f'{target_file_path} exists. Skip downloading.')
                 continue
-            self._download_file(url, target_file_path)
 
-    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
+            if AzcopyDownloader.is_azure_blob_url(url):
+                try:
+                    logger.info('Detected the URL is from Azure blob. Use azcopy for the download.')
+                    temp_dir = temp_dir or tempfile.TemporaryDirectory()
+                    with AzcopyDownloader(pathlib.Path(temp_dir.name) / 'azcopy') as azcopy:
+                        azcopy.download(url, target_file_path)
+                except Exception as e:
+                    logger.warn(f'Azcopy downloading fails {e}. Fallback to regular download.')
+                    self._download_file(url, target_file_path)
+            else:
+                self._download_file(url, target_file_path)
+
+        if temp_dir:
+            temp_dir.cleanup()
+
     def _download_file(self, url, filepath):
-        logger.info(f'Downloading from {url} to {filepath.absolute()}.')
-        with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
-            if r.status_code > 200:
-                raise RuntimeError(f'Failed in downloading from {url}, status code {r.status_code}.')
-
-            with open(filepath, 'wb') as f:
-                shutil.copyfileobj(r.raw, f, length=4194304)
+        _download(url, filepath)
