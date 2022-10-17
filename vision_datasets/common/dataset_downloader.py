@@ -21,6 +21,7 @@ from .util import is_url
 logger = logging.getLogger(__name__)
 
 
+@tenacity.retry(stop=tenacity.stop_after_attempt(3))
 def _download(url: str, filepath: pathlib.Path):
     logger.info(f'Downloading from {url} to {filepath.absolute()}.')
     with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
@@ -46,8 +47,11 @@ class AzcopyDownloader:
             _download(self.AZCOPY_BY_PLATOFRM[self._platform], temp_zip_file_path)
             shutil.move(self._unzip(temp_zip_file_path, self._azcopy_path.parent), self._azcopy_path)
 
+    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
     def download(self, url, target_file_path):
-        subprocess.run([self._azcopy_path.absolute(), 'copy', url, target_file_path])
+        result = subprocess.run([self._azcopy_path.absolute(), 'copy', url, target_file_path])
+        if result.returncode != 0:
+            raise RuntimeError('azcopy failed to download {url}.')
 
     def _unzip(self, zip_file: pathlib.Path, target_dir: pathlib.Path):
         if self._platform == 'Linux':
@@ -174,6 +178,5 @@ class DatasetDownloader:
         if temp_dir:
             temp_dir.cleanup()
 
-    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
     def _download_file(self, url, filepath):
         _download(url, filepath)
