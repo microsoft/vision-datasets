@@ -30,8 +30,8 @@ class BaseDatasetInfo:
 class DatasetInfo(BaseDatasetInfo):
 
     def __init__(self, dataset_info_dict):
-
-        assert dataset_info_dict.get('type') in DatasetTypes.VALID_TYPES
+        data_type = dataset_info_dict.get('type')
+        assert data_type in DatasetTypes.VALID_TYPES, f'Unknown type {data_type}. Valid types are {DatasetTypes.VALID_TYPES}.'
         assert not DatasetInfoFactory.is_multitask(dataset_info_dict['type'])
         super(DatasetInfo, self).__init__(dataset_info_dict)
 

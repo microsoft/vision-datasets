@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import pathlib
 import unittest
 from unittest.mock import MagicMock, ANY
 
@@ -66,7 +67,7 @@ class TestDatasetDownloader(unittest.TestCase):
         downloader = self._make_downloader(datasets)
         downloader._download_files = MagicMock()
         downloader.download('dataset_name')
-        downloader._download_files.assert_called_once_with({'42.txt', 'val42.txt'}, unittest.mock.ANY)
+        downloader._download_files.assert_called_once_with({pathlib.Path('42.txt'), pathlib.Path('val42.txt')}, unittest.mock.ANY)
 
     def test_delete_temp_dir(self):
         datasets = [{'name': 'dataset_name', 'type': DatasetTypes.IC_MULTICLASS, 'root_folder': './', 'version': 42,

@@ -201,13 +201,40 @@ class TestCases:
             ]
         }]
 
+    image_regression_manifest_dicts = [
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@1.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@2.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 1.0},
+                {"id": 2, "image_id": 2, "target": 2.0},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 3.0},
+                {"id": 2, "image_id": 2, "target": 4.0},
+            ]
+        },
+        {
+            "images": [{"id": 1, "file_name": "train_images.zip@3.jpg"},
+                       {"id": 2, "file_name": "train_images.zip@4.jpg"}],
+            "annotations": [
+                {"id": 1, "image_id": 1, "target": 5.0},
+                {"id": 2, "image_id": 2, "target": 6.0},
+            ],
+        }]
+
     manifest_dict_by_data_type = {
         DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
         DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
         DatasetTypes.OD: od_manifest_dicts,
         DatasetTypes.IMCAP: cap_manifest_dicts,
         DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts,
-        DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts
+        DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts,
+        DatasetTypes.IMAGE_REGRESSION: image_regression_manifest_dicts
     }
 
     @staticmethod
@@ -402,15 +429,18 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
         for n in _get_instance_count_per_class(sampled).values():
             self.assertGreaterEqual(n, 10)
 
-    def test_random_seed(self):
+    def test_consistency_random_seed(self):
         num_classes = 100
         images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [i]) for i in range(num_classes)] * 100
         dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.IC_MULTICLASS)
 
         for i in range(10):
-            sampled = dataset_manifest.sample_few_shots_subset_greedy(1, random_seed=i)
-            sampled2 = dataset_manifest.sample_few_shots_subset_greedy(1, random_seed=i)
-            self.assertEqual(sampled.images, sampled2.images)
+            n_sample_per_class = 1
+            sampled = dataset_manifest.sample_few_shots_subset_greedy(n_sample_per_class, random_seed=i)
+            sampled2 = dataset_manifest.sample_few_shots_subset_greedy(n_sample_per_class, random_seed=i)
+            self.assertEqual(len(sampled), 100)
+            self.assertEqual(len(sampled), len(sampled2))
+            self.assertEqual([x.id for x in sampled.images], [x.id for x in sampled2.images])
 
 
 class TestManifestSplit(unittest.TestCase):
@@ -597,7 +627,7 @@ class TestSpawn(unittest.TestCase):
 
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
-        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP]:
+        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
                 manifest = TestCases.get_manifest(data_type, i)
                 coco_dict = manifest.generate_coco_annotations()

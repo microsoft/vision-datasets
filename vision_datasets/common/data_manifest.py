@@ -101,7 +101,8 @@ class ImageDataManifest:
                 image_caption: [caption1, caption2, ...];
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
                 multitask: dict[task, labels];
-                image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image.
+                image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
+                image_regression: [target1].
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -224,7 +225,7 @@ class DatasetManifest:
 
     def generate_coco_annotations(self):
         """
-        Generate coco annotations, working for single task classification, detection and caption only
+        Generate coco annotations, working for single task classification, detection, caption, and image regression only
 
         Returns:
             A dict of annotation data ready for coco json dump
@@ -255,13 +256,15 @@ class DatasetManifest:
                     coco_ann['bbox'] = [ann[1], ann[2], ann[3] - ann[1], ann[4] - ann[2]]
                 elif self.data_type == DatasetTypes.IMCAP:
                     coco_ann['caption'] = ann
+                elif self.data_type == DatasetTypes.IMAGE_REGRESSION:
+                    coco_ann['target'] = ann
                 else:
                     raise ValueError(f'Unsupported data type {self.data_type}')
 
                 annotations.append(coco_ann)
 
         coco_dict = {'images': images, 'annotations': annotations}
-        if self.data_type != DatasetTypes.IMCAP:
+        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
 
         return coco_dict
@@ -370,6 +373,7 @@ class DatasetManifest:
         else:
             sampled_images = [rnd.choice(self.images) for _ in range(num_samples)]
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shot_subset(self, num_samples_per_class, random_seed=0):
@@ -417,6 +421,7 @@ class DatasetManifest:
             if min(n_imgs_by_class) >= num_samples_per_class:
                 break
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_subset_by_ratio(self, sampling_ratio):
@@ -451,7 +456,7 @@ class DatasetManifest:
         for image_ids in label_image_map.values():
             sampled_image_ids |= set(random.sample(image_ids, max(1, int(len(image_ids) * sampling_ratio))))
 
-        sampled_images = [self.images[i] for i in sampled_image_ids]
+        sampled_images = [copy.deepcopy(self.images[i]) for i in sampled_image_ids]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def sample_few_shots_subset_greedy(self, num_min_samples_per_class, random_seed=0):
@@ -491,6 +496,7 @@ class DatasetManifest:
         if +total_counter:
             raise RuntimeError(f"Couldn't find {num_min_samples_per_class} samples for some classes: {+total_counter}")
 
+        sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
@@ -502,7 +508,7 @@ class DatasetManifest:
         Args:
             num_samples (int): size of spawned manifest. Should be larger than the current size.
             random_seed (int): Random seed to use.
-            instance_weights (list): weight of each instance to spawn.
+            instance_weights (list): weight of each instance to spawn, >= 0.
 
         Returns:
             Spawned dataset (DatasetManifest)
@@ -510,15 +516,19 @@ class DatasetManifest:
         assert num_samples > len(self)
         if instance_weights is not None:
             assert len(instance_weights) == len(self)
+            assert all([x >= 0 for x in instance_weights])
+
             sum_weights = sum(instance_weights)
             # Distribute the number of num_samples to each image by the weights. The original image is subtracted.
-            image_multipliers = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
+            n_copies_per_sample = [max(0, round(w / sum_weights * num_samples - 1)) for w in instance_weights]
             spawned_images = []
-            for image, multiplier in zip(self.images, image_multipliers):
-                spawned_images += [image] * multiplier
+            for image, n_copies in zip(self.images, n_copies_per_sample):
+                spawned_images += [copy.deepcopy(image) for _ in range(n_copies)]
+
             sampled_manifest = DatasetManifest(spawned_images, self.labelmap, self.data_type)
         else:
             sampled_manifest = self.sample_subset(num_samples - len(self), with_replacement=True, random_seed=random_seed)
+
         # Merge with the copy of the original dataset to ensure each class has sample.
         return DatasetManifest.merge(self, sampled_manifest, flavor=0)
 
@@ -570,7 +580,7 @@ class DatasetManifest:
     def _merge_with_concat(*args):
         data_type = args[0].data_type
 
-        if data_type == DatasetTypes.IMCAP:
+        if data_type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
             return DatasetManifest._merge_with_same_labelmap(args)
 
         if isinstance(data_type, dict):  # multitask
@@ -670,7 +680,7 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING]:
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING, DatasetTypes.IMAGE_REGRESSION]:
             raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
@@ -820,6 +830,10 @@ class CocoManifestAdaptor:
             def process_labels_without_categories(image):
                 image.label_file_paths = image.label_file_paths or []
                 image.label_file_paths.append(get_file_path(annotation, annotation['label']))
+        elif data_type == DatasetTypes.IMAGE_REGRESSION:
+            def process_labels_without_categories(image):
+                assert len(image.labels) == 0, f"There should be exactly one label per image for image_regression datasets, but image with id {annotation['image_id']} has more than one"
+                image.labels.append(annotation['target'])
 
         if process_labels_without_categories:
             for annotation in coco_manifest['annotations']:
