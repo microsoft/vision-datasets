@@ -29,8 +29,7 @@ def keep_base_url(url_path: str):
 def main():
     args = create_arg_parser().parse_args()
     assert args.blob_container, '"blob_container" is required for generating "coco_url"'
-
-    logger.info(args.__dict__)
+    assert args.local_dir is None, 'Accessing data from "local_dir" is not supported for now. Data must be present in blob_container.'
 
     data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
     dataset_hub = DatasetHub(data_reg_json)
@@ -51,17 +50,17 @@ def main():
 
         manifest = manifest[0]
         coco_dict = manifest.generate_coco_annotations()
-        for image in tqdm(coco_dict['images'], 'Processing images...'):
+        for image in tqdm(coco_dict['images'], f'{usage}: Processing images...'):
             image['coco_url'] = keep_base_url(image['file_name'])
-            image['file_name'] = image['coco_url'][len(urlunparse(urlparse(keep_base_url(args.blob_container)))):]
             if not image.get('width') or not image.get('height'):
-                with file_reader.open(image['file_path'], 'rb') as f:
+                with file_reader.open(image['file_name'], 'rb') as f:
                     img = PILImageLoader.load_from_stream(f)
                     image['width'], image['height'] = img.size
+            image['file_name'] = image['coco_url'][len(urlunparse(urlparse(keep_base_url(args.blob_container)))):]
 
         if dataset_info.type == DatasetTypes.OD:
             image_wh_by_id = {x['id']: (x['width'], x['height']) for x in coco_dict['images']}
-            for ann in tqdm(coco_dict['annotations'], 'Processing bbox...'):
+            for ann in tqdm(coco_dict['annotations'], f'{usage}: Processing bbox...'):
                 w, h = image_wh_by_id[ann['image_id']]
                 box = ann['bbox']
                 ann['bbox'] = [box[0]/w, box[1]/h, box[2]/w, box[3]/h]
