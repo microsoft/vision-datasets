@@ -36,7 +36,7 @@ def main():
     dataset_info = dataset_hub.dataset_registry.get_dataset_info(args.name, args.version)
 
     if not dataset_info:
-        logger.error(f'dataset does not exist.')
+        logger.error(f'dataset {args.name} does not exist.')
         return
 
     assert dataset_info.type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]
