@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.2.21'
+VERSION = '0.2.22'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -52,5 +52,5 @@ setuptools.setup(name='vision_datasets',
                                          'vision_tsv_to_iris=vision_datasets.commands.converter_tsv_to_iris:main',
                                          'vision_yolo_to_iris=vision_datasets.commands.converter_yolo_darknet_to_iris:main',
                                          'vision_gen_metafile=vision_datasets.commands.generate_image_meta_info:main',
-                                         'vision_irisdataset_to_aml_coco=vision_datasets.commands.converter_irisdataset_to_aml_coco:main']
+                                         'vision_convert_to_aml_coco=vision_datasets.commands.converter_to_aml_coco:main']
                  })
