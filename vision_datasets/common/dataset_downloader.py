@@ -1,4 +1,3 @@
-from functools import reduce
 import logging
 import os
 import pathlib
@@ -129,8 +128,7 @@ class DatasetDownloader:
         (target_dir / pathlib.Path(dataset_info.root_folder)).mkdir(parents=True, exist_ok=True)
 
         if DatasetInfoFactory.is_multitask(dataset_info.type):
-            task_files_to_download = [self._find_files_to_download(subtask_info, purposes) for subtask_info in dataset_info.sub_task_infos.values()]
-            files_to_download = reduce(lambda x, y: x.union(y), task_files_to_download, {})
+            files_to_download = set.union(*[self._find_files_to_download(subtask_info, purposes) for subtask_info in dataset_info.sub_task_infos.values()])
         else:
             files_to_download = self._find_files_to_download(dataset_info, purposes)
 
