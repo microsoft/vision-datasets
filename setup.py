@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.2.22'
+VERSION = '0.2.23'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
