@@ -287,6 +287,26 @@ class TestManifestFewShotSample(unittest.TestCase):
         assert _get_instance_count_per_class(few_shot_manifest) == {2: 13, 3: 13, 0: 11, 4: 11, 1: 10, 5: 10}
 
 
+class TestManifestRemoveImagesWithNoLabel(unittest.TestCase):
+    def test_detection(self):
+        num_classes = 10
+
+        # 0 box per image
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, []) for i in range(1000)]
+        dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.OD)
+
+        sampled = dataset_manifest.remove_images_without_labels()
+        self.assertEqual(len(sampled.images), 0)
+        self.assertFalse(_get_instance_count_per_class(sampled))  # All negative images.
+
+        # 1 box per image
+        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, [[i, 0, 0, 5, 5]]) for i in range(num_classes)] * 100 + [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, []) for i in range(100)]
+        dataset_manifest = DatasetManifest(images, _generate_labelmap(num_classes), DatasetTypes.OD)
+
+        sampled = dataset_manifest.remove_images_without_labels()
+        self.assertEqual(len(sampled.images), 1000)
+
+
 class TestManifestSubsetByRatio(unittest.TestCase):
     def test_multiclass_sample(self):
         num_classes = 10

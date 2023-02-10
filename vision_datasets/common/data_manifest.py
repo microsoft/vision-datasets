@@ -499,6 +499,13 @@ class DatasetManifest:
         sampled_images = [copy.deepcopy(x) for x in sampled_images]
         return DatasetManifest(sampled_images, self.labelmap, self.data_type)
 
+    def remove_images_without_labels(self):
+        """
+        Remove images without labels.
+        """
+        images = [copy.deepcopy(image) for image in self.images if not self._is_negative(image.labels)]
+        return DatasetManifest(images, self.labelmap, self.data_type)
+
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
         """Spawn manifest to a size.
         To ensure each class has samples after spawn, we first keep a copy of original data, then merge with sampled data.
