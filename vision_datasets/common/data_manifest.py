@@ -503,7 +503,7 @@ class DatasetManifest:
         """
         Remove images without labels.
         """
-        images = [copy.deepcopy(image) for image in list(self.images) if not self._is_negative(image.labels)]
+        images = [copy.deepcopy(image) for image in self.images if not self._is_negative(image.labels)]
         return DatasetManifest(images, self.labelmap, self.data_type)
 
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
