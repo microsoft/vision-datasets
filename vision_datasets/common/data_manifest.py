@@ -503,15 +503,8 @@ class DatasetManifest:
         """
         Remove images without labels.
         """
-        assert self.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]
-
-        sampled_images = []
-        images = list(self.images)
-        for image in images:
-            if self._is_negative(image.labels):
-                continue
-            sampled_images.append(image)
-        return DatasetManifest(sampled_images, self.labelmap, self.data_type)
+        images = [copy.deepcopy(image) for image in list(self.images) if not self._is_negative(image.labels)]
+        return DatasetManifest(images, self.labelmap, self.data_type)
 
     def spawn(self, num_samples, random_seed=0, instance_weights: List = None):
         """Spawn manifest to a size.
