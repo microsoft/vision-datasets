@@ -227,6 +227,24 @@ class TestCases:
             ],
         }]
 
+    image_retrieval_dicts = [
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "categories": [
+                {"id": 1, "name": "white", "supercategory": "race"},
+                {"id": 2, "name": "black", "supercategory": "race"},
+                {"id": 3, "name": "white", "supercategory": "race_stereotype"},
+                {"id": 4, "name": "black", "supercategory": "race_stereotype"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "category_id": 1, "query": "european men giving a speech"},
+                {"image_id": 2, "id": 2, "category_id": 2, "query": "african-american men giving a speech"}
+            ]
+        }
+    ]
+
     manifest_dict_by_data_type = {
         DatasetTypes.IC_MULTILABEL: ic_manifest_dicts,
         DatasetTypes.IC_MULTICLASS: ic_manifest_dicts,
@@ -234,7 +252,8 @@ class TestCases:
         DatasetTypes.IMCAP: cap_manifest_dicts,
         DatasetTypes.IMAGE_TEXT_MATCHING: image_text_manifest_dicts,
         DatasetTypes.IMAGE_MATTING: image_matting_manifest_dicts,
-        DatasetTypes.IMAGE_REGRESSION: image_regression_manifest_dicts
+        DatasetTypes.IMAGE_REGRESSION: image_regression_manifest_dicts,
+        DatasetTypes.IMAGE_RETRIEVAL: image_retrieval_dicts
     }
 
     @staticmethod
@@ -647,7 +666,7 @@ class TestSpawn(unittest.TestCase):
 
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
-        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
+        for data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD, DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION, DatasetTypes.IMAGE_RETRIEVAL]:
             for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
                 manifest = TestCases.get_manifest(data_type, i)
                 coco_dict = manifest.generate_coco_annotations()
