@@ -112,16 +112,21 @@ Here is one example of the json file for the image regression task, where the "t
 
 ## Image retrieval
 
-Here is one example of the json file for the image retrieval task. The image retrieval json file is similar to image_caption and image text matching dataset formats in that it contains text associated to images. However, there are some important differences: 1) There is an optional category section which allows the definition of both a category name and a super category. 2) Unlike the other 2 dataset formats, the annotations contain a "query" field rather than "text" or "caption" to match the task at hand.
+Here is one example of the json file for the image retrieval task. The image retrieval json file is similar to image_caption and image text matching dataset formats in that it contains text associated to images. However, there are some important differences: 1) There is an optional category section which allows the definition of both a category name and a super category. 2) Unlike the other 2 dataset formats, the annotations contain a "query" field rather than "text" or "caption" to match the task at hand. Each image is associated with a query as well as a category_id. The category_id can optionally provide additional inforation related to the nature of the image. For example, an image can belong to a group of images (called supercategory e.g. "race") and within that group fall into a subgroup (e.g. "white" or "black"). Hence the categories can provide a hierarchical structure to the data, which cannot be achieved with only the query.
 
 ``` {json}
 {
-    "images":[{"id":1,"zip_file":"test1.zip","file_name":"test/0/image_1.jpg"},
-              {"id":2,"zip_file":"test2.zip","file_name":"test/1/image_2.jpg"}],
-    "categories":[{"id":1,"name":"white","supercategory":"race"},
-                  {"id":2,"name":"black","supercategory":"race"}],
-    "annotations":[{"image_id":1,"id":1,"category_id":1,"query":"european men giving a speech"},
-                   {"image_id":2,"id":2,"category_id":2,"query":"african-american men giving a speech"}]
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"}, {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "categories": [
+        {"id": 1, "name": "white", "supercategory": "race"},
+        {"id": 2, "name": "black", "supercategory": "race"}
+    ],
+    "annotations": [
+        {"image_id": 1, "id": 1, "category_id": 1, "query": "european men giving a speech"},
+        {"image_id": 2, "id": 2, "category_id": 2, "query": "african-american men giving a speech"}
+    ]
 }
 ```
 
