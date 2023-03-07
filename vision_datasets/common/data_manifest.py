@@ -103,7 +103,7 @@ class ImageDataManifest:
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
                 image_regression: [target1];
-                image_retrieval: [[c_id, query],...].
+                image_retrieval: [(c_id, query),...].
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -146,7 +146,7 @@ class DatasetManifest:
 
         Args:
             images (list): image manifest
-            labelmap (list or dict): labels, or labels by task name
+            labelmap (list or dict): labels or tuple of labels or labels by task name
             data_type (str or dict) : data type, or data type by task name
 
         """
@@ -882,7 +882,7 @@ class CocoManifestAdaptor:
                 img.labels_extra_info['iscrowd'] = img.labels_extra_info.get('iscrowd', [])
                 img.labels_extra_info['iscrowd'].append(annotation.get('iscrowd', 0))
             elif 'query' in annotation:
-                label = [c_id, annotation['query']]
+                label = (c_id, annotation['query'])
             else:
                 label = c_id
 
