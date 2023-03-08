@@ -242,6 +242,15 @@ class TestCases:
                 {"image_id": 1, "id": 1, "category_id": 1, "query": "european men giving a speech"},
                 {"image_id": 2, "id": 2, "category_id": 2, "query": "african-american men giving a speech"}
             ]
+        },
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "query": "european men giving a speech"},
+                {"image_id": 2, "id": 2, "query": "african-american men giving a speech"}
+            ]
         }
     ]
 

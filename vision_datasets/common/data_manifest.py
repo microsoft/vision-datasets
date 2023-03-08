@@ -103,7 +103,7 @@ class ImageDataManifest:
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
                 image_regression: [target1];
-                image_retrieval: [(c_id, query),...].
+                image_retrieval: [(c_id, query),...] if c_id is present, otherwise [query1, query2, ...]
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -260,19 +260,22 @@ class DatasetManifest:
                 elif self.data_type == DatasetTypes.IMAGE_REGRESSION:
                     coco_ann['target'] = ann
                 elif self.data_type == DatasetTypes.IMAGE_RETRIEVAL:
-                    coco_ann['category_id'] = ann[0] + 1
-                    coco_ann['query'] = ann[1]
+                    if isinstance(ann, str):
+                        coco_ann['query'] = ann
+                    else:
+                        coco_ann['category_id'] = ann[0] + 1
+                        coco_ann['query'] = ann[1]
                 else:
                     raise ValueError(f'Unsupported data type {self.data_type}')
 
                 annotations.append(coco_ann)
 
         coco_dict = {'images': images, 'annotations': annotations}
-        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
-            if self.data_type == DatasetTypes.IMAGE_RETRIEVAL:
-                coco_dict['categories'] = [{'id': i + 1, 'name': x[0], 'supercategory': x[1]} for i, x in enumerate(self.labelmap)]
-            else:
-                coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
+        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION, DatasetTypes.IMAGE_RETRIEVAL]:
+            coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
+
+        if self.data_type == DatasetTypes.IMAGE_RETRIEVAL and self.labelmap:
+            coco_dict['categories'] = [{'id': i + 1, 'name': x[0], 'supercategory': x[1]} for i, x in enumerate(self.labelmap)]
 
         return coco_dict
 
@@ -848,6 +851,9 @@ class CocoManifestAdaptor:
             def process_labels_without_categories(image):
                 assert len(image.labels) == 0, f"There should be exactly one label per image for image_regression datasets, but image with id {annotation['image_id']} has more than one"
                 image.labels.append(annotation['target'])
+        elif data_type == DatasetTypes.IMAGE_RETRIEVAL and 'categories' not in coco_manifest:
+            def process_labels_without_categories(image):
+                image.labels.append(annotation['query'])
 
         if process_labels_without_categories:
             for annotation in coco_manifest['annotations']:
