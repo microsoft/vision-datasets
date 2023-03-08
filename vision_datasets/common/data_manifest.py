@@ -102,7 +102,8 @@ class ImageDataManifest:
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
-                image_regression: [target1].
+                image_regression: [target1];
+                image_retrieval: [(c_id, query),...] if c_id is present, otherwise [query1, query2, ...]
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -145,7 +146,7 @@ class DatasetManifest:
 
         Args:
             images (list): image manifest
-            labelmap (list or dict): labels, or labels by task name
+            labelmap (list or dict): labels or tuple of labels or labels by task name
             data_type (str or dict) : data type, or data type by task name
 
         """
@@ -258,14 +259,23 @@ class DatasetManifest:
                     coco_ann['caption'] = ann
                 elif self.data_type == DatasetTypes.IMAGE_REGRESSION:
                     coco_ann['target'] = ann
+                elif self.data_type == DatasetTypes.IMAGE_RETRIEVAL:
+                    if isinstance(ann, str):
+                        coco_ann['query'] = ann
+                    else:
+                        coco_ann['category_id'] = ann[0] + 1
+                        coco_ann['query'] = ann[1]
                 else:
                     raise ValueError(f'Unsupported data type {self.data_type}')
 
                 annotations.append(coco_ann)
 
         coco_dict = {'images': images, 'annotations': annotations}
-        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION]:
+        if self.data_type not in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_REGRESSION, DatasetTypes.IMAGE_RETRIEVAL]:
             coco_dict['categories'] = [{'id': i + 1, 'name': x} for i, x in enumerate(self.labelmap)]
+
+        if self.data_type == DatasetTypes.IMAGE_RETRIEVAL and self.labelmap:
+            coco_dict['categories'] = [{'id': i + 1, 'name': x[0], 'supercategory': x[1]} for i, x in enumerate(self.labelmap)]
 
         return coco_dict
 
@@ -687,7 +697,7 @@ class IrisManifestAdaptor:
         assert dataset_info
         assert usage
 
-        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING, DatasetTypes.IMAGE_REGRESSION]:
+        if dataset_info.type in [DatasetTypes.IMCAP, DatasetTypes.IMAGE_TEXT_MATCHING, DatasetTypes.IMAGE_MATTING, DatasetTypes.IMAGE_REGRESSION, DatasetTypes.IMAGE_RETRIEVAL]:
             raise ValueError(f'Iris format is not supported for {dataset_info.type} task, please use COCO format!')
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             dataset_manifest_by_task = {k: IrisManifestAdaptor.create_dataset_manifest(task_info, usage, container_sas_or_root_dir) for k, task_info in dataset_info.sub_task_infos.items()}
@@ -841,6 +851,9 @@ class CocoManifestAdaptor:
             def process_labels_without_categories(image):
                 assert len(image.labels) == 0, f"There should be exactly one label per image for image_regression datasets, but image with id {annotation['image_id']} has more than one"
                 image.labels.append(annotation['target'])
+        elif data_type == DatasetTypes.IMAGE_RETRIEVAL and 'categories' not in coco_manifest:
+            def process_labels_without_categories(image):
+                image.labels.append(annotation['query'])
 
         if process_labels_without_categories:
             for annotation in coco_manifest['annotations']:
@@ -848,10 +861,18 @@ class CocoManifestAdaptor:
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
-        cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
+        supercategory_field_in_categories = False
+        if len(coco_manifest['categories']) > 0 and 'supercategory' in coco_manifest['categories'][0]:
+            supercategory_field_in_categories = True
+            cate_id_name = [(cate['id'], cate['name'], cate['supercategory']) for cate in coco_manifest['categories']]
+        else:
+            cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
         cate_id_name.sort(key=lambda x: x[0])
         label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
-        labelmap = [x[1] for x in cate_id_name]
+        if supercategory_field_in_categories:
+            labelmap = [(x[1], x[2]) for x in cate_id_name]
+        else:
+            labelmap = [x[1] for x in cate_id_name]
 
         bbox_format = coco_manifest.get('bbox_format', BBoxFormat.LTWH)
         BBoxFormat.validate(bbox_format)
@@ -866,6 +887,8 @@ class CocoManifestAdaptor:
                 label = [c_id] + bbox
                 img.labels_extra_info['iscrowd'] = img.labels_extra_info.get('iscrowd', [])
                 img.labels_extra_info['iscrowd'].append(annotation.get('iscrowd', 0))
+            elif 'query' in annotation:
+                label = (c_id, annotation['query'])
             else:
                 label = c_id
 
