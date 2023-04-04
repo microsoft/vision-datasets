@@ -49,13 +49,31 @@ def check_images(dataset: ManifestDataset, err_msg_file: pathlib.Path):
         err_msg_file.write_text('\n'.join(file_not_found_list), encoding='utf-8')
 
 
-def classification_detection_check(dataset: ManifestDataset):
+def check_box(bbox, img_w, img_h):
+    if len(bbox) != 4:
+        return False
+
+    l, t, r, b = bbox
+    return l >= 0 and t >= 0 and l < r and t < b and r <= img_w and b <= img_h
+
+
+def classification_detection_check(dataset: ManifestDataset, err_msg_file: pathlib.Path):
     n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
-    for sample in dataset.dataset_manifest.images:
+    for sample_idx, sample in enumerate(dataset.dataset_manifest.images):
         labels = sample.labels
         c_ids = set([label[0] if dataset.dataset_info.type == DatasetTypes.OD else label for label in labels])
         for c_id in c_ids:
             n_imgs_by_class[c_id] += 1
+
+        if dataset.dataset_info.type == DatasetTypes.OD:
+            w, h = sample.width, sample.height
+            if not w or not h or w < 0 or h < 0:
+                err_msg_file.write_text(f'Image {sample_idx} has invalid width or height: {w}, {h}', encoding='utf-8')
+                continue
+
+            for box_id, box in enumerate(labels):
+                if not check_box(box[1:], w, h):
+                    err_msg_file.write_text(f'Image {sample_idx}, box {box_id} is invalid: {box}\n', encoding='utf-8')
 
     c_id_with_max_images = max(n_imgs_by_class, key=n_imgs_by_class.get)
     c_id_with_min_images = min(n_imgs_by_class, key=n_imgs_by_class.get)
@@ -103,16 +121,17 @@ def main():
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
 
         # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
-        dataset = dataset_hub.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.local_dir, name=dataset_info.name, version=args.version, usage=usage)
+        dataset = dataset_hub.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.local_dir, name=dataset_info.name, version=args.version, usage=usage, coordinates='absolute')
         if dataset:
+            if args.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]:
+                classification_detection_check(dataset)
+
             err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             if args.quick_check:
                 quick_check_images(dataset)
             else:
                 check_images(dataset, err_msg_file)
 
-            if args.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]:
-                classification_detection_check(dataset)
         else:
             logger.info(f'{prefix} No split for {usage} available.')
 
