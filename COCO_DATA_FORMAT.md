@@ -126,7 +126,7 @@ This task represents the image retrieved by text queries.
 }
 ```
 
-The retrieved images might come with additional classification data associated with images in the annotation field mixed up with query annotation. This might change in future, as it can be achieved by using multitask dataset concept with one solely for image retrieval, while the other one solely for classification. 
+The retrieved images might come with additional classification data associated with images in the annotation field mixed up with query annotation. This might change in future, as it can be achieved by using multitask dataset concept with one solely for image retrieval, while the other one solely for classification.
 
 
 ``` {json}
@@ -136,12 +136,12 @@ The retrieved images might come with additional classification data associated w
         {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
     ],
     "categories": [
-        {"id": 1, "name": "white", "supercategory": "race"},
-        {"id": 2, "name": "black", "supercategory": "race"}
+        {"id": 1, "name": "banana", "supercategory": "fruit"},
+        {"id": 2, "name": "apple", "supercategory": "fruit"}
     ],
     "annotations": [
-        {"image_id": 1, "id": 1, "category_id": 1, "query": "european men giving a speech"},
-        {"image_id": 2, "id": 2, "category_id": 2, "query": "african-american men giving a speech"}
+        {"image_id": 1, "id": 1, "category_id": 1, "query": "Men eating a banana."},
+        {"image_id": 2, "id": 2, "category_id": 2, "query": "An apple on the desk."}
     ]
 }
 ```
