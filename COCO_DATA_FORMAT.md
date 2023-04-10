@@ -112,7 +112,7 @@ Here is one example of the json file for the image regression task, where the "t
 
 ## Image retrieval
 
-This task represents the image retrieved by text queries.
+This task represents data of images retrieved by text queries.
 
 ```json
 {
