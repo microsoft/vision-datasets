@@ -6,7 +6,7 @@ In coco, we use `file_name` and `zip_file` to construct the file_path in `ImageD
 
 Here is one example of the train.json, val.json, or test.json in the `DatasetInfo` above. Note that the `"id"` for `images`, `annotations` and `categories` should be consecutive integers, **starting from 1**. Note that our lib might work with id starting from 0, but many tools like [CVAT](https://github.com/openvinotoolkit/cvat/issues/2085) and official [COCOAPI](https://github.com/cocodataset/cocoapi/issues/507) will fail.
 
-``` {json}
+```json
 {
   "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/siberian-kitten.jpg", "zip_file": "train_images.zip"},
               {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/kitten 3.jpg", "zip_file": "train_images.zip"}],
@@ -22,7 +22,7 @@ Here is one example of the train.json, val.json, or test.json in the `DatasetInf
 
 ## Object detection
 
-``` {json}
+```json
 {
   "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/siberian-kitten.jpg", "zip_file": "train_images.zip"},
               {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/kitten 3.jpg", "zip_file": "train_images.zip"}],
@@ -46,7 +46,7 @@ Note that
 
 Here is one example of the json file for image caption task.
 
-``` {json}
+```json
 {
   "images": [{"id": 1, "file_name": "train_images/honda.jpg", "zip_file": "train_images.zip"},
               {"id": 2, "file_name": "train_images/kitchen.jpg", "zip_file": "train_images.zip"}],
@@ -62,7 +62,7 @@ Here is one example of the json file for image caption task.
 
 Here is one example of the json file for image text matching task. `match: 1` indicates image and text match.
 
-``` {json}
+```json
 {
   "images": [{"id": 1, "file_name": "train_images/honda.jpg", "zip_file": "train_images.zip"},
               {"id": 2, "file_name": "train_images/kitchen.jpg", "zip_file": "train_images.zip"}],
@@ -84,7 +84,7 @@ Here is one example of the json file for image matting task. The "label" in the 
 
 Specifically, **only** image files are supported for the label files. The ground turth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
 
-``` {json}
+```json
 {
     "images": [{"id": 1, "file_name": "train_images/image/test_1.jpg", "zip_file": "train_images.zip"},
                 {"id": 2, "file_name": "train_images/image/test_2.jpg", "zip_file": "train_images.zip"}],
@@ -99,7 +99,7 @@ Specifically, **only** image files are supported for the label files. The ground
 
 Here is one example of the json file for the image regression task, where the "target" in the "annotations" field is a real-valued number (e.g. a score, an age, etc.). Note that each image should only have one regression target (i.e. there should be exactly one annotation for each image).
 
-``` {json}
+```json
 {
     "images": [{"id": 1, "width": 224.0, "height": 224.0, "file_name": "train_images/image_1.jpg", "zip_file": "train_images.zip"},
               {"id": 2, "width": 224.0, "height": 224.0, "file_name": "train_images/image_2.jpg", "zip_file": "train_images.zip"}],
@@ -111,17 +111,18 @@ Here is one example of the json file for the image regression task, where the "t
 ```
 
 ## Image retrieval
+
 This task represents the image retrieved by text queries.
 
-``` {json}
+```json
 {
     "images": [
         {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
         {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
     ],
     "annotations": [
-        {"image_id": 1, "id": 1, "query": "european men giving a speech"},
-        {"image_id": 2, "id": 2, "query": "african-american men giving a speech"}
+        {"image_id": 1, "id": 1, "query": "Men eating a banana."},
+        {"image_id": 2, "id": 2, "query": "An apple on the desk."}
     ]
 }
 ```
@@ -129,7 +130,7 @@ This task represents the image retrieved by text queries.
 The retrieved images might come with additional classification data associated with images in the annotation field mixed up with query annotation. This might change in future, as it can be achieved by using multitask dataset concept with one solely for image retrieval, while the other one solely for classification.
 
 
-``` {json}
+```json
 {
     "images": [
         {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
