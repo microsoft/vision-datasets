@@ -50,8 +50,12 @@ def check_images(dataset: ManifestDataset):
     return []
 
 
+def _is_integer(bbox):
+    return all([isinstance(x, int) or (isinstance(x, float) and x.is_integer()) for x in bbox])
+
+
 def check_box(bbox, img_w, img_h):
-    if len(bbox) != 4:
+    if len(bbox) != 4 or not _is_integer(bbox):
         return False
 
     l, t, r, b = bbox
@@ -135,7 +139,7 @@ def main():
             if args.quick_check:
                 quick_check_images(dataset)
             else:
-                errors.extend(check_images(dataset, err_msg_file))
+                errors.extend(check_images(dataset))
             err_msg_file.write_text('\n'.join(errors), encoding='utf-8')
         else:
             logger.info(f'{prefix} No split for {usage} available.')
