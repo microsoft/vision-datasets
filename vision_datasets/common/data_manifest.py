@@ -97,7 +97,7 @@ class ImageDataManifest:
             height (int): image height
             labels (list or dict):
                 classification: [c_id] for multiclass, [c_id1, c_id2, ...] for multilabel;
-                detection: [[c_id, left, top, right, bottom], ...];
+                detection: [[c_id, left, top, right, bottom], ...] (absolute coordinates);
                 image_caption: [caption1, caption2, ...];
                 image_text_matching: [(text1, match (0 or 1), text2, match (0 or 1), ...)];
                 multitask: dict[task, labels];
@@ -121,7 +121,7 @@ class ImageDataManifest:
     def labels(self):
         if self._labels:
             return self._labels
-        elif self.label_file_paths:
+        elif self.label_file_paths: # lazy load only for image matting
             file_reader = FileReader()
             self._labels = []
             for label_file_path in self.label_file_paths:
@@ -150,7 +150,7 @@ class DatasetManifest:
             data_type (str or dict) : data type, or data type by task name
 
         """
-        assert data_type != DatasetTypes.MULTITASK, 'For multitask, data_type should be a dict mapping task name to concrete data type.'
+        assert data_type and data_type != DatasetTypes.MULTITASK, 'For multitask, data_type should be a dict mapping task name to concrete data type.'
 
         if isinstance(labelmap, dict):
             assert isinstance(data_type, dict), 'labelmap being a dict indicating this is a multitask dataset, however the data_type is not a dict.'
@@ -167,6 +167,7 @@ class DatasetManifest:
 
         if dataset_info.data_format == Formats.IRIS:
             return IrisManifestAdaptor.create_dataset_manifest(dataset_info, usage, container_sas_or_root_dir)
+
         if dataset_info.data_format == Formats.COCO:
             container_sas_or_root_dir = _construct_full_url_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)('')
             if dataset_info.type == DatasetTypes.MULTITASK:
@@ -828,15 +829,16 @@ class CocoManifestAdaptor:
 
         file_reader.close()
 
-        def get_file_path(info_dict: dict, file_name):
+        def append_zip_prefix_if_needed(info_dict: dict, file_name):
             zip_prefix = info_dict.get('zip_file', '')
             if zip_prefix:
                 zip_prefix += '@'
 
             return get_full_sas_or_path(zip_prefix + file_name)
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], get_file_path(img, img['file_name']), img.get('width'), img.get('height'), [], {}) for img in coco_manifest['images']}
+        images_by_id = {img['id']: ImageDataManifest(img['id'], append_zip_prefix_if_needed(img, img['file_name']), img.get('width'), img.get('height'), [], {}) for img in coco_manifest['images']}
         process_labels_without_categories = None
+
         if data_type == DatasetTypes.IMCAP:
             def process_labels_without_categories(image):
                 image.labels.append(annotation['caption'])
@@ -846,7 +848,7 @@ class CocoManifestAdaptor:
         elif data_type == DatasetTypes.IMAGE_MATTING:
             def process_labels_without_categories(image):
                 image.label_file_paths = image.label_file_paths or []
-                image.label_file_paths.append(get_file_path(annotation, annotation['label']))
+                image.label_file_paths.append(append_zip_prefix_if_needed(annotation, annotation['label']))
         elif data_type == DatasetTypes.IMAGE_REGRESSION:
             def process_labels_without_categories(image):
                 assert len(image.labels) == 0, f"There should be exactly one label per image for image_regression datasets, but image with id {annotation['image_id']} has more than one"
@@ -861,12 +863,12 @@ class CocoManifestAdaptor:
             images = [x for x in images_by_id.values()]
             return DatasetManifest(images, None, data_type)
 
-        supercategory_field_in_categories = False
-        if len(coco_manifest['categories']) > 0 and 'supercategory' in coco_manifest['categories'][0]:
-            supercategory_field_in_categories = True
+        supercategory_field_in_categories = len(coco_manifest['categories']) > 0 and 'supercategory' in coco_manifest['categories'][0]
+        if supercategory_field_in_categories:
             cate_id_name = [(cate['id'], cate['name'], cate['supercategory']) for cate in coco_manifest['categories']]
         else:
             cate_id_name = [(cate['id'], cate['name']) for cate in coco_manifest['categories']]
+
         cate_id_name.sort(key=lambda x: x[0])
         label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
         if supercategory_field_in_categories:
@@ -882,8 +884,8 @@ class CocoManifestAdaptor:
             img = images_by_id[annotation['image_id']]
             if 'bbox' in annotation:
                 bbox = annotation['bbox']
-                if bbox_format == BBoxFormat.LTWH:
-                    bbox = [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+                bbox = bbox if bbox_format == BBoxFormat.LTRB else [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
+
                 label = [c_id] + bbox
                 img.labels_extra_info['iscrowd'] = img.labels_extra_info.get('iscrowd', [])
                 img.labels_extra_info['iscrowd'].append(annotation.get('iscrowd', 0))
