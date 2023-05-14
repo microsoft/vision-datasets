@@ -1,6 +1,7 @@
 import json
 import unittest
-from vision_datasets import DatasetRegistry, Usages
+from vision_datasets import Usages, DatasetTypes
+from vision_datasets.dataset_management import DatasetRegistry
 
 
 class TestDatasetRegistry(unittest.TestCase):
@@ -52,9 +53,9 @@ class TestDatasetRegistry(unittest.TestCase):
         assert info.name == dn
         assert info.version == self.DUMMY_DATA_1['version']
         assert info.root_folder == self.DUMMY_DATA_1['root_folder']
-        assert info.type == self.DUMMY_DATA_1['type']
-        assert info.files_for_local_usage[Usages.TEST_PURPOSE] == self.DUMMY_DATA_1['test']['files_for_local_usage']
-        assert info.index_files[Usages.TEST_PURPOSE] == self.DUMMY_DATA_1['test']['index_path']
+        assert info.type == DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS
+        assert info.files_for_local_usage[Usages.TEST] == self.DUMMY_DATA_1['test']['files_for_local_usage']
+        assert info.index_files[Usages.TEST] == self.DUMMY_DATA_1['test']['index_path']
 
     def test_create_dataset_reg_with_two_jsons(self):
         dr = DatasetRegistry([json.dumps([self.DUMMY_DATA_1]), json.dumps([self.DUMMY_DATA_2])])

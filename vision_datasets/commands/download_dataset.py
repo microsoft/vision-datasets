@@ -10,7 +10,7 @@ from vision_datasets import DatasetRegistry, DatasetHub, DatasetTypes
 
 logger = set_up_cmd_logger(__name__)
 
-TSV_SUPPORTED_TYPES = [DatasetTypes.IMCAP, DatasetTypes.OD, DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL]
+TSV_SUPPORTED_TYPES = [DatasetTypes.IMAGE_CAPTION, DatasetTypes.IMAGE_OBJECT_DETECTION, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL]
 
 
 def list_datasets(registry: DatasetRegistry):

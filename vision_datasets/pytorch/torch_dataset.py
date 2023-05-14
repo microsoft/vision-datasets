@@ -1,7 +1,6 @@
 import logging
 
-from ..common.manifest_dataset import ManifestDataset
-
+from ..dataset import VisionDataset
 from .dataset import Dataset
 
 logger = logging.getLogger(__name__)
@@ -12,7 +11,7 @@ class TorchDataset(Dataset):
     Dataset class used for pytorch training
     """
 
-    def __init__(self, manifest_dataset: ManifestDataset, transform=None):
+    def __init__(self, manifest_dataset: VisionDataset, transform=None):
         Dataset.__init__(self, transform)
         self.dataset = manifest_dataset
 

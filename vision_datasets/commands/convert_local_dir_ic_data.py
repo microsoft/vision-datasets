@@ -23,7 +23,7 @@ def zipdir(path, ziph):
 def create_argparse():
     parser = argparse.ArgumentParser('Prepare the annotation files, data reg json, and zip files for vision-datasets following iris format.')
     parser.add_argument('name', type=str, help="Dataset name.")
-    parser.add_argument('--type', '-t', type=str, default=DatasetTypes.IC_MULTICLASS, help="type of dataset.", choices=[DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL])
+    parser.add_argument('--type', '-t', type=str, default=DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, help="type of dataset.", choices=[DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL])
     parser.add_argument('--description', '-d', type=str, help="Dataset description.", required=True)
     parser.add_argument('--contact', '-c', type=str, help="contact person.", required=False)
     parser.add_argument('--train_folder', '-tr', type=pathlib.Path, help="Folder including training images.")
@@ -49,12 +49,12 @@ def main():
     }
 
     folder_by_usage = {
-        Usages.TRAIN_PURPOSE: args.train_folder,
-        Usages.VAL_PURPOSE: args.val_folder,
-        Usages.TEST_PURPOSE: args.test_folder
+        Usages.TRAIN: args.train_folder,
+        Usages.VAL: args.val_folder,
+        Usages.TEST: args.test_folder
     }
 
-    classes = os.listdir(folder_by_usage[Usages.TRAIN_PURPOSE])
+    classes = os.listdir(folder_by_usage[Usages.TRAIN])
     reg_json['num_classes'] = len(classes)
     with open(labelmap_file, 'w') as label_out:
         label_out.write('\n'.join(classes))

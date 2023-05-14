@@ -1,0 +1,4 @@
+from .coco_manifest_adaptor import Text2ImageRetrievalCocoManifestAdaptor
+from .operations import Text2ImageRetrievalCocoDictGenerator
+
+__all__ = ['Text2ImageRetrievalCocoManifestAdaptor', 'Text2ImageRetrievalCocoDictGenerator']

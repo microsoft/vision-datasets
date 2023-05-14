@@ -16,7 +16,7 @@ Currently, seven `basic` types of data are supported:
 - `image_text_matching`: each image is associated with a collection of texts describing the image, and whether each text description matches the image or not.
 - `image_matting`: each image has a pixel-wise annotation, where each pixel is labeled as 'foreground' or 'background'.
 - `image_regression`: each image is labeled with a real-valued numeric regression target.
-- `image_retrieval`: each image is labeled with a number of text queries describing the image. Optionally, an image is associated with one label.
+- `text_2_image_retrieval`: each image is labeled with a number of text queries describing the image. Optionally, an image is associated with one label.
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
@@ -28,9 +28,9 @@ Currently, seven `basic` types of data are supported:
     1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
     2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
     3. an url
-- `ManifestDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
+- `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
 
-`ManifestDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
+`VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
 For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
 
@@ -42,10 +42,10 @@ using `DatasetManifest.create_dataset_manifest(dataset_info, usage, container_sa
 `DatasetInfo` as the first arg in the arg list wraps the metainfo about the dataset like the name of the dataset, locations of the images, annotation files, etc. See examples in the sections below
 for different data formats.
 
-Once a `DatasetManifest` is created, you can create a `ManifestDataset` for accessing the data in the dataset, especially the image data, for training, visualization, etc:
+Once a `DatasetManifest` is created, you can create a `VisionDataset` for accessing the data in the dataset, especially the image data, for training, visualization, etc:
 
 ```{python}
-dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates='relative')
+dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
 ```
 
 #### Coco format
@@ -91,10 +91,10 @@ Iris format is a legacy format which can be found in `IRIS_DATA_FORMAT.md`. Only
 
 Check [DATA_PREPARATION.md](DATA_PREPARATION.md) for complete guide on how to prepare datasets in steps.
 
-Once you have multiple datasets, it is more convenient to have all the `DatasetInfo` in one place and instantiate `DatasetManifest` or even `ManifestDataset` by just using the dataset name, usage (
+Once you have multiple datasets, it is more convenient to have all the `DatasetInfo` in one place and instantiate `DatasetManifest` or even `VisionDataset` by just using the dataset name, usage (
 train, val ,test) and version.
 
-This repo offers the class `DatasetHub` for this purpose. Once instantiated with a json including the `DatasetInfo` for all datasets, you can retrieve a `ManifestDataset` by
+This repo offers the class `DatasetHub` for this purpose. Once instantiated with a json including the `DatasetInfo` for all datasets, you can retrieve a `VisionDataset` by
 
 ```{python}
 import pathlib
@@ -130,7 +130,7 @@ When data exists on local disk, `blob_container_sas` can be `None`.
 
 ### Training with PyTorch
 
-Training with PyTorch is easy. After instantiating a `ManifestDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
+Training with PyTorch is easy. After instantiating a `VisionDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
 
 
 ## Helpful commands

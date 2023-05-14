@@ -6,7 +6,7 @@ import argparse
 import pathlib
 import random
 from tqdm import tqdm
-from vision_datasets import DatasetHub, DatasetTypes, ManifestDataset
+from vision_datasets import DatasetHub, DatasetTypes, VisionDataset
 from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
 
 logger = set_up_cmd_logger(__name__)
@@ -29,13 +29,13 @@ def logging_prefix(dataset_name, version):
     return f'Dataset check {dataset_name}, version {version}: '
 
 
-def quick_check_images(dataset: ManifestDataset):
+def quick_check_images(dataset: VisionDataset):
     show_dataset_stats(dataset)
     for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
         show_img(dataset[idx])
 
 
-def check_images(dataset: ManifestDataset):
+def check_images(dataset: VisionDataset):
     show_dataset_stats(dataset)
     file_not_found_list = []
     for i in tqdm(range(len(dataset)), 'Checking image access..'):
@@ -62,16 +62,16 @@ def check_box(bbox, img_w, img_h):
     return l >= 0 and t >= 0 and l < r and t < b and r <= img_w and b <= img_h
 
 
-def classification_detection_check(dataset: ManifestDataset):
+def classification_detection_check(dataset: VisionDataset):
     errors = []
     n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
     for sample_idx, sample in enumerate(dataset.dataset_manifest.images):
         labels = sample.labels
-        c_ids = set([label[0] if dataset.dataset_info.type == DatasetTypes.OD else label for label in labels])
+        c_ids = set([label[0] if dataset.dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION else label for label in labels])
         for c_id in c_ids:
             n_imgs_by_class[c_id] += 1
 
-        if dataset.dataset_info.type == DatasetTypes.OD:
+        if dataset.dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION:
             w, h = sample.width, sample.height
             if not w or not h or w < 0 or h < 0:
                 errors.append(f'Image {sample_idx} has invalid width or height: {w}, {h}')
@@ -133,7 +133,7 @@ def main():
         if dataset:
             err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             errors = []
-            if args.data_type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]:
+            if args.data_type in [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]:
                 errors.extend(classification_detection_check(dataset))
 
             if args.quick_check:

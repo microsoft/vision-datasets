@@ -2,7 +2,7 @@ import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets.common.constants import DatasetTypes
-from vision_datasets.common.manifest_dataset import VisionAsImageTextDataset, DetectionAsClassificationIgnoreBoxesDataset
+from vision_datasets.dataset import VisionAsImageTextDataset, DetectionAsClassificationIgnoreBoxesDataset
 
 
 class TestVisionAsImageTextDataset(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             it_dataset = VisionAsImageTextDataset(dataset)
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
-            matches = [label[1] for x, labels, _ in it_dataset for label in labels]
+            matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert len(matches) == n_images * 2
             assert len(set(matches)) == 1 and matches[0] == 1, matches
 
@@ -25,7 +25,7 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             it_dataset = VisionAsImageTextDataset(dataset, 3, rnd_seed=1)
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
-            matches = [label[1] for x, labels, _ in it_dataset for label in labels]
+            matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert sum(matches) == 6, matches
             assert len(matches) == 22, len(matches)
 
@@ -37,7 +37,7 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             it_dataset = VisionAsImageTextDataset(dataset, 0.3, rnd_seed=1)
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
-            matches = [label[1] for x, labels, _ in it_dataset for label in labels]
+            matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert sum(matches) == 6, matches
             assert len(matches) == 10, matches
 
@@ -49,7 +49,7 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             it_dataset = VisionAsImageTextDataset(dataset, 3, rnd_seed=1)
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
-            matches = [label[1] for x, labels, _ in it_dataset for label in labels]
+            matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert sum(matches) == 6, matches
             assert len(matches) == 9, matches
 
@@ -64,6 +64,6 @@ class TestClassificationAsImageTextDataset(unittest.TestCase):
             it_dataset = VisionAsImageTextDataset(dataset, 0.3, rnd_seed=1)
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
-            matches = [label[1] for x, labels, _ in it_dataset for label in labels]
+            matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert sum(matches) == 6, matches
             assert len(matches) == 10, matches

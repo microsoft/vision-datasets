@@ -7,8 +7,8 @@ import pathlib
 import json
 from typing import Union
 from vision_datasets import DatasetTypes, DatasetManifest, Usages
-from vision_datasets.common.image_loader import PILImageLoader
-from vision_datasets.common.util import FileReader
+from vision_datasets.data_reader.image_loader import PILImageLoader
+from vision_datasets.data_reader import FileReader
 from tqdm import tqdm
 import zipfile
 
@@ -51,8 +51,8 @@ def add_args_to_locate_dataset_from_name_and_reg_json(parser):
     parser.add_argument('name', type=str, help='Dataset name.')
     parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
     parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
-    parser.add_argument('--usages', '-u', nargs='+', choices=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE],
-                        help='Usage(s) to check.', default=[Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE])
+    parser.add_argument('--usages', '-u', nargs='+', choices=[Usages.TRAIN, Usages.VAL, Usages.TEST],
+                        help='Usage(s) to check.', default=[Usages.TRAIN, Usages.VAL, Usages.TEST])
 
     parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
     parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
@@ -62,7 +62,7 @@ def add_args_to_locate_dataset(parser):
     add_args_to_locate_dataset_from_name_and_reg_json(parser)
 
     parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
-    parser.add_argument('--data_type', '-t', type=str, default=None, help='Type of data.', choices=DatasetTypes.VALID_TYPES, required=False)
+    parser.add_argument('--data_type', '-t', type=DatasetTypes, default=None, help='Type of data.', choices=list(DatasetTypes), required=False)
 
 
 def get_or_generate_data_reg_json_and_usages(args):
@@ -83,12 +83,12 @@ def get_or_generate_data_reg_json_and_usages(args):
         return json.dumps(data_info)
 
     if args.reg_json:
-        usages = args.usages or [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]
+        usages = args.usages or [Usages.TRAIN, Usages.VAL, Usages.TEST]
         data_reg_json = args.reg_json.read_text()
     else:
         assert args.coco_json, '--coco_json not provided'
         assert args.data_type, '--data_type not provided'
-        usages = [Usages.TRAIN_PURPOSE]
+        usages = [Usages.TRAIN]
         data_reg_json = _generate_reg_json(args.name, args.data_type, args.coco_json)
 
     return data_reg_json, usages
@@ -132,16 +132,16 @@ def convert_to_tsv(manifest: DatasetManifest, file_path):
         for img in tqdm(manifest.images, desc=f'Writing to {file_path}'):
             converted_labels = []
             for label in img.labels:
-                if manifest.data_type in [DatasetTypes.IC_MULTILABEL, DatasetTypes.IC_MULTICLASS]:
-                    tag_name = manifest.labelmap[label]
+                if manifest.data_type in [DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS]:
+                    tag_name = manifest.categories[label]
                     converted_label = {'class': tag_name}
-                elif manifest.data_type == DatasetTypes.OD:
-                    tag_name = manifest.labelmap[label[0]]
+                elif manifest.data_type == DatasetTypes.IMAGE_OBJECT_DETECTION:
+                    tag_name = manifest.categories[label[0]]
                     rect = [int(x) for x in label[1:5]]
 
                     # to LTRB format
                     converted_label = {'class': tag_name, 'rect': rect}
-                elif manifest.data_type == DatasetTypes.IMCAP:
+                elif manifest.data_type == DatasetTypes.IMAGE_CAPTION:
                     converted_label = {'caption': label}
 
                 converted_labels.append(converted_label)

@@ -16,7 +16,7 @@ Here is one example of the train.json, val.json, or test.json in the `DatasetInf
       {"id": 2, "category_id": 1, "image_id": 2},
       {"id": 3, "category_id": 2, "image_id": 2}
   ],
-  "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
+  "categories": [{"id": 1, "name": "cat", "supercategory": "animal"}, {"id": 2, "name": "dog", "supercategory": "animal"}]
 }
 ```
 
@@ -29,13 +29,26 @@ Here is one example of the train.json, val.json, or test.json in the `DatasetInf
   "annotations": [
       {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 100, 100]},
       {"id": 2, "category_id": 1, "image_id": 2, "bbox": [100, 100, 200, 200]},
-      {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 200, 200]}
+      {"id": 3, "category_id": 2, "image_id": 2, "bbox": [20, 20, 200, 200], "iscrowd": 1}
   ],
   "categories": [{"id": 1, "name": "cat"}, {"id": 2, "name": "dog"}]
 }
 ```
 
+You might notice that for the 3rd box, there is a "iscrowd" field. It specifies whether the box is about a crowd of objects.
+
+### BBox Format
+
 bbox format should be **absolute** pixel position following either `ltwh: [left, top, width, height]` or `ltrb: [left, top, right, bottom]`. `ltwh` is the default format. To work with `ltrb`, please specify `bbox_format` to be `ltrb` in coco json file.
+
+```json
+{
+  "bbox_format": "ltrb",  
+  "images": ...,
+  "annotations": ...,
+  "categories": ...
+}
+```
 
 Note that
 
@@ -112,7 +125,7 @@ Here is one example of the json file for the image regression task, where the "t
 
 ## Image retrieval
 
-This task represents data of images retrieved by text queries.
+This task will be a pure representation of the data of images retrieved by text queries only.
 
 ```json
 {
@@ -127,25 +140,6 @@ This task represents data of images retrieved by text queries.
 }
 ```
 
-The retrieved images might come with additional classification data associated with images in the annotation field mixed up with query annotation. This might change in future, as it can be achieved by using multitask dataset concept with one solely for image retrieval, while the other one solely for classification.
-
-
-```json
-{
-    "images": [
-        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
-        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
-    ],
-    "categories": [
-        {"id": 1, "name": "banana", "supercategory": "fruit"},
-        {"id": 2, "name": "apple", "supercategory": "fruit"}
-    ],
-    "annotations": [
-        {"image_id": 1, "id": 1, "category_id": 1, "query": "Men eating a banana."},
-        {"image_id": 2, "id": 2, "category_id": 2, "query": "An apple on the desk."}
-    ]
-}
-```
 
 ## MultiTask dataset
 

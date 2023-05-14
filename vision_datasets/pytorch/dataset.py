@@ -1,7 +1,8 @@
-from PIL import ImageFile
 from abc import ABC
-import torch
 from inspect import signature
+
+import torch
+from PIL import ImageFile
 
 
 def _identity(*args):

@@ -5,7 +5,8 @@ import tempfile
 
 from PIL import Image
 
-from vision_datasets import DatasetInfo, CocoManifestAdaptor, DatasetTypes, ManifestDataset
+from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
+from vision_datasets.factory import CocoManifestAdaptorFactory
 
 
 class DetectionTestFixtures:
@@ -35,7 +36,7 @@ class DetectionTestFixtures:
         coco_dict = {'images': images, 'categories': categories, 'annotations': annotations}
         coco_path = pathlib.Path(root_dir) / 'coco.json'
         coco_path.write_text(json.dumps(coco_dict))
-        return CocoManifestAdaptor.create_dataset_manifest(coco_path.name, DatasetTypes.OD, root_dir)
+        return CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION).create_dataset_manifest(coco_path.name, root_dir)
 
     @staticmethod
     def create_an_od_dataset(n_images=2, n_categories=4, coordinates='relative'):
@@ -49,5 +50,5 @@ class DetectionTestFixtures:
 
         dataset_info = DatasetInfo(dataset_dict)
         dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir.name, n_images, n_categories)
-        dataset = ManifestDataset(dataset_info, dataset_manifest, coordinates)
+        dataset = VisionDataset(dataset_info, dataset_manifest, coordinates)
         return dataset, tempdir

@@ -1,37 +1,29 @@
-class DatasetTypes:
-    IC_MULTILABEL = 'classification_multilabel'
-    IC_MULTICLASS = 'classification_multiclass'
-    OD = 'object_detection'
-    MULTITASK = 'multitask'
-    IMCAP = 'image_caption'
-    IMAGE_TEXT_MATCHING = 'image_text_matching'
-    IMAGE_MATTING = 'image_matting'
-    IMAGE_REGRESSION = 'image_regression'
-    IMAGE_RETRIEVAL = "image_retrieval"
-    VALID_TYPES = [IC_MULTILABEL, IC_MULTICLASS, OD, MULTITASK, IMCAP, IMAGE_TEXT_MATCHING, IMAGE_MATTING, IMAGE_REGRESSION, IMAGE_RETRIEVAL]
-
-    @staticmethod
-    def is_classification(dataset_type):
-        return dataset_type.startswith('classification')
+from enum import Enum
 
 
-class Usages:
-    TRAIN_PURPOSE = 'train'
-    VAL_PURPOSE = 'val'
-    TEST_PURPOSE = 'test'
+class DatasetTypes(Enum):
+    MULTITASK = 1
+    IMAGE_CLASSIFICATION_MULTILABEL = 2
+    IMAGE_CLASSIFICATION_MULTICLASS = 3
+    IMAGE_OBJECT_DETECTION = 4
+    IMAGE_CAPTION = 5
+    IMAGE_TEXT_MATCHING = 6
+    IMAGE_MATTING = 7
+    IMAGE_REGRESSION = 8
+    TEXT_2_IMAGE_RETRIEVAL = 9
 
 
-class Formats:
-    IRIS = 'iris'
-    COCO = 'coco'
+class Usages(Enum):
+    TRAIN = 1
+    VAL = 2
+    TEST = 3
 
 
-class BBoxFormat:
-    LTRB = 'ltrb'
-    LTWH = 'ltwh'
+class AnnotationFormats(Enum):
+    COCO = 1
+    IRIS = 2
 
-    VALID_TYPES = [LTRB, LTWH]
 
-    @staticmethod
-    def validate(bbox_format):
-        assert bbox_format in BBoxFormat.VALID_TYPES, f'Invalid bbox_format: {bbox_format}. Must be {BBoxFormat.VALID_TYPES}'
+class BBoxFormat(Enum):
+    LTRB = 1
+    LTWH = 2

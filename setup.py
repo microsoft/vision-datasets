@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '0.2.27'
+VERSION = '1.0.0'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -15,7 +15,7 @@ setuptools.setup(name='vision_datasets',
                  long_description_content_type='text/markdown',
                  url='https://github.com/microsoft/vision-datasets',
                  version=VERSION,
-                 python_requires='>=3.6',
+                 python_requires='>=3.8',
                  license='MIT',
                  keywords='vision datasets classification detection',
                  packages=setuptools.find_packages(),

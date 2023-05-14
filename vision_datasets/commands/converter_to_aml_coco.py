@@ -39,7 +39,7 @@ def main():
         logger.error(f'dataset {args.name} does not exist.')
         return
 
-    assert dataset_info.type in [DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL, DatasetTypes.OD]
+    assert dataset_info.type in [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]
 
     file_reader = FileReader()
     for usage in usages:
@@ -58,7 +58,7 @@ def main():
                     image['width'], image['height'] = img.size
             image['file_name'] = image['coco_url'][len(urlunparse(urlparse(keep_base_url(args.blob_container)))):]
 
-        if dataset_info.type == DatasetTypes.OD:
+        if dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION:
             image_wh_by_id = {x['id']: (x['width'], x['height']) for x in coco_dict['images']}
             for ann in tqdm(coco_dict['annotations'], f'{usage}: Processing bbox...'):
                 w, h = image_wh_by_id[ann['image_id']]

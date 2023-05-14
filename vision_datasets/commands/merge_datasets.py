@@ -62,7 +62,7 @@ def main():
         dataset_info = dataset_resources.dataset_registry.get_dataset_info(name)
         merged_dataset_info_dict = update_dataset_info(merged_dataset_info_dict, dataset_info)
 
-    for phase in [Usages.TRAIN_PURPOSE, Usages.VAL_PURPOSE, Usages.TEST_PURPOSE]:
+    for phase in [Usages.TRAIN, Usages.VAL, Usages.TEST]:
         manifests.clear()
         for name in args.names:
             manifest = dataset_resources.create_dataset_manifest(args.blob_container, str(args.local_dir.as_posix()), name, usage=phase)
@@ -81,7 +81,7 @@ def main():
         write_to_json_file_utf8(coco_json, index_file)
         merged_dataset_info_dict[phase]['index_path'] = index_file
         merged_dataset_info_dict[phase]['num_images'] = len(merged_manifest)
-        merged_dataset_info_dict['num_classes'] = len(merged_manifest.labelmap)
+        merged_dataset_info_dict['num_classes'] = len(merged_manifest.categories)
 
     write_to_json_file_utf8([merged_dataset_info_dict], f'{args.new_name}_reg.json')
 
