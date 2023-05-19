@@ -66,9 +66,10 @@ class TestManifestDataset(unittest.TestCase):
             self.assertEqual(target1, [[1, 50.0, 50.0, 80.0, 80.0], [3, 0.0, 50.0, 100.0, 100.0]])
 
     def test_works_with_empty_manifest(self):
-        dataset_manifest = DetectionTestFixtures.create_an_od_manifest()
-        dataset_manifest.images = []
-        assert len(ManifestDataset(DatasetInfo(DetectionTestFixtures.DATASET_INFO_DICT), dataset_manifest)) == 0
+        with tempfile.TemporaryDirectory() as temp_dir:
+            dataset_manifest = DetectionTestFixtures.create_an_od_manifest(temp_dir)
+            dataset_manifest.images = []
+            self.assertEqual(len(ManifestDataset(DatasetInfo(DetectionTestFixtures.DATASET_INFO_DICT), dataset_manifest)), 0)
 
 
 class TestCocoManifestDataset(unittest.TestCase):

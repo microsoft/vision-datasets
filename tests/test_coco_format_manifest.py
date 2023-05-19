@@ -239,3 +239,19 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(dataset_manifest.images[0].labels, [image_regression_manifest["annotations"][0]["target"]])
         self.assertEqual(dataset_manifest.images[1].labels, [image_regression_manifest["annotations"][1]["target"]])
+
+    def test_classification_dataset_with_bbox(self):
+        coco_file = {
+            "images": [{"id": 1, "file_name": "image/test_1.jpg", "zip_file": "train_images.zip"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80]}
+            ],
+            "categories": [
+                {"id": 1, "name": "tiger"}
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile() as f:
+            pathlib.Path(f.name).write_text(json.dumps(coco_file))
+            manifest = CocoManifestAdaptor.create_dataset_manifest(f.name, DatasetTypes.IC_MULTICLASS)
+            self.assertEqual(manifest.images[0].labels, [0])
