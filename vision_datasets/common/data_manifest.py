@@ -882,7 +882,7 @@ class CocoManifestAdaptor:
         for annotation in coco_manifest['annotations']:
             c_id = label_id_to_pos[annotation['category_id']]
             img = images_by_id[annotation['image_id']]
-            if 'bbox' in annotation:
+            if 'bbox' in annotation and data_type == DatasetTypes.OD:
                 bbox = annotation['bbox']
                 bbox = bbox if bbox_format == BBoxFormat.LTRB else [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
 
