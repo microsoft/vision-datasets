@@ -233,14 +233,29 @@ class TestCases:
                 {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
             ],
             "categories": [
-                {"id": 1, "name": "white", "supercategory": "race"},
-                {"id": 2, "name": "black", "supercategory": "race"},
-                {"id": 3, "name": "white", "supercategory": "race_stereotype"},
-                {"id": 4, "name": "black", "supercategory": "race_stereotype"}
+                {"id": 1, "name": "banana", "supercategory": "fruit"},
+                {"id": 2, "name": "apple", "supercategory": "fruit"},
+                {"id": 3, "name": "red", "supercategory": "color"},
+                {"id": 4, "name": "yellow", "supercategory": "color"}
             ],
             "annotations": [
-                {"image_id": 1, "id": 1, "category_id": 1, "query": "european men giving a speech"},
-                {"image_id": 2, "id": 2, "category_id": 2, "query": "african-american men giving a speech"}
+                {"image_id": 1, "id": 1, "category_id": 1, "query": "this banana is small"},
+                {"image_id": 2, "id": 2, "category_id": 2, "query": "this apple is round"}
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "categories": [
+                {"id": 1, "name": "banana", "supercategory": "fruit"},
+                {"id": 2, "name": "apple", "supercategory": "fruit"},
+                {"id": 3, "name": "red", "supercategory": "color"},
+                {"id": 4, "name": "yellow", "supercategory": "color"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "category_id": 1, "query": "this banana is small", "match": 1},
+                {"image_id": 2, "id": 2, "category_id": 2, "query": "this apple is round", "match": 0}
             ]
         },
         {
@@ -248,8 +263,17 @@ class TestCases:
                 {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
             ],
             "annotations": [
-                {"image_id": 1, "id": 1, "query": "european men giving a speech"},
-                {"image_id": 2, "id": 2, "query": "african-american men giving a speech"}
+                {"image_id": 1, "id": 1, "query": "a big apple"},
+                {"image_id": 2, "id": 2, "query": "a small banana"}
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "query": "a big apple", "match": 1},
+                {"image_id": 2, "id": 2, "query": "a small banana", "match": 0}
             ]
         }
     ]

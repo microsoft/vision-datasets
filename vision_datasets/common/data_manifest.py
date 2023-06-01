@@ -103,7 +103,7 @@ class ImageDataManifest:
                 multitask: dict[task, labels];
                 image_matting: [mask1, mask2, ...], each mask is a 2D numpy array that has the same width and height with the image;
                 image_regression: [target1];
-                image_retrieval: [(c_id, query),...] if c_id is present, otherwise [query1, query2, ...]
+                image_retrieval: [(query, c_id, match),...]
             label_file_paths (list): list of paths of the image label files. "label_file_paths" only works for image matting task.
             labels_extra_info (dict[string, list]]): extra information about this image's labels
                 Examples: 'iscrowd'
@@ -261,11 +261,11 @@ class DatasetManifest:
                 elif self.data_type == DatasetTypes.IMAGE_REGRESSION:
                     coco_ann['target'] = ann
                 elif self.data_type == DatasetTypes.IMAGE_RETRIEVAL:
-                    if isinstance(ann, str):
-                        coco_ann['query'] = ann
-                    else:
-                        coco_ann['category_id'] = ann[0] + 1
-                        coco_ann['query'] = ann[1]
+                    coco_ann['query'] = ann[0]
+                    if ann[1] is not None:
+                        coco_ann['category_id'] = ann[1] + 1
+                    if ann[2] is not None:
+                        coco_ann['match'] = ann[2]
                 else:
                     raise ValueError(f'Unsupported data type {self.data_type}')
 
@@ -855,7 +855,8 @@ class CocoManifestAdaptor:
                 image.labels.append(annotation['target'])
         elif data_type == DatasetTypes.IMAGE_RETRIEVAL and 'categories' not in coco_manifest:
             def process_labels_without_categories(image):
-                image.labels.append(annotation['query'])
+                match_field = annotation['match'] if 'match' in annotation else None
+                image.labels.append((annotation['query'], None, match_field))
 
         if process_labels_without_categories:
             for annotation in coco_manifest['annotations']:
@@ -890,7 +891,8 @@ class CocoManifestAdaptor:
                 img.labels_extra_info['iscrowd'] = img.labels_extra_info.get('iscrowd', [])
                 img.labels_extra_info['iscrowd'].append(annotation.get('iscrowd', 0))
             elif 'query' in annotation:
-                label = (c_id, annotation['query'])
+                match_field = annotation['match'] if 'match' in annotation else None
+                label = (annotation['query'], c_id, match_field)
             else:
                 label = c_id
 

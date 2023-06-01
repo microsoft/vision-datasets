@@ -112,7 +112,7 @@ Here is one example of the json file for the image regression task, where the "t
 
 ## Image retrieval
 
-This task represents data of images retrieved by text queries.
+This task represents data of images retrieved by text queries. There is an optional attribute called `match`. `match: 1` indicates image and text match.
 
 ```json
 {
@@ -121,8 +121,8 @@ This task represents data of images retrieved by text queries.
         {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
     ],
     "annotations": [
-        {"image_id": 1, "id": 1, "query": "Men eating a banana."},
-        {"image_id": 2, "id": 2, "query": "An apple on the desk."}
+        {"image_id": 1, "id": 1, "query": "Men eating a banana.", "match": 1},
+        {"image_id": 2, "id": 2, "query": "An apple on the desk.", "match": 0}
     ]
 }
 ```
