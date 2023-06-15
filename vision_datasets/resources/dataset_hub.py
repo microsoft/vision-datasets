@@ -105,7 +105,7 @@ class DatasetHub(object):
 
         for usage in usages:
             manifest_usage = DatasetManifest.create_dataset_manifest(dataset_info, usage, local_dir or container_sas)
-            if manifest_usage:
+            if manifest_usage is not None:
                 manifest = DatasetManifest.merge(manifest, manifest_usage) if manifest else manifest_usage
 
             if downloader_resources_usage:
