@@ -7,10 +7,9 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from vision_datasets import DatasetManifest
-from vision_datasets.common.constants import DatasetTypes
-from vision_datasets.factory import CocoManifestAdaptorFactory
+from vision_datasets import DatasetManifest, DatasetTypes, CocoManifestAdaptorFactory
 from vision_datasets.data_reader import FileReader
+from vision_datasets.data_tasks.image_classification.manifest import ImageClassificationLabelManifest
 from vision_datasets.data_tasks.multi_task.coco_manifest_adaptor import MultiTaskCocoManifestAdaptor
 
 from .test_dataset_manifest import TestCases, _coco_dict_to_manifest
@@ -241,3 +240,19 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [image_regression_manifest["annotations"][0]["target"]])
         self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [image_regression_manifest["annotations"][1]["target"]])
+
+    def test_classification_dataset_with_bbox(self):
+        coco_file = {
+            "images": [{"id": 1, "file_name": "image/test_1.jpg", "zip_file": "train_images.zip"}],
+            "annotations": [
+                {"id": 1, "category_id": 1, "image_id": 1, "bbox": [10, 10, 80, 80]}
+            ],
+            "categories": [
+                {"id": 1, "name": "tiger"}
+            ]
+        }
+
+        with tempfile.NamedTemporaryFile() as f:
+            pathlib.Path(f.name).write_text(json.dumps(coco_file))
+            manifest = CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS).create_dataset_manifest(f.name)
+            self.assertEqual(manifest.images[0].labels, [ImageClassificationLabelManifest(0)])
