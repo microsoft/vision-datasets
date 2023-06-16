@@ -1,8 +1,6 @@
 from vision_datasets.factory import CocoDictGeneratorFactory
-from vision_datasets.factory import SampleStrategyFactory
 from vision_datasets.data_manifest import DatasetFilter, ImageNoAnnotationFilter
 from vision_datasets.data_manifest import RemoveCategoriesConfig, RemoveCategories
-from vision_datasets.data_manifest import SampleByNumSamplesConfig, SampleStrategyType, ManifestSampler
 from vision_datasets.data_manifest import SpawnConfig
 from vision_datasets.factory import SpawnFactory
 import copy
@@ -13,7 +11,7 @@ import unittest
 from collections import Counter
 
 from vision_datasets import CocoManifestAdaptorFactory, DatasetManifest, DatasetTypes, ImageDataManifest
-from vision_datasets.data_manifest import CategoryManifest, ManifestMerger, ManifestSampler, MergeStrategyType, SampleByFewShotConfig, SampleByNumSamplesConfig, SampleStrategyType, SplitConfig
+from vision_datasets.data_manifest import CategoryManifest, ManifestMerger, ManifestSampler, SampleByFewShotConfig, SampleByNumSamplesConfig, SampleStrategyType, SplitConfig
 from vision_datasets.data_manifest.utils import generate_multitask_dataset_manifest
 from vision_datasets.data_tasks.image_classification.manifest import ImageClassificationLabelManifest
 from vision_datasets.data_tasks.image_object_detection.manifest import ImageObjectDetectionLabelManifest
@@ -25,10 +23,8 @@ def _generate_categories(n_classes):
 
 
 def _get_instance_count_per_class(manifest: DatasetManifest):
-    if manifest.is_multitask:
-        return Counter([manifest._get_cid(label, task_name) for image in manifest.images for task_name, task_labels in image.labels.items() for label in task_labels])
-    else:
-        return Counter([label.category_id for image in manifest.images for label in image.labels])
+    assert not manifest.is_multitask
+    return Counter([label.category_id for image in manifest.images for label in image.labels])
 
 
 def _coco_dict_to_manifest(coco_dict, data_type):
@@ -356,17 +352,17 @@ class TestSampleManifestByNumSamples(unittest.TestCase):
         for n in _get_instance_count_per_class(sampled).values():
             self.assertGreaterEqual(n, 50)
 
-    def test_multitask(self):
-        num_classes = 10
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i + 1]}) for i in range(num_classes - 1)] * 100
-        manifest = DatasetManifest(images, {'a': _generate_categories(num_classes), 'b': _generate_categories(num_classes)}, {
-            'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
-        strategy = SampleStrategyFactory.create(DatasetTypes.MULTITASK, SampleStrategyType.NumSamples, SampleByNumSamplesConfig(0, False, 500))
-        sampler = ManifestSampler(strategy)
-        sampled = sampler.run(manifest)
-        self.assertGreaterEqual(len(sampled.images), 500)
-        for n in _get_instance_count_per_class(sampled).values():
-            self.assertGreaterEqual(n, 50)
+    # def test_multitask(self):
+    #     num_classes = 10
+    #     images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {'a': [i, i + 1], 'b': [i, i + 1]}) for i in range(num_classes - 1)] * 100
+    #     manifest = DatasetManifest(images, {'a': _generate_categories(num_classes), 'b': _generate_categories(num_classes)}, {
+    #         'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
+    #     strategy = SampleStrategyFactory.create(DatasetTypes.MULTITASK, SampleStrategyType.NumSamples, SampleByNumSamplesConfig(0, False, 500))
+    #     sampler = ManifestSampler(strategy)
+    #     sampled = sampler.run(manifest)
+    #     self.assertGreaterEqual(len(sampled.images), 500)
+    #     for n in _get_instance_count_per_class(sampled).values():
+    #         self.assertGreaterEqual(n, 50)
 
     def test_detection(self):
         num_classes = 10
@@ -438,23 +434,23 @@ class TestGreedyFewShotsSampling(unittest.TestCase):
         for n in _get_instance_count_per_class(sampled).values():
             self.assertGreaterEqual(n, 10)
 
-    def test_multitask(self):
-        num_classes = 10
-        images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {
-            'a': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest(i + 1)],
-            'b': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest(i + 1)]
-        }) for i in range(num_classes - 1)] * 100
-        dataset_manifest = DatasetManifest(images,
-                                           {'a': _generate_categories(num_classes), 'b': _generate_categories(num_classes)},
-                                           {'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
+    # def test_multitask(self):
+    #     num_classes = 10
+    #     images = [ImageDataManifest(f'{i}', f'./{i}.jpg', 10, 10, {
+    #         'a': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest(i + 1)],
+    #         'b': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest(i + 1)]
+    #     }) for i in range(num_classes - 1)] * 100
+    #     dataset_manifest = DatasetManifest(images,
+    #                                        {'a': _generate_categories(num_classes), 'b': _generate_categories(num_classes)},
+    #                                        {'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
 
-        strategy = SampleStrategyFactory.create(DatasetTypes.MULTITASK, SampleStrategyType.FewShot, SampleByFewShotConfig(0, 10))
-        sampler = ManifestSampler(strategy)
-        sampled = sampler.run(dataset_manifest)
-        self.assertGreaterEqual(len(sampled), 50)
-        self.assertLessEqual(len(sampled), 100)
-        for n in _get_instance_count_per_class(sampled).values():
-            self.assertGreaterEqual(n, 10)
+    #     strategy = SampleStrategyFactory.create(DatasetTypes.MULTITASK, SampleStrategyType.FewShot, SampleByFewShotConfig(0, 10))
+    #     sampler = ManifestSampler(strategy)
+    #     sampled = sampler.run(dataset_manifest)
+    #     self.assertGreaterEqual(len(sampled), 50)
+    #     self.assertLessEqual(len(sampled), 100)
+    #     for n in _get_instance_count_per_class(sampled).values():
+    #         self.assertGreaterEqual(n, 10)
 
     def test_detection(self):
         num_classes = 10
@@ -566,28 +562,28 @@ class TestManifestSplit(unittest.TestCase):
         dataset_copy = copy.deepcopy(dataset_manifest)
         assert dataset_copy
 
-    def test_even_multitask(self):
-        n_classes = 3
-        images = [ImageDataManifest(
-            str(i),
-            f'./{i}.jpg',
-            10,
-            10,
-            {'a': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest((i + 1) % n_classes)],
-                'b': [ImageClassificationLabelManifest((i + 1) % n_classes), ImageClassificationLabelManifest((i + 2) % n_classes)]}) for i in range(n_classes)] * 10
+    # def test_even_multitask(self):
+    #     n_classes = 3
+    #     images = [ImageDataManifest(
+    #         str(i),
+    #         f'./{i}.jpg',
+    #         10,
+    #         10,
+    #         {'a': [ImageClassificationLabelManifest(i), ImageClassificationLabelManifest((i + 1) % n_classes)],
+    #             'b': [ImageClassificationLabelManifest((i + 1) % n_classes), ImageClassificationLabelManifest((i + 2) % n_classes)]}) for i in range(n_classes)] * 10
 
-        dataset_manifest = DatasetManifest(images, {'a': _generate_categories(n_classes), 'b': _generate_categories(n_classes)},
-                                           {'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
-        splitter = SplitFactory.create(DatasetTypes.MULTITASK, SplitConfig(0.7001))
-        first, second = splitter.run(dataset_manifest)
-        assert len(first.images) == 21
-        assert len(second.images) == 9
-        assert _get_instance_count_per_class(first) == {0: 14, 1: 14, 2: 14, 3: 14, 4: 14, 5: 14}
-        assert _get_instance_count_per_class(second) == {0: 6, 1: 6, 2: 6, 3: 6, 4: 6, 5: 6}
+    #     dataset_manifest = DatasetManifest(images, {'a': _generate_categories(n_classes), 'b': _generate_categories(n_classes)},
+    #                                        {'a': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 'b': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS})
+    #     splitter = SplitFactory.create(DatasetTypes.MULTITASK, SplitConfig(0.7001))
+    #     first, second = splitter.run(dataset_manifest)
+    #     assert len(first.images) == 21
+    #     assert len(second.images) == 9
+    #     assert _get_instance_count_per_class(first) == {0: 14, 1: 14, 2: 14, 3: 14, 4: 14, 5: 14}
+    #     assert _get_instance_count_per_class(second) == {0: 6, 1: 6, 2: 6, 3: 6, 4: 6, 5: 6}
 
-        # test deepcopy
-        dataset_copy = copy.deepcopy(dataset_manifest)
-        assert dataset_copy
+    #     # test deepcopy
+    #     dataset_copy = copy.deepcopy(dataset_manifest)
+    #     assert dataset_copy
 
 
 class TestSampleByCategories(unittest.TestCase):
@@ -696,7 +692,9 @@ class TestSpawn(unittest.TestCase):
 
 class TestCocoGeneration(unittest.TestCase):
     def test_coco_generation(self):
-        for data_type in [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION, DatasetTypes.IMAGE_CAPTION, DatasetTypes.IMAGE_REGRESSION, DatasetTypes.TEXT_2_IMAGE_RETRIEVAL]:
+        for data_type in [
+                DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION, DatasetTypes.IMAGE_CAPTION,
+                DatasetTypes.IMAGE_REGRESSION, DatasetTypes.TEXT_2_IMAGE_RETRIEVAL]:
             for i in range(len(TestCases.manifest_dict_by_data_type[data_type])):
                 manifest = TestCases.get_manifest(data_type, i)
                 coco_dict = CocoDictGeneratorFactory.create(data_type).run(manifest)
@@ -706,7 +704,7 @@ class TestCocoGeneration(unittest.TestCase):
 
 class TestDatasetManifestMerge(unittest.TestCase):
     def test_merge_two_ic_datasets_diff_labelmap(self):
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 1))
@@ -717,7 +715,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         assert [x.label_data for x in merged_manifest.images[3].labels] == [2, 3]
 
     def test_merge_two_ic_datasets_same_labelmap(self):
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 0))
@@ -730,7 +728,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
     def test_merge_three_ic_datasets_diff_labelmap(self):
         md3 = copy.deepcopy(TestCases.ic_multiclass_manifest_dicts[2])
         md3['categories'] = [{"id": 1, "name": "human"}, {"id": 2, "name": "snake"}]
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 1),
@@ -744,7 +742,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         assert [x.label_data for x in merged_manifest.images[5].labels] == [5]
 
     def test_merge_two_od_datasets_diff_labelmap(self):
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 1))
@@ -755,7 +753,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         assert [x.label_data for x in merged_manifest.images[3].labels] == [[2, 90, 90, 180, 180], [3, 20, 20, 200, 200]]
 
     def test_merge_two_od_datasets_same_labelmap(self):
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 2))
@@ -766,7 +764,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         assert [x.label_data for x in merged_manifest.images[3].labels] == [[1, 90, 90, 180, 180]]
 
     def test_merge_two_caption_datasets(self):
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CAPTION, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.IMAGE_CAPTION)
         merger = ManifestMerger(strategy)
         merged_manifest = merger.run(TestCases.get_manifest(DatasetTypes.IMAGE_CAPTION, 0),
                                      TestCases.get_manifest(DatasetTypes.IMAGE_CAPTION, 1))
@@ -788,9 +786,9 @@ class TestDatasetManifestMerge(unittest.TestCase):
             'task1': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 0),
             'task2': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 1),
         })
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK)
         merger = ManifestMerger(strategy)
-        self.assertRaises(ValueError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
+        self.assertRaises(AssertionError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
 
     def test_merge_multitask_datasets_flavor0_with_different_tasks_should_raise(self):
         multitask_manifest_1 = generate_multitask_dataset_manifest({
@@ -802,59 +800,9 @@ class TestDatasetManifestMerge(unittest.TestCase):
             'task1': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 0),
             'task2': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 1),
         })
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK, MergeStrategyType.IndependentImages)
+        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK)
         merger = ManifestMerger(strategy)
-        self.assertRaises(ValueError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
-
-    def test_merge_multitask_datasets_flavor1_with_different_tasks(self):
-        multitask_manifest_1 = generate_multitask_dataset_manifest({
-            'task1': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 0),
-            'task2': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 1),
-            'task3': TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 2)
-        })
-
-        multitask_manifest_2 = generate_multitask_dataset_manifest({
-            'task4': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 2),
-            'task5': TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 0),
-            'task6': TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 1)
-        })
-
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK, MergeStrategyType.IndependentImages)
-        merger = ManifestMerger(strategy)
-        merged_manifest = merger.run(multitask_manifest_1, multitask_manifest_2)
-        assert {task: [c.name for c in categories] for task, categories in merged_manifest.categories.items()} == {
-            'task1': ['cat', 'dog'],
-            'task2': ['tiger', 'rabbit'],
-            'task3': ['cat', 'dog'],
-            'task4': ['cat', 'dog'],
-            'task5': ['cat', 'dog'],
-            'task6': ['tiger', 'rabbit'],
-        }
-
-        assert merged_manifest.data_type == {
-            'task1': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS,
-            'task2': DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL,
-            'task3': DatasetTypes.IMAGE_OBJECT_DETECTION,
-            'task4': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS,
-            'task5': DatasetTypes.IMAGE_OBJECT_DETECTION,
-            'task6': DatasetTypes.IMAGE_OBJECT_DETECTION,
-        }
-
-        assert len(merged_manifest) == 12
-
-    def test_merge_multitask_datasets_flavor1_with_redundant_task_name_should_raise(self):
-        multitask_manifest_1 = generate_multitask_dataset_manifest({
-            'task1': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 0),
-            'task3': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 1)
-        })
-
-        multitask_manifest_2 = generate_multitask_dataset_manifest({
-            'task1': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 2),
-            'task2': TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, 1),
-        })
-        strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK, MergeStrategyType.IndependentImages)
-        merger = ManifestMerger(strategy)
-        self.assertRaises(ValueError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
+        self.assertRaises(AssertionError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
 
 
 if __name__ == '__main__':

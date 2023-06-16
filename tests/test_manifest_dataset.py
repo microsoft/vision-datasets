@@ -59,13 +59,13 @@ class TestVisionDataset(unittest.TestCase):
             self.assertEqual(len(dataset.labels), 4)
             image0, target0, _ = dataset[0]
             image1, target1, _ = dataset[1]
-            self.assertEqual([l.label_data for l in target0], [[0, 0.0, 0.0, 1.0, 1.0], [1, 0.1, 0.1, 0.5, 1.0]])
-            self.assertEqual([l.label_data for l in target1], [[1, 0.5, 0.5, 0.8, 0.8], [3, 0.0, 0.5, 1.0, 1.0]])
+            self.assertEqual([label.label_data for label in target0], [[0, 0.0, 0.0, 1.0, 1.0], [1, 0.1, 0.1, 0.5, 1.0]])
+            self.assertEqual([label.label_data for label in target1], [[1, 0.5, 0.5, 0.8, 0.8], [3, 0.0, 0.5, 1.0, 1.0]])
             dataset = VisionDataset(dataset.dataset_info, dataset.dataset_manifest, 'absolute')
             image0, target0, _ = dataset[0]
             image1, target1, _ = dataset[1]
-            self.assertEqual([l.label_data for l in target0], [[0, 0.0, 0.0, 100.0, 100.0], [1, 10.0, 10.0, 50.0, 100.0]])
-            self.assertEqual([l.label_data for l in target1], [[1, 50.0, 50.0, 80.0, 80.0], [3, 0.0, 50.0, 100.0, 100.0]])
+            self.assertEqual([label.label_data for label in target0], [[0, 0.0, 0.0, 100.0, 100.0], [1, 10.0, 10.0, 50.0, 100.0]])
+            self.assertEqual([label.label_data for label in target1], [[1, 50.0, 50.0, 80.0, 80.0], [3, 0.0, 50.0, 100.0, 100.0]])
 
     def test_works_with_empty_manifest(self):
         dataset_manifest = DetectionTestFixtures.create_an_od_manifest()
@@ -123,7 +123,7 @@ class TestCocoVisionDataset(unittest.TestCase):
             json.dump(TestCocoVisionDataset.MATTING_JSON_COCO_FORMAT, f)
 
         dataset_info = DatasetInfo(dataset_dict)
-        dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type).create_dataset_manifest(dataset_info.test_path, dataset_info.root_folder)
+        dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type).create_dataset_manifest(dataset_info.index_files[Usages.TEST], dataset_info.root_folder)
         dataset = VisionDataset(dataset_info, dataset_manifest)
         return dataset, tempdir, images
 

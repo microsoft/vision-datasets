@@ -1,5 +1,5 @@
 from ...common import DatasetTypes
-from ...data_manifest import GenerateCocoDictBase, ImageLabelManifest, MergeStrategyType, SampleByNumSamples, SampleFewShot, SampleStrategyType, SingleTaskMergeWithIndepedentImages, Spawn, Split
+from ...data_manifest import GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleFewShot, SampleStrategyType, SingleTaskMerge, Spawn, Split
 from ...factory.operations import CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
 
 _DATA_TYPE = DatasetTypes.IMAGE_CAPTION
@@ -11,7 +11,7 @@ class ImageCaptionCocoDictGenerator(GenerateCocoDictBase):
         coco_ann['caption'] = label.label_data
 
 
-ManifestMergeStrategyFactory.direct_register(SingleTaskMergeWithIndepedentImages, _DATA_TYPE, MergeStrategyType.IndependentImages)
+ManifestMergeStrategyFactory.direct_register(SingleTaskMerge, _DATA_TYPE)
 
 
 SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStrategyType.NumSamples)

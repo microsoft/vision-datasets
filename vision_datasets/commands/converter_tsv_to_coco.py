@@ -11,7 +11,7 @@ import pathlib
 import re
 from tqdm import tqdm
 
-from vision_datasets.common.util import write_to_json_file_utf8
+from .utils import write_to_json_file_utf8
 
 
 from .utils import verify_and_correct_box_or_none, guess_encoding, Base64Utils, zip_folder, set_up_cmd_logger, TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM

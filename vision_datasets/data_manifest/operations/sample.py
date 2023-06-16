@@ -58,6 +58,10 @@ class ManifestSampler(Operation):
 
 
 class SampleByNumSamples(SampleStrategy):
+    """
+    Downsample a dataset to a desired number of images
+    """
+
     def __init__(self, config: SampleByNumSamplesConfig) -> None:
         assert config.n_samples > 0
 
@@ -65,7 +69,7 @@ class SampleByNumSamples(SampleStrategy):
 
     def sample(self, manifest: DatasetManifest):
         if not self.config.with_replacement and self.config.n_samples > len(manifest.images):
-            raise ValueError('n_samples must be less than or equal to the number of items')
+            raise ValueError('n_samples must be less than or equal to the number of images in the dataset.')
 
         rng = np.random.default_rng(self.config.random_seed)
         normalized_weights = [w / sum(self.config.weights) for w in self.config.weights] if self.config.weights else None

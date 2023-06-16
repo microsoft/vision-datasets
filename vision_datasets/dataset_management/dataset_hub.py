@@ -1,8 +1,10 @@
 import logging
 from typing import List, Union
 
+from ..factory import DataManifestFactory, ManifestMergeStrategyFactory
+
 from ..common import MultiTaskDatasetInfo, Usages
-from ..data_manifest import DatasetManifest
+from ..data_manifest import ManifestMerger
 from .dataset_registry import DatasetRegistry
 
 logger = logging.getLogger(__name__)
@@ -98,15 +100,16 @@ class DatasetHub(object):
             dataset_info.index_files = {usage: dataset_info.index_files[usage] for usage in usages if usage in dataset_info.index_files}
 
         if container_sas and local_dir:
-            downloader = DatasetDownloader(container_sas, self.dataset_registry)
-            downloader_resources_usage = downloader.download(name, version, local_dir, usages)
+            downloader = DatasetDownloader(container_sas, self.dataset_registry.get_dataset_info(name, version))
+            downloader_resources_usage = downloader.download(local_dir, usages)
         else:
             downloader_resources_usage = None
 
         for usage in usages:
-            manifest_usage = DatasetManifest.create_dataset_manifest(dataset_info, usage, local_dir or container_sas)
-            if manifest_usage:
-                manifest = DatasetManifest.merge(manifest, manifest_usage) if manifest else manifest_usage
+            manifest_usage = DataManifestFactory.create(dataset_info, usage, local_dir or container_sas)
+            if manifest_usage is not None:
+                merger = ManifestMerger(ManifestMergeStrategyFactory.create(dataset_info.type))
+                manifest = merger.run(manifest, manifest_usage) if manifest else manifest_usage
 
             if downloader_resources_usage:
                 from ..data_reader.dataset_downloader import DownloadedDatasetsResources

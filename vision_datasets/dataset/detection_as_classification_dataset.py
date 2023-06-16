@@ -120,7 +120,7 @@ class DetectionAsClassificationByCroppingDataset(DetectionAsClassificationBaseDa
             left, t, r, b = left * w, t * h, r * w, b * h
 
         box_img = DetectionAsClassificationByCroppingDataset.crop(img, left, t, r, b, self._box_aug_params, self._box_aug_rnd)
-        return box_img, [c_id], str(index)
+        return box_img, [ImageClassificationLabelManifest(c_id)], str(index)
 
     @staticmethod
     def crop(img, left, t, r, b, aug_params=None, rnd: random.Random = None):

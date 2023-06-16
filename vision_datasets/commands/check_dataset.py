@@ -22,7 +22,7 @@ def show_img(sample):
     sample[0].show()
     sample[0].close()
 
-    logger.info(f'label = {sample[1]}')
+    logger.info(f'annotations = {[str(x) for x in sample[1]]}')
 
 
 def logging_prefix(dataset_name, version):
@@ -58,8 +58,8 @@ def check_box(bbox, img_w, img_h):
     if len(bbox) != 4 or not _is_integer(bbox):
         return False
 
-    l, t, r, b = bbox
-    return l >= 0 and t >= 0 and l < r and t < b and r <= img_w and b <= img_h
+    left, t, r, b = bbox
+    return left >= 0 and t >= 0 and left < r and t < b and r <= img_w and b <= img_h
 
 
 def classification_detection_check(dataset: VisionDataset):

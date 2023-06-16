@@ -5,7 +5,7 @@ from typing import Union
 from urllib.parse import quote
 from urllib.request import urlopen
 
-from ..common.utils import is_url
+from ..common.utils import can_be_url
 
 
 class MultiProcessZipFile:
@@ -34,7 +34,11 @@ class MultiProcessZipFile:
 
 
 class FileReader:
-    """Reader to support <zip_filename>@<entry_name> style filename."""
+    """Reader to support files of different path styles.
+     1. <zip_filename>@<file_name>
+     2. url
+     3. regular file name
+     """
 
     def __init__(self):
         self.zip_files = {}
@@ -42,7 +46,7 @@ class FileReader:
     def open(self, name: Union[pathlib.Path, str], mode='r', encoding=None):
         name = str(name)
         # read file from url
-        if is_url(name):
+        if can_be_url(name):
             return urlopen(self._encode_non_ascii(name))
 
         # read file from local zip: <zip_filename>@<entry_name>, e.g. images.zip@1.jpg

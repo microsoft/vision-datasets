@@ -1,3 +1,6 @@
+
+import json
+
 import numpy as np
 from PIL import Image
 
@@ -17,3 +20,8 @@ class ImageMattingLabelManifest(ImageLabelManifest):
         file_reader.close()
 
         return label
+
+    def __str__(self) -> str:
+        data_dict = self.__getstate__()
+        del data_dict['_label_data']  # not serializable
+        return f'Label: {json.dumps(data_dict)}'

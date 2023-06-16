@@ -12,7 +12,7 @@ TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTy
 def coco_dict_to_manifest(task, coco_dict):
     if task == DatasetTypes.MULTITASK:
         return coco_dict_to_manifest_multitask(coco_dict[0], coco_dict[1])
-    
+
     adaptor = CocoManifestAdaptorFactory.create(task)
     with tempfile.TemporaryDirectory() as temp_dir:
         dm1_path = pathlib.Path(temp_dir) / 'coco.json'

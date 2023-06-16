@@ -2,6 +2,7 @@ import logging
 import os
 import pathlib
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
@@ -12,11 +13,8 @@ from urllib import parse as urlparse
 import requests
 import tenacity
 
-from vision_datasets.common.constants import DatasetTypes
-
-from ..common import Usages
-from ..common.utils import is_url
-from ..common.dataset_info import BaseDatasetInfo, DatasetInfo
+from ..common import BaseDatasetInfo, DatasetInfo, DatasetTypes, Usages
+from ..common.utils import can_be_url
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +110,7 @@ class DatasetDownloader:
         assert dataset_sas_url
         assert dataset_info
 
-        if not is_url(dataset_sas_url):
+        if not can_be_url(dataset_sas_url):
             raise RuntimeError('An url to the dataset should be provided.')
 
         self._base_url = dataset_sas_url
@@ -133,12 +131,23 @@ class DatasetDownloader:
 
         return DownloadedDatasetsResources([target_dir])
 
+    @staticmethod
+    def _keep_until_including_pattern(s, pattern):
+        match = re.search(pattern, s)
+        if match:
+            end = match.end()
+            return s[:end]
+        else:
+            return s
+
     def _find_files_to_download(self, dataset_info: DatasetInfo, purposes: List[str]) -> set:
         files_to_download = set()
         rt_dir = pathlib.Path(dataset_info.root_folder)
         for usage in purposes:
             if usage in dataset_info.index_files:
-                files_to_download.add(rt_dir / dataset_info.index_files[usage])
+                file = self._keep_until_including_pattern(dataset_info.index_files[usage], pattern=r'@*\.zip')
+                (print(file))
+                files_to_download.add(rt_dir / file)
             if usage in dataset_info.files_for_local_usage:
                 files_to_download.update([rt_dir / x for x in dataset_info.files_for_local_usage[usage]])
 

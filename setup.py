@@ -32,7 +32,6 @@ setuptools.setup(name='vision_datasets',
                      'Development Status :: 4 - Beta',
                      'Intended Audience :: Developers',
                      'License :: OSI Approved :: MIT License',
-                     'Programming Language :: Python :: 3.7',
                      'Programming Language :: Python :: 3.8',
                      'Programming Language :: Python :: 3.9',
                      'Programming Language :: Python :: 3.10',
@@ -40,16 +39,8 @@ setuptools.setup(name='vision_datasets',
                  extras_require={'run': ['torch>=1.6.0', 'torchvision>=0.7.0']},
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download_dataset:main',
-                                         'vision_merge_datasets=vision_datasets.commands.merge_datasets:main',
-
                                          'vision_check_dataset=vision_datasets.commands.check_dataset:main',
                                          'vision_convert_od_to_ic=vision_datasets.commands.converter_od_to_ic:main',
-                                         'vision_convert_local_dir_ic_data=vision_datasets.commands.convert_local_dir_ic_data:main',
-                                         'vision_convert_to_tsv=vision_datasets.commands.converter_to_tsv:main',
-                                         'vision_convert_tsv_to_coco=vision_datasets.commands.converter_tsv_to_coco:main',
-
-                                         'vision_tsv_to_iris=vision_datasets.commands.converter_tsv_to_iris:main',
-                                         'vision_yolo_to_iris=vision_datasets.commands.converter_yolo_darknet_to_iris:main',
-                                         'vision_gen_metafile=vision_datasets.commands.generate_image_meta_info:main',
-                                         'vision_convert_to_aml_coco=vision_datasets.commands.converter_to_aml_coco:main']
+                                         'vision_convert_to_aml_coco=vision_datasets.commands.converter_to_aml_coco:main',
+                                         'vision_list_supported_operations=vision_datasets.commands.list_operations_by_data_type:main']
                  })

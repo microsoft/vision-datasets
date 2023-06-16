@@ -1,5 +1,6 @@
 from ...common import DatasetTypes
 from ...data_manifest import Spawn, SpawnConfig
+from .supported_operations_by_data_type import SupportedOperationsByDataType
 
 
 class SpawnFactory:
@@ -7,6 +8,7 @@ class SpawnFactory:
 
     @classmethod
     def direct_register(cls, klass, data_type: DatasetTypes):
+        SupportedOperationsByDataType.add(data_type, klass)
         cls._mapping[data_type] = klass
         return klass
 

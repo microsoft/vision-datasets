@@ -1,5 +1,6 @@
 from ...common import DatasetTypes
 from ...data_manifest import SampleBaseConfig, SampleStrategy, SampleStrategyType
+from .supported_operations_by_data_type import SupportedOperationsByDataType
 
 
 class SampleStrategyFactory:
@@ -13,6 +14,7 @@ class SampleStrategyFactory:
     @classmethod
     def register(cls, data_type: DatasetTypes, strategy_name: SampleStrategyType):
         def decorator(klass):
+            SupportedOperationsByDataType.add(data_type, klass)
             return SampleStrategyFactory.direct_register(klass, data_type, strategy_name)
         return decorator
 

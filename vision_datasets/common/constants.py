@@ -6,10 +6,11 @@ class DatasetTypes(Enum):
     IMAGE_CLASSIFICATION_MULTILABEL = 2
     IMAGE_CLASSIFICATION_MULTICLASS = 3
     IMAGE_OBJECT_DETECTION = 4
-    IMAGE_CAPTION = 5
-    IMAGE_TEXT_MATCHING = 6
-    IMAGE_MATTING = 7
-    IMAGE_REGRESSION = 8
+    IMAGE_TEXT_MATCHING = 5
+    IMAGE_MATTING = 6
+    IMAGE_REGRESSION = 7
+    # types below will be consolidated with image text matching in future
+    IMAGE_CAPTION = 8
     TEXT_2_IMAGE_RETRIEVAL = 9
 
 

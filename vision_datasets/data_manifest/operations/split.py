@@ -15,8 +15,8 @@ class SplitConfig:
 
 class Split(Operation):
     """
-        Split the dataset into train and val set, with train set ratio being train_ratio.
-        For multiclass dataset, the split ratio will be close to provided train_ratio, while for multilabel dataset, it is not guaranteed
+        Split the dataset into two sets.
+        For multiclass dataset, the split ratio will be close to provided ratio, while for multilabel dataset, it is not guaranteed
         Multitask dataset and detection dataset are treated the same with multilabel dataset.
     """
 
@@ -30,16 +30,24 @@ class Split(Operation):
         manifest = args[0]
         first_cnt = int(self.config.ratio * len(manifest))
         if first_cnt == 0:
-            return DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
+                DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type))
 
         if first_cnt == len(manifest):
-            return DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
+                DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type))
 
         rng = random.Random(self.config.random_seed)
         images = deepcopy(manifest.images)
         rng.shuffle(images)
 
-        return DatasetManifest(images[:first_cnt], deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest(images[first_cnt:], deepcopy(manifest.categories), deepcopy(manifest.data_type))
+        return DatasetManifest(
+            images[: first_cnt],
+            deepcopy(manifest.categories),
+            deepcopy(manifest.data_type)), DatasetManifest(
+            images[first_cnt:],
+            deepcopy(manifest.categories),
+            deepcopy(manifest.data_type))
 
 
 class SplitWithCategories(Operation):
@@ -52,10 +60,22 @@ class SplitWithCategories(Operation):
 
         manifest = args[0]
         if int(len(manifest.images) * self.config.ratio) == 0:
-            return DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest(
+                [],
+                deepcopy(manifest.categories),
+                deepcopy(manifest.data_type)), DatasetManifest(
+                deepcopy(manifest.images),
+                deepcopy(manifest.categories),
+                deepcopy(manifest.data_type))
 
         if int(len(manifest.images) * self.config.ratio) == len(manifest.images):
-            return DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest(
+                deepcopy(manifest.images),
+                deepcopy(manifest.categories),
+                deepcopy(manifest.data_type)), DatasetManifest(
+                [],
+                deepcopy(manifest.categories),
+                deepcopy(manifest.data_type))
 
         rng = random.Random(self.config.random_seed)
         images = deepcopy(manifest.images)

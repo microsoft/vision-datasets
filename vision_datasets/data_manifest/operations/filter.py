@@ -12,16 +12,19 @@ class ImageFilter(abc.ABC):
 
 
 class DatasetFilter(Operation):
+    """
+    Filter images by certain conditions
+    """
     def __init__(self, image_filter: ImageFilter):
         self.image_filter = image_filter
 
     def run(self, *args: DatasetManifest):
         assert len(args) == 1
-        
+
         manifest = args[0]
         return DatasetManifest(copy.deepcopy([x for x in manifest.images if not self.image_filter.should_be_filtered(x, manifest)]),
-                                copy.deepcopy(manifest.categories),
-                                copy.deepcopy(manifest.data_type))
+                               copy.deepcopy(manifest.categories),
+                               copy.deepcopy(manifest.data_type))
 
 
 class ImageNoAnnotationFilter(ImageFilter):

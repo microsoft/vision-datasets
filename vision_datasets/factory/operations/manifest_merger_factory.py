@@ -1,22 +1,24 @@
 from ...common import DatasetTypes
-from ...data_manifest import MergeStrategy, MergeStrategyType
+from ...data_manifest import MergeStrategy
+from .supported_operations_by_data_type import SupportedOperationsByDataType
 
 
 class ManifestMergeStrategyFactory:
     _mapping = {}
 
     @classmethod
-    def direct_register(cls, klass, data_type: DatasetTypes, strategy_name: MergeStrategyType):
-        cls._mapping[(data_type, strategy_name)] = klass
+    def direct_register(cls, klass, data_type: DatasetTypes):
+        SupportedOperationsByDataType.add(data_type, klass)
+        cls._mapping[data_type] = klass
         return klass
 
     @classmethod
-    def register(cls, data_type: DatasetTypes, strategy_name: MergeStrategyType):
+    def register(cls, data_type: DatasetTypes):
         def decorator(klass):
-            return ManifestMergeStrategyFactory.direct_register(klass, data_type, strategy_name)
+            return ManifestMergeStrategyFactory.direct_register(klass, data_type)
         return decorator
 
     @classmethod
-    def create(cls, data_type: DatasetTypes, strategy_type: MergeStrategyType, *args, **kwargs) -> MergeStrategy:
+    def create(cls, data_type: DatasetTypes, *args, **kwargs) -> MergeStrategy:
 
-        return cls._mapping[(data_type, strategy_type)](*args, **kwargs)
+        return cls._mapping[data_type](*args, **kwargs)

@@ -5,6 +5,7 @@ from urllib.parse import urlunparse, urlparse
 from tqdm import tqdm
 
 from vision_datasets import DatasetHub, DatasetTypes
+from vision_datasets.factory import CocoDictGeneratorFactory
 from vision_datasets.commands.utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, FileReader, PILImageLoader
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ def main():
 
     assert dataset_info.type in [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]
 
+    coco_gen = CocoDictGeneratorFactory.create(dataset_info.type)
     file_reader = FileReader()
     for usage in usages:
         manifest = dataset_hub.create_dataset_manifest(args.blob_container, None, args.name, version=1, usage=usage)
@@ -49,7 +51,7 @@ def main():
             continue
 
         manifest = manifest[0]
-        coco_dict = manifest.generate_coco_annotations()
+        coco_dict = coco_gen.run(manifest)
         for image in tqdm(coco_dict['images'], f'{usage}: Processing images...'):
             image['coco_url'] = keep_base_url(image['file_name'])
             if not image.get('width') or not image.get('height'):
@@ -65,6 +67,8 @@ def main():
                 box = ann['bbox']
                 ann['bbox'] = [box[0]/w, box[1]/h, box[2]/w, box[3]/h]
 
+        output_dir = pathlib.Path(args.output_dir)
+        output_dir.mkdir(exist_ok=True)
         coco_filepath = pathlib.Path(args.output_dir) / f'{dataset_info.name}_{usage}.json'
         coco_filepath.write_text(json.dumps(coco_dict, ensure_ascii=False, indent=2), encoding='utf-8')
 

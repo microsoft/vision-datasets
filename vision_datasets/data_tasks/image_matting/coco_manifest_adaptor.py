@@ -1,5 +1,5 @@
 from ...common import DatasetTypes
-from ...data_manifest import DatasetTypes, ImageDataManifest
+from ...data_manifest import ImageDataManifest
 from ...data_manifest.coco_manifest_adaptor import CocoManifestWithoutCategoriesAdaptor
 from ...factory import CocoManifestAdaptorFactory
 from .manifest import ImageMattingLabelManifest

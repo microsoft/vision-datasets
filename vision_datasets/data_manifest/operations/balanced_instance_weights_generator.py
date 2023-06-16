@@ -15,12 +15,15 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WeightsGenerationConfig:
-    soft: bool = True
+    soft: bool = True  # less aggressive in making the dataset balanced
     weight_upper: float = 5.0
     weight_lower: float = 0.2
 
 
 class BalancedInstanceWeightsGenerator(Operation):
+    """
+    Generate instance weights, with which sampling can achieve a balanced dataset across different categories.
+    """
     _NEG_CLASS_INDEX = -1
 
     def __init__(self, config: WeightsGenerationConfig) -> None:

@@ -61,7 +61,7 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
             self.assertEqual(len(dataset_manifest.images), 1)
             self.assertEqual(len(dataset_manifest.categories), 1)
             self.assertEqual(dataset_manifest.images[0].id, 'test folder/0.jpg')
-            self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [0])
+            self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [0])
 
     def test_multiclass(self):
         dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
@@ -137,8 +137,8 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
             self.assertIsInstance(dataset_manifest, DatasetManifest)
             self.assertEqual(len(dataset_manifest.images), 2)
             self.assertEqual(len(dataset_manifest.categories), 4)
-            self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [[0, 0.0, 100.0, 0.0, 100.0], [1, 0.0, 100.0, 0.0, 100.0]])
-            self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], [[1, 50.0, 50.0, 100.0, 100.0], [3, 0.0, 50.0, 100.0, 100.0]])
+            self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [[0, 0.0, 100.0, 0.0, 100.0], [1, 0.0, 100.0, 0.0, 100.0]])
+            self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [[1, 50.0, 50.0, 100.0, 100.0], [3, 0.0, 50.0, 100.0, 100.0]])
 
     def test_od_empty_labels(self):
         dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
@@ -162,5 +162,5 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
             self.assertIsInstance(dataset_manifest, DatasetManifest)
             self.assertEqual(len(dataset_manifest.images), 2)
             self.assertEqual(len(dataset_manifest.categories), 4)
-            self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [])
-            self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], [[1, 50.0, 50.0, 100.0, 100.0], [3, 0.0, 50.0, 100.0, 100.0]])
+            self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [])
+            self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [[1, 50.0, 50.0, 100.0, 100.0], [3, 0.0, 50.0, 100.0, 100.0]])

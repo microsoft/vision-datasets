@@ -2,6 +2,7 @@ import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
+from vision_datasets.data_tasks.image_classification.manifest import ImageClassificationLabelManifest
 from vision_datasets.dataset import DetectionAsClassificationByCroppingDataset, DetectionAsClassificationIgnoreBoxesDataset
 from vision_datasets.dataset.base_dataset import BaseDataset
 from vision_datasets.dataset.vision_dataset import LocalFolderCacheDecorator
@@ -42,13 +43,13 @@ class TestDetectionAsClassification(unittest.TestCase):
             img_3 = ic_dataset[2]
             img_4 = ic_dataset[3]
             assert img_1[0].size == (100, 100)
-            assert img_1[1] == [0]
+            assert img_1[1] == [ImageClassificationLabelManifest(0)]
             assert img_2[0].size == (40, 90)
-            assert img_2[1] == [1]
+            assert img_2[1] == [ImageClassificationLabelManifest(1)]
             assert img_3[0].size == (30, 30)
-            assert img_3[1] == [2]
+            assert img_3[1] == [ImageClassificationLabelManifest(2)]
             assert img_4[0].size == (100, 50)
-            assert img_4[1] == [3]
+            assert img_4[1] == [ImageClassificationLabelManifest(3)]
 
     def test_od_as_ic_dataset_by_ignore_box(self):
         dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()

@@ -1,20 +1,20 @@
 from ...common import DatasetTypes
-from ...data_manifest import (BalancedInstanceWeightsGenerator, GenerateCocoDictBase, ImageLabelManifest, MergeStrategyType, SampleByNumSamples, SampleFewShot, SampleStrategyType,
-                              SingleTaskMergeWithIndepedentImages, Spawn, Split)
+from ...data_manifest import (BalancedInstanceWeightsGenerator, GenerateCocoDictBase, SampleByNumSamples, SampleFewShot, SampleStrategyType,
+                              SingleTaskMerge, Spawn, Split)
 from ...factory.operations import BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
-
+from .manifest import ImageObjectDetectionLabelManifest
 _DATA_TYPE = DatasetTypes.IMAGE_OBJECT_DETECTION
 
 
 @CocoDictGeneratorFactory.register(_DATA_TYPE)
 class ImageObjectDetectionCocoDictGenerator(GenerateCocoDictBase):
-    def process_labels(self, coco_ann, label: ImageLabelManifest):
+    def process_labels(self, coco_ann, label: ImageObjectDetectionLabelManifest):
         ann = label.label_data
         coco_ann['category_id'] = ann[0] + 1
         coco_ann['bbox'] = [ann[1], ann[2], ann[3] - ann[1], ann[4] - ann[2]]
 
 
-ManifestMergeStrategyFactory.direct_register(SingleTaskMergeWithIndepedentImages, _DATA_TYPE, MergeStrategyType.IndependentImages)
+ManifestMergeStrategyFactory.direct_register(SingleTaskMerge, _DATA_TYPE)
 
 
 SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStrategyType.NumSamples)

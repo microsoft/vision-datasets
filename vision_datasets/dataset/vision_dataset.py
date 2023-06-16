@@ -81,8 +81,8 @@ class VisionDataset(BaseDataset):
         if dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION:
             relative_target = copy.deepcopy(target)
             for t in relative_target:
-                l = t.label_data
-                t.label_data = [l[0], l[1] / img_w, l[2] / img_h, l[3] / img_w, l[4] / img_h]
+                label = t.label_data
+                t.label_data = [label[0], label[1] / img_w, label[2] / img_h, label[3] / img_w, label[4] / img_h]
             return relative_target
 
         return target

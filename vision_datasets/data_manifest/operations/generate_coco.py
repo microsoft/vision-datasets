@@ -6,7 +6,7 @@ from .operation import Operation
 
 class GenerateCocoDictBase(Operation):
     """
-    Generate a Coco format dictionary
+    Base class for generating a dictionary from DatasetManifest that can be serialized into a coco json
     """
 
     def _generate_annotations(self, manifest: DatasetManifest):
@@ -45,8 +45,7 @@ class GenerateCocoDictBase(Operation):
 
     def generate_categories_or_none(self, manifest):
         if manifest.categories:
-            return [{'id': i + 1, 'name': x.name, 'supercateogry': x.super_category}
-                    for i, x in enumerate(manifest.categories)]
+            return [{'id': i + 1, 'name': x.name, 'supercateogry': x.super_category} for i, x in enumerate(manifest.categories)]
 
         return None
 

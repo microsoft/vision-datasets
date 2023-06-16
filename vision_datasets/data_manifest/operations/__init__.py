@@ -1,7 +1,7 @@
 from .balanced_instance_weights_generator import BalancedInstanceWeightsGenerator, WeightsGenerationConfig
 from .filter import DatasetFilter, ImageFilter, ImageNoAnnotationFilter
 from .generate_coco import GenerateCocoDictBase
-from .merge import ManifestMerger, MergeStrategy, MergeStrategyType, SingleTaskMergeWithIndepedentImages
+from .merge import ManifestMerger, MergeStrategy, SingleTaskMerge
 from .operation import Operation
 from .remove_categories import RemoveCategories, RemoveCategoriesConfig
 from .sample import ManifestSampler, SampleBaseConfig, SampleByFewShotConfig, SampleByNumSamples, SampleByNumSamplesConfig, SampleFewShot, SampleStrategy, SampleStrategyType
@@ -10,7 +10,7 @@ from .split import Split, SplitConfig, SplitWithCategories
 
 __all__ = ['Operation',
            'GenerateCocoDictBase',
-           'MergeStrategyType', 'MergeStrategy', 'ManifestMerger', 'SingleTaskMergeWithIndepedentImages',
+           'MergeStrategy', 'ManifestMerger', 'SingleTaskMerge',
            'ManifestSampler', 'SampleBaseConfig', 'SampleByFewShotConfig', 'SampleByNumSamplesConfig', 'SampleStrategy', 'SampleStrategyType', 'SampleByNumSamples', 'SampleFewShot',
            'Spawn', 'SpawnConfig',
            'Split', 'SplitWithCategories', 'SplitConfig',

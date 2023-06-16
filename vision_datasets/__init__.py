@@ -1,9 +1,11 @@
-from .common import Usages, DatasetTypes, AnnotationFormats, BBoxFormat, DatasetInfo
+from .common import AnnotationFormats, BBoxFormat, DatasetInfo, DatasetTypes, Usages
 from .data_manifest import DatasetManifest, ImageDataManifest, ImageLabelManifest, ImageLabelWithCategoryManifest
-from .factory import CocoManifestAdaptorFactory, DataManifestFactory
 from .dataset import VisionDataset
+from .dataset_management import DatasetHub, DatasetRegistry
+from .factory import CocoManifestAdaptorFactory, DataManifestFactory, SupportedOperationsByDataType
 
-__all__ = ['Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat',
+__all__ = ['Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat', 'DatasetInfo',
            'DatasetManifest', 'ImageDataManifest', 'ImageLabelManifest', 'ImageLabelWithCategoryManifest',
-           'CocoManifestAdaptorFactory', 'DataManifestFactory',
-           'DatasetInfo', 'VisionDataset']
+           'VisionDataset',
+           'DatasetHub', 'DatasetRegistry',
+           'CocoManifestAdaptorFactory', 'DataManifestFactory', 'SupportedOperationsByDataType']

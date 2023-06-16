@@ -1,6 +1,6 @@
 from ...common import DatasetTypes
-from ...data_manifest import (BalancedInstanceWeightsGenerator, GenerateCocoDictBase, ImageLabelManifest, MergeStrategyType, SampleByNumSamples, SampleFewShot, SampleStrategyType,
-                              SingleTaskMergeWithIndepedentImages, Spawn, SplitWithCategories)
+from ...data_manifest import BalancedInstanceWeightsGenerator, GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleFewShot, SampleStrategyType, SingleTaskMerge, Spawn, \
+                             SplitWithCategories
 from ...factory.operations import BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
 
 
@@ -11,8 +11,8 @@ class ImageClassificationCocoDictGenerator(GenerateCocoDictBase):
         coco_ann['category_id'] = label.label_data + 1
 
 
-ManifestMergeStrategyFactory.direct_register(SingleTaskMergeWithIndepedentImages, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, MergeStrategyType.IndependentImages)
-ManifestMergeStrategyFactory.direct_register(SingleTaskMergeWithIndepedentImages, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, MergeStrategyType.IndependentImages)
+ManifestMergeStrategyFactory.direct_register(SingleTaskMerge, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS)
+ManifestMergeStrategyFactory.direct_register(SingleTaskMerge, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
 
 
 SampleStrategyFactory.direct_register(SampleByNumSamples, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, SampleStrategyType.NumSamples)

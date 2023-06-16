@@ -1,3 +1,4 @@
+import argparse
 import base64
 import io
 import locale
@@ -47,12 +48,21 @@ class Base64Utils:
             file_out.write(base64.b64decode(b64_str))
 
 
+def enum_type(enum_type):
+    def func(value_str):
+        try:
+            return enum_type[value_str.upper()]
+        except KeyError:
+            raise argparse.ArgumentTypeError(f"'{value_str}' is not a valid value of {value_str}. Choose from: {[e.name for e in enum_type]}")
+
+    return func
+
+
 def add_args_to_locate_dataset_from_name_and_reg_json(parser):
     parser.add_argument('name', type=str, help='Dataset name.')
     parser.add_argument('--reg_json', '-r', type=pathlib.Path, default=None, help='dataset registration json file path.', required=False)
     parser.add_argument('--version', '-v', type=int, help='Dataset version.', default=None)
-    parser.add_argument('--usages', '-u', nargs='+', choices=[Usages.TRAIN, Usages.VAL, Usages.TEST],
-                        help='Usage(s) to check.', default=[Usages.TRAIN, Usages.VAL, Usages.TEST])
+    parser.add_argument('--usages', '-u', nargs='+', choices=list(Usages), type=enum_type(Usages), default=[Usages.TRAIN, Usages.VAL, Usages.TEST], help='Usage(s) to check.')
 
     parser.add_argument('--blob_container', '-k', type=str, help='Blob container (sas) url', required=False)
     parser.add_argument('--local_dir', '-f', type=pathlib.Path, required=False, help='Check the dataset in this folder. Folder will be created if not exist and blob_container is provided.')
@@ -62,7 +72,7 @@ def add_args_to_locate_dataset(parser):
     add_args_to_locate_dataset_from_name_and_reg_json(parser)
 
     parser.add_argument('--coco_json', '-c', type=pathlib.Path, default=None, help='Single coco json file to check.', required=False)
-    parser.add_argument('--data_type', '-t', type=DatasetTypes, default=None, help='Type of data.', choices=list(DatasetTypes), required=False)
+    parser.add_argument('--data_type', '-t', type=enum_type(DatasetTypes), default=None, help='Type of data.', choices=list(DatasetTypes), required=False)
 
 
 def get_or_generate_data_reg_json_and_usages(args):
@@ -193,3 +203,9 @@ def verify_and_correct_box_or_none(lp, box, data_format, img_w, img_h):
     box[3] = min(box[3], img_h)
 
     return box
+
+
+def write_to_json_file_utf8(dict, filepath: Union[str, pathlib.Path]):
+    assert filepath
+
+    pathlib.Path(filepath).write_text(json.dumps(dict, indent=2, ensure_ascii=False), encoding='utf-8')

@@ -15,5 +15,3 @@ class TestSpawn:
         sp = Spawn(cfg)
         spawned_manifest = sp.run(manifest)
         assert len(spawned_manifest.images) == n_target
-        
-        

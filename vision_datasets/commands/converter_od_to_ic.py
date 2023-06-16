@@ -8,18 +8,17 @@ import os
 import pathlib
 import shutil
 
-from vision_datasets import DatasetHub
-from vision_datasets.common.manifest_dataset import DetectionAsClassificationByCroppingDataset
-from vision_datasets.common.util import write_to_json_file_utf8
+from vision_datasets import DatasetHub, DatasetTypes
+from vision_datasets.dataset import DetectionAsClassificationByCroppingDataset
+from vision_datasets.factory import CocoDictGeneratorFactory
 
-from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
+from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger, write_to_json_file_utf8
 
 logger = set_up_cmd_logger(__name__)
 
 
 def create_arg_parser():
-
-    parser = argparse.ArgumentParser(description='Convert OD dataset to ic dataset.')
+    parser = argparse.ArgumentParser(description='Convert detection dataset to classification dataset.')
     add_args_to_locate_dataset(parser)
     parser.add_argument('-o', '--output_folder', type=pathlib.Path, required=True, help='target folder of the converted classification dataset')
 
@@ -44,11 +43,13 @@ def process_usage(params):
         logger.info(f'Skipping non-existent phase {usage}.')
         return
 
+    assert dataset.dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION
     logger.info(f'start conversion for {args.name}...')
     ic_dataset = DetectionAsClassificationByCroppingDataset(dataset, aug_params)
-    manifest = ic_dataset.generate_manifest(dir=usage, n_copies=args.n_copies)
+    ic_manifest = ic_dataset.generate_manifest(dir=str(usage), n_copies=args.n_copies)
 
-    coco = manifest.generate_coco_annotations()
+    coco_gen = CocoDictGeneratorFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
+    coco = coco_gen.run(ic_manifest)
     if args.zip:
         for img in coco['images']:
             img['zip_file'] = f'{usage}.zip'

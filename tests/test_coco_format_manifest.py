@@ -63,8 +63,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(len(dataset_manifest.categories), 2)
-        self.assertEqual([l.category_id for l in dataset_manifest.images[0].labels], [0])
-        self.assertEqual([l.category_id for l in dataset_manifest.images[1].labels], [0, 1])
+        self.assertEqual([label.category_id for label in dataset_manifest.images[0].labels], [0])
+        self.assertEqual([label.category_id for label in dataset_manifest.images[1].labels], [0, 1])
 
     def test_index_can_start_from_zero(self):
         manifest_dict = {
@@ -82,8 +82,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(len(dataset_manifest.categories), 2)
-        self.assertEqual([l.category_id for l in dataset_manifest.images[0].labels], [0])
-        self.assertEqual([l.category_id for l in dataset_manifest.images[1].labels], [0, 1])
+        self.assertEqual([label.category_id for label in dataset_manifest.images[0].labels], [0])
+        self.assertEqual([label.category_id for label in dataset_manifest.images[1].labels], [0, 1])
 
     def test_object_detection_bbox_format_LTWH(self):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_OBJECT_DETECTION, 0)
@@ -91,8 +91,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(len(dataset_manifest.categories), 2)
-        self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [[0, 10, 10, 100, 100]])
-        self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [[0, 10, 10, 100, 100]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [[0, 100, 100, 200, 200], [1, 20, 20, 200, 200]])
 
     def test_object_detection_bbox_format_LTRB(self):
         manifest_dict = copy.deepcopy(TestCases.od_manifest_dicts[0])
@@ -102,8 +102,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
         self.assertEqual(len(dataset_manifest.categories), 2)
-        self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [[0, 10, 10, 90, 90]])
-        self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], [[0, 100, 100, 100, 100], [1, 20, 20, 180, 180]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [[0, 10, 10, 90, 90]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [[0, 100, 100, 100, 100], [1, 20, 20, 180, 180]])
 
     def test_image_caption_manifest(self):
         img_0_caption = ['A black Honda motorcycle parked in front of a garage.',
@@ -120,8 +120,8 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_CAPTION, 2)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
-        self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], img_0_caption)
-        self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], img_1_caption)
+        self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], img_0_caption)
+        self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], img_1_caption)
 
     def test_multilingual_manifest(self):
         cap_manifests = {
@@ -185,7 +185,7 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
                 image_ann[img_id] = image_ann.get(img_id, [])
                 image_ann[img_id].append((ann['text'], ann['match']))
             for image in dataset_manifest.images:
-                assert [l.label_data for l in image.labels] == image_ann[image.id]
+                assert [label.label_data for label in image.labels] == image_ann[image.id]
 
     def test_image_matting_manifest(self):
         zip_file_path = pathlib.Path(__file__).resolve().parent / 'image_matting_test_data.zip'
@@ -239,5 +239,5 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_REGRESSION, 0)
         self.assertIsInstance(dataset_manifest, DatasetManifest)
         self.assertEqual(len(dataset_manifest.images), 2)
-        self.assertEqual([l.label_data for l in dataset_manifest.images[0].labels], [image_regression_manifest["annotations"][0]["target"]])
-        self.assertEqual([l.label_data for l in dataset_manifest.images[1].labels], [image_regression_manifest["annotations"][1]["target"]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[0].labels], [image_regression_manifest["annotations"][0]["target"]])
+        self.assertEqual([label.label_data for label in dataset_manifest.images[1].labels], [image_regression_manifest["annotations"][1]["target"]])

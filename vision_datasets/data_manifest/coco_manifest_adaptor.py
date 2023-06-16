@@ -4,7 +4,7 @@ import pathlib
 from abc import ABC, abstractmethod
 from typing import Union
 
-from ..common.utils import construct_full_url_or_path_generator, is_url
+from ..common.utils import construct_full_url_or_path_func, can_be_url
 from ..data_reader import FileReader
 from .data_manifest import CategoryManifest, DatasetManifest, ImageDataManifest
 
@@ -22,30 +22,30 @@ class CocoManifestAdaptorBase(ABC):
         super().__init__()
         self.data_type = data_type
 
-    def create_dataset_manifest(self, coco_file_path_or_url: Union[str, dict, pathlib.Path], container_sas_or_root_dir: str = None):
+    def create_dataset_manifest(self, coco_file_path_or_url: Union[str, dict, pathlib.Path], url_or_root_dir: str = None):
         """ construct a dataset manifest out of coco file
         Args:
             coco_file_path_or_url (str or pathlib.Path or dict): path or url to coco file. dict if multitask
-            container_sas_or_root_dir (str): container sas if resources are store in blob container, or a local dir
+            url_or_root_dir (str): container url or sas if resources are store in blob container, or a local dir
         """
 
         if not coco_file_path_or_url:
             return None
 
-        get_full_sas_or_path = construct_full_url_or_path_generator(container_sas_or_root_dir)
+        get_full_url_or_path = construct_full_url_or_path_func(url_or_root_dir)
         file_reader = FileReader()
-        coco_file_path_or_url = coco_file_path_or_url if is_url(coco_file_path_or_url) else get_full_sas_or_path(coco_file_path_or_url)
+        coco_file_path_or_url = coco_file_path_or_url if can_be_url(coco_file_path_or_url) else get_full_url_or_path(coco_file_path_or_url)
         with file_reader.open(coco_file_path_or_url, encoding='utf-8') as file_in:
             coco_manifest = json.load(file_in)
-
         file_reader.close()
 
         def append_zip_prefix_if_needed(info_dict: dict, file_name):
             zip_prefix = info_dict.get('zip_file', '')
             if zip_prefix:
                 zip_prefix += '@'
+                assert not can_be_url(url_or_root_dir), 'Cannot read files in zip from blob directly. Please download the zip file to local folder first.'
 
-            return get_full_sas_or_path(zip_prefix + file_name)
+            return get_full_url_or_path(zip_prefix + file_name)
 
         self.append_zip_prefix_if_needed = append_zip_prefix_if_needed
         images_by_id = {img['id']: ImageDataManifest(img['id'], append_zip_prefix_if_needed(img, img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}

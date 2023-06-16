@@ -12,6 +12,9 @@ class RemoveCategoriesConfig:
 
 
 class RemoveCategories(Operation):
+    """
+    Remove categories.
+    """
     def __init__(self, config: RemoveCategoriesConfig) -> None:
         super().__init__()
         assert config

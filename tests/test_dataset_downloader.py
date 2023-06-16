@@ -68,7 +68,12 @@ class TestDatasetDownloader(unittest.TestCase):
             self.assertFalse(os.path.isdir(x))
 
     def test_concatenate_path(self):
-        datasets = [{'name': 'dataset_name', 'type': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS.name, 'root_folder': 'somewhere', 'version': 1, 'train': {'index_path': 'dir/42.txt', 'files_for_local_usage': []}}]
+        datasets = [{
+            'name': 'dataset_name',
+            'type': DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS.name,
+            'root_folder': 'somewhere',
+            'version': 1,
+            'train': {'index_path': 'dir/42.txt', 'files_for_local_usage': []}}]
         dataset_info = self._make_reg(datasets).get_dataset_info('dataset_name')
         downloader = self._make_downloader(dataset_info)
         with unittest.mock.patch('requests.get') as mock_get:
@@ -84,6 +89,7 @@ class TestDatasetDownloader(unittest.TestCase):
     @staticmethod
     def _make_reg(datasets) -> DatasetRegistry:
         return DatasetRegistry(json.dumps(datasets))
+
 
 if __name__ == '__main__':
     unittest.main()

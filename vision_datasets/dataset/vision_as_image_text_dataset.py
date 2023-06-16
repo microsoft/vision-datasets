@@ -8,7 +8,8 @@ from ..data_tasks.image_text_matching.manifest import ImageTextMatchingLabelMani
 
 class VisionAsImageTextDataset(BaseDataset):
     """
-    Consume traditional vision datasets of type [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION], as DatasetTypes.IMAGE_TEXT_MATCHING dataset.
+    Consume traditional vision datasets of type
+    [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION], as DatasetTypes.IMAGE_TEXT_MATCHING dataset.
     For a certain image, negative image-text pairs are generated from the labels that this image does not possess.
     """
 

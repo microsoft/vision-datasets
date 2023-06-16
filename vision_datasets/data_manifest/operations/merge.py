@@ -1,13 +1,11 @@
 import abc
 import copy
 import logging
-from enum import Enum
 
-from ..data_manifest import DatasetManifest, ImageLabelWithCategoryManifest, CategoryManifest
+from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest
 from .operation import Operation
 
 logger = logging.getLogger(__name__)
-
 
 
 class MergeStrategy(abc.ABC):
@@ -21,11 +19,6 @@ class MergeStrategy(abc.ABC):
     def check(self, *args: DatasetManifest):
         assert len(args) >= 1, 'less than one manifest provided.'
         assert all([arg is not None for arg in args]), '"None" manifest found'
-
-
-class MergeStrategyType(Enum):
-    IndependentImages = 0  # assuming images are independent, categories are uniquely determined by their names, if category exists
-    IndependentAnnotations = 1  # assumsing annotations are independent, images are uniquely determined by their ids. A multitask dataset will be generated
 
 
 class ManifestMerger(Operation):
@@ -44,27 +37,21 @@ class ManifestMerger(Operation):
         return self._strategy.merge(*args)
 
 
-class SingleTaskMergeWithIndepedentImages(MergeStrategy):
+class SingleTaskMerge(MergeStrategy):
+    """
+    Merge for single task data type
+    """
     def merge(self, *args: DatasetManifest):
         data_type = args[0].data_type
-        category_name_to_idx = {}
         images = []
 
-        with_categories = bool(args[0].categories)
-        if with_categories:
-            for manifest in args:
-                for category in manifest.categories:
-                    if category.name not in category_name_to_idx:
-                        category_name_to_idx[category.name] = len(category_name_to_idx)
-            categories = [CategoryManifest(i, x) for i, x in enumerate(category_name_to_idx.keys())]
-        else:
-            categories = None    
+        categories, category_name_to_idx = self._combine_categories(args) if bool(args[0].categories) else (None, None)
 
         for manifest in args:
             for image in manifest.images:
                 new_image = copy.deepcopy(image)
                 new_image.id = len(images)
-                if with_categories:
+                if categories:
                     for label in new_image.labels:
                         label: ImageLabelWithCategoryManifest = label
                         label.category_id = category_name_to_idx[manifest.categories[label.category_id].name]
@@ -73,12 +60,17 @@ class SingleTaskMergeWithIndepedentImages(MergeStrategy):
         return DatasetManifest(images, categories, copy.deepcopy(data_type))
 
     def check(self, *args: DatasetManifest):
-        """Checking all category names are unique
-
-        Raises:
-            ValueError: if duplicate category name exists
-        """
         super().check(*args)
 
         assert all([not x.is_multitask for x in args]), 'All manifests must be of the same data type and single task.'
         assert all([x.data_type == args[0].data_type for x in args]), 'All manifests must be of the same data type.'
+
+    def _combine_categories(self, manifests: DatasetManifest):
+        category_name_to_idx = {}
+        for manifest in manifests:
+            for category in manifest.categories:
+                if category.name not in category_name_to_idx:
+                    category_name_to_idx[category.name] = len(category_name_to_idx)
+        categories = [CategoryManifest(i, x) for i, x in enumerate(category_name_to_idx.keys())]
+
+        return categories, category_name_to_idx

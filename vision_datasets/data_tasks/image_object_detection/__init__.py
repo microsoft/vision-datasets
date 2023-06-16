@@ -1,4 +1,5 @@
 from .coco_manifest_adaptor import ImageObjectDetectionCocoManifestAdaptor
+from .manifest import ImageObjectDetectionLabelManifest
 from .operations import ImageObjectDetectionCocoDictGenerator
 
-__all__ = ['ImageObjectDetectionCocoManifestAdaptor', 'ImageObjectDetectionCocoDictGenerator']
+__all__ = ['ImageObjectDetectionCocoManifestAdaptor', 'ImageObjectDetectionLabelManifest', 'ImageObjectDetectionCocoDictGenerator']

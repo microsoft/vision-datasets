@@ -4,14 +4,14 @@ import os
 import pathlib
 
 
-def is_url(candidate: str):
+def can_be_url(candidate: Union[str, pathlib.Path]):
     """
-    necessary condition to be a url (not sufficient)
+    necessary conditions for candidate to be a url (not sufficient)
     Args:
         candidate (str):
 
     Returns:
-        whether it could be a sas url or not
+        whether it could be a url or not
 
     """
     try:
@@ -33,9 +33,10 @@ def unix_path(path: Union[pathlib.Path, str]) -> Union[pathlib.Path, str]:
     return path.replace('\\', '/')
 
 
-def construct_full_path_generator(dirs: List[str]):
+def _construct_full_path_generator(dirs: List[str]):
     """
-    generate a function that appends dirs to a provided path, if dirs is empty, just return the path
+    Construct a function that appends dirs to a provided path.
+
     Args:
         dirs (str): dirs to be appended to a given path. None or empty str in dirs will be filtered.
 
@@ -57,7 +58,7 @@ def construct_full_path_generator(dirs: List[str]):
     return full_path_func
 
 
-def construct_full_url_generator(container_sas: str):
+def _construct_full_url_generator(container_sas: str):
     if not container_sas:
         return unix_path
 
@@ -80,8 +81,8 @@ def construct_full_url_generator(container_sas: str):
     return func
 
 
-def construct_full_url_or_path_generator(container_sas_or_root_dir, prefix_dir=None):
-    if container_sas_or_root_dir and is_url(container_sas_or_root_dir):
-        return lambda path: construct_full_url_generator(container_sas_or_root_dir)(construct_full_path_generator([prefix_dir])(path))
+def construct_full_url_or_path_func(url_or_root_dir: Union[str, pathlib.Path], prefix_dir: Union[str, pathlib.Path] = None):
+    if url_or_root_dir and can_be_url(url_or_root_dir):
+        return lambda path: _construct_full_url_generator(url_or_root_dir)(_construct_full_path_generator([prefix_dir])(path))
     else:
-        return lambda path: construct_full_path_generator([container_sas_or_root_dir, prefix_dir])(path)
+        return lambda path: _construct_full_path_generator([url_or_root_dir, prefix_dir])(path)

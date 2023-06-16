@@ -2,7 +2,7 @@ import copy
 import logging
 
 from ..common import BaseDatasetInfo, DatasetTypes, MultiTaskDatasetInfo, Usages
-from ..common.utils import construct_full_url_or_path_generator
+from ..common.utils import construct_full_url_or_path_func
 from ..data_reader import FileReader
 from ..data_tasks.image_classification.manifest import ImageClassificationLabelManifest
 from ..data_tasks.image_object_detection.manifest import ImageObjectDetectionLabelManifest
@@ -42,7 +42,7 @@ class IrisManifestAdaptor:
         file_reader = FileReader()
 
         dataset_info = copy.deepcopy(dataset_info)
-        get_full_sas_or_path = construct_full_url_or_path_generator(container_sas_or_root_dir, dataset_info.root_folder)
+        get_full_sas_or_path = construct_full_url_or_path_func(container_sas_or_root_dir, dataset_info.root_folder)
 
         max_index = 0
         categories = None

@@ -4,7 +4,7 @@ import typing
 from dataclasses import dataclass
 
 from ..data_manifest import DatasetManifest
-from .merge import SingleTaskMergeWithIndepedentImages
+from .merge import SingleTaskMerge
 from .operation import Operation
 from .sample import SampleByNumSamples, SampleByNumSamplesConfig
 
@@ -19,6 +19,12 @@ class SpawnConfig:
 
 
 class Spawn(Operation):
+    """
+    Spawn the dataset (oversample).
+
+    This will be consolidated with sample operation.
+    """
+
     def __init__(self, config: SpawnConfig) -> None:
         super().__init__()
         self.config = config
@@ -54,5 +60,5 @@ class Spawn(Operation):
             sampled_manifest = SampleByNumSamples(cfg).sample(manifest)
 
         # Merge with the copy of the original dataset to ensure each class has sample.
-        merger = SingleTaskMergeWithIndepedentImages()
+        merger = SingleTaskMerge()
         return merger.merge(manifest, sampled_manifest)

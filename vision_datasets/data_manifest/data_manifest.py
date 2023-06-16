@@ -1,4 +1,5 @@
 import abc
+import json
 import logging
 import pathlib
 from typing import Dict, List, Union
@@ -50,6 +51,9 @@ class ImageLabelManifest(abc.ABC):
             return self.label_path == other.label_path
 
         return self._label_data == self._label_data
+
+    def __str__(self) -> str:
+        return f'Label: {json.dumps(self.__getstate__())}'
 
 
 class ImageLabelWithCategoryManifest(ImageLabelManifest):
@@ -124,7 +128,7 @@ class CategoryManifest:
 
 class DatasetManifest:
     """
-    Encapsulates every information about a dataset including categories, images (width, height, path to image), and annotations. Information about each image is encapsulated in ImageDataManifest.
+    Encapsulates information about a dataset including images, categories (if applicable), and annotations. Information about each image is encapsulated in ImageDataManifest.
     """
 
     def __init__(self, images: List[ImageDataManifest], categories: Union[List[CategoryManifest], Dict[str, List[CategoryManifest]]], data_type: Union[str, dict]):
@@ -146,8 +150,6 @@ class DatasetManifest:
         self.categories = categories
         self.data_type = data_type
 
-        self._task_names = sorted(categories.keys()) if self.is_multitask else None
-
     @property
     def is_multitask(self):
         """
@@ -160,9 +162,7 @@ class DatasetManifest:
         if not isinstance(other, DatasetManifest):
             return False
 
-        return self.images == other.images \
-            and self.categories == other.categories and type(self.categories) is type(other.categories) \
-            and self.data_type == other.data_type and type(self.data_type) is type(other.data_type)
+        return self.images == other.images and self.categories == other.categories and self.data_type == other.data_type
 
     def __len__(self):
         return len(self.images)

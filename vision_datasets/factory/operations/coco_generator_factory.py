@@ -1,5 +1,6 @@
 from ...common import DatasetTypes
 from ...data_manifest.operations import GenerateCocoDictBase
+from .supported_operations_by_data_type import SupportedOperationsByDataType
 
 
 class CocoDictGeneratorFactory:
@@ -9,6 +10,7 @@ class CocoDictGeneratorFactory:
     def register(cls, data_type: DatasetTypes):
         def decorator(klass):
             cls._mapping[data_type] = klass
+            SupportedOperationsByDataType.add(data_type, klass)
             return klass
         return decorator
 

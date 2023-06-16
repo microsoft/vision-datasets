@@ -3,23 +3,24 @@ import copy
 import pytest
 
 from vision_datasets import DatasetTypes
-from vision_datasets.data_manifest import ManifestMerger, MergeStrategyType
+from vision_datasets.data_manifest import ManifestMerger
 from vision_datasets.factory import ManifestMergeStrategyFactory
 
 from ..resources.util import TYPES_WITH_CATEGORIES, coco_database, coco_dict_to_manifest
 
 
 class TestMergeManifest:
-    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DatasetTypes if data_type != DatasetTypes.MULTITASK and data_type not in TYPES_WITH_CATEGORIES])
+    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DatasetTypes
+                                                       if data_type != DatasetTypes.MULTITASK and data_type not in TYPES_WITH_CATEGORIES])
     def test_merge_data_manifest_single_task_without_categories(self, data_type, coco_dicts):
         coco_dict_1, coco_dict_2 = coco_dicts[0], coco_dicts[-1]
-        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, MergeStrategyType.IndependentImages, coco_dict_1, coco_dict_2)
+        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)
         self.check(manifest1, manifest2, merged)
 
     @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in TYPES_WITH_CATEGORIES])
     def test_merge_data_manifest_single_task_with_same_categories(self, data_type, coco_dicts):
         coco_dict_1, coco_dict_2 = coco_dicts[0], coco_dicts[0]
-        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, MergeStrategyType.IndependentImages, coco_dict_1, coco_dict_2)
+        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)
         self.check(manifest1, manifest2, merged)
 
     @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in TYPES_WITH_CATEGORIES])
@@ -29,7 +30,7 @@ class TestMergeManifest:
         for x in coco_dict_2['categories']:
             x['name'] += '_unique'
 
-        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, MergeStrategyType.IndependentImages, coco_dict_1, coco_dict_2)
+        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)
         self.check(manifest1, manifest2, merged)
 
     @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in TYPES_WITH_CATEGORIES])
@@ -37,7 +38,7 @@ class TestMergeManifest:
         coco_dict_1 = [coco_dict for coco_dict in coco_dicts if len(coco_dict['categories']) > 1][0]
         coco_dict_2 = copy.deepcopy(coco_dict_1)
         coco_dict_2['categories'][0]['name'] += '_unique'
-        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, MergeStrategyType.IndependentImages, coco_dict_1, coco_dict_2)
+        manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)
         self.check(manifest1, manifest2, merged)
 
     def check(self, manifest1, manifest2, merged):
@@ -46,10 +47,10 @@ class TestMergeManifest:
         assert n_categories == len(merged.categories or [])
 
     @staticmethod
-    def merge_data_manifest_single_task(data_type, merge_strategy, coco_dict_1, coco_dict_2):
+    def merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2):
         manifest1 = coco_dict_to_manifest(data_type, coco_dict_1)
         manifest2 = coco_dict_to_manifest(data_type, coco_dict_2)
-        strategy = ManifestMergeStrategyFactory.create(data_type, merge_strategy)
+        strategy = ManifestMergeStrategyFactory.create(data_type)
         merger = ManifestMerger(strategy)
         merged = merger.run(manifest1, manifest2)
         return manifest1, manifest2, merged
