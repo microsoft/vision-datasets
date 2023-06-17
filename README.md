@@ -4,15 +4,15 @@
 
 This repo
 
-- defines unified contract for dataset for purposes such as training, visualization, and exploration, via `DatasetManifest` and `ImageDataManifest`.
-- provides many commonly used dataset operation, such as sample dataset by categories, sample few-shot sub-dataset, sample dataset by ratios, train-test split, merge dataset, etc. (See here [Link](vision_datasets/common/data_manifest.py) for available utilities)
+- defines unified contract for dataset for purposes such as training, visualization, and exploration, via `DatasetManifest`, `ImageDataManifest`, etc.
+- provides many commonly used dataset operation, such as sample dataset by categories, sample few-shot sub-dataset, sample dataset by ratios, train-test split, merge dataset, etc. (See [Here](#oom))
 - provides API for organizing and accessing datasets, via `DatasetHub`
 
 Currently, seven `basic` types of data are supported:
 
-- `classification_multiclass`: each image can is only with one label.
-- `classification_multilabel`: each image can is with one or multiple labels (e.g., 'cat', 'animal', 'pet').
-- `object_detection`: each image is labeled with bounding boxes surrounding the objects of interest.
+- `image_classification_multiclass`: each image can is only with one label.
+- `image_classification_multilabel`: each image can is with one or multiple labels (e.g., 'cat', 'animal', 'pet').
+- `image_object_detection`: each image is labeled with bounding boxes surrounding the objects of interest.
 - `image_text_matching`: each image is associated with a collection of texts describing the image, and whether each text description matches the image or not.
 - `image_matting`: each image has a pixel-wise annotation, where each pixel is labeled as 'foreground' or 'background'.
 - `image_regression`: each image is labeled with a real-valued numeric regression target.
@@ -21,6 +21,7 @@ Currently, seven `basic` types of data are supported:
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
+Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.
 
 ## Dataset Contracts
 
@@ -53,7 +54,7 @@ dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
 
 Here is an example with explanation of what a `DatasetInfo` looks like for coco format, when it is serialized into json:
 
-```{json}
+```json
     {
         "name": "sampled-ms-coco",
         "version": 1,
@@ -99,17 +100,18 @@ train, val ,test) and version.
 
 This repo offers the class `DatasetHub` for this purpose. Once instantiated with a json including the `DatasetInfo` for all datasets, you can retrieve a `VisionDataset` by
 
-```{python}
+```python
 import pathlib
+from vision_datasets import Usages, DatasetHub
 
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text())
-stanford_cars = dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage='train')
+stanford_cars = dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=Usages.TRAIN)
 
 # note that you can pass multiple datasets.json to DatasetHub, it can combine them all
 # example: DatasetHub([ds_json1, ds_json2, ...])
 # note that you can specify multiple usages in create_manifest_dataset call
-# example dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=['train', 'val'])
+# example dataset_hub.create_manifest_dataset(blob_container_sas, local_dir, 'stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
 
 for img, targets, sample_idx_str in stanford_cars:
     img.show()
@@ -126,10 +128,28 @@ If `local_dir`:
    from `blob_container_sas` if not present locally
 2. is NOT provided (i.e. `None`), the hub will create a manifest dataset that directly consumes data from the blob
    indicated by `blob_container_sas`. Note that this does not work, if data are stored in zipped files. You will have to
-   unzip your data in the azure blob. (Index files requires no update, if image paths are for zip files: "a.zip@1.jpg").
+   unzip your data in the azure blob. (Index files requires no update, if image paths are for zip files: `a.zip@1.jpg`).
    This kind of azure-based dataset is good for large dataset exploration, but can be slow for training.
 
 When data exists on local disk, `blob_container_sas` can be `None`.
+
+## Operations on manifests {#oom}
+
+There are supported operations on manifests for different data types, such as split, merge, sample, etc. You can run
+
+`vision_list_supported_operations -d {DATA_TYPE}`
+
+to see the supported operations for a specific data type. You can use the factory classes in `vision_datasets.factory` to create operations for certain data type.
+
+```python
+from vision_datasets import SplitFactory, DatasetTypes
+from vision_datasets.data_manifest import SplitConfig
+
+
+data_manifest = ....
+splitter = SplitFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, SplitConfig(ratio=0.3))
+manifest_1, manifest_2 = splitter.run(data_manifest)
+```
 
 ### Training with PyTorch
 
@@ -138,4 +158,4 @@ Training with PyTorch is easy. After instantiating a `VisionDataset`, simply pas
 
 ## Helpful commands
 
-There are a few commands that come with this repo once installed, such as TVS <=> COCO conversion, datset check and download, detection => classification dataset, and so on, check [`UTIL_COMMANDS.md`](./UTIL_COMMANDS.md) for details.
+There are a few commands that come with this repo once installed, such as datset check and download, detection conversion to classification dataset, and so on, check [`UTIL_COMMANDS.md`](./UTIL_COMMANDS.md) for details.
