@@ -17,7 +17,7 @@ class TorchDataset(Dataset):
 
     @property
     def labels(self):
-        return self.dataset.labels
+        return self.dataset.categories
 
     @property
     def dataset_resources(self):
@@ -30,7 +30,7 @@ class TorchDataset(Dataset):
     def __getitem__(self, index):
         if isinstance(index, int):
             image, target, idx_str = self.dataset[index]
-            image, target = self.transform(image, target)
+            image, target = self.transform(image, target.label_data)
             return image, target, idx_str
         else:
             return [self.transform(img, target) + (idx,) for img, target, idx in self.dataset[index]]

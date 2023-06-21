@@ -56,7 +56,7 @@ class TestVisionDataset(unittest.TestCase):
         dataset, tempdir = self._create_an_od_dataset()
         with tempdir:
             self.assertEqual(len(dataset), 2)
-            self.assertEqual(len(dataset.labels), 4)
+            self.assertEqual(len(dataset.categories), 4)
             image0, target0, _ = dataset[0]
             image1, target1, _ = dataset[1]
             self.assertEqual([label.label_data for label in target0], [[0, 0.0, 0.0, 1.0, 1.0], [1, 0.1, 0.1, 0.5, 1.0]])

@@ -10,4 +10,4 @@ __all__ = ['Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat', 'Dataset
            'VisionDataset',
            'DatasetHub', 'DatasetRegistry',
            'CocoManifestAdaptorFactory', 'DataManifestFactory',
-           "BalancedInstanceWeightsFactory", "CocoDictGeneratorFactory", "ManifestMergeStrategyFactory", "SampleStrategyFactory", "SpawnFactory", "SplitFactory", "SupportedOperationsByDataType"]
+           'BalancedInstanceWeightsFactory', 'CocoDictGeneratorFactory', 'ManifestMergeStrategyFactory', 'SampleStrategyFactory', 'SpawnFactory', 'SplitFactory', 'SupportedOperationsByDataType']

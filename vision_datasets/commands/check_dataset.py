@@ -64,7 +64,7 @@ def check_box(bbox, img_w, img_h):
 
 def classification_detection_check(dataset: VisionDataset):
     errors = []
-    n_imgs_by_class = {x: 0 for x in range(len(dataset.labels))}
+    n_imgs_by_class = {x: 0 for x in range(len(dataset.categories))}
     for sample_idx, sample in enumerate(dataset.dataset_manifest.images):
         labels = sample.labels
         c_ids = set([label[0] if dataset.dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION else label for label in labels])
@@ -86,7 +86,7 @@ def classification_detection_check(dataset: VisionDataset):
     mean_images = sum(n_imgs_by_class.values()) / len(n_imgs_by_class)
     stats = {
         'n images': len(dataset),
-        'n classes': len(dataset.labels),
+        'n classes': len(dataset.categories),
         f'max num images per class (cid {c_id_with_max_images})': n_imgs_by_class[c_id_with_max_images],
         f'min num images per class (cid {c_id_with_min_images})': n_imgs_by_class[c_id_with_min_images],
         'mean num images per class': mean_images

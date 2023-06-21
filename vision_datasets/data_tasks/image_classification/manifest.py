@@ -21,3 +21,6 @@ class ImageClassificationLabelManifest(ImageLabelWithCategoryManifest):
     def category_id(self, value):
         self._category_id_check(value)
         self.label_data = value
+
+    def _read_label_data(self):
+        raise NotImplementedError

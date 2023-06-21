@@ -21,3 +21,6 @@ class ImageObjectDetectionLabelManifest(ImageLabelWithCategoryManifest):
     def category_id(self, value):
         self._category_id_check(value)
         self.label_data[0] = value
+
+    def _read_label_data(self):
+        raise NotImplementedError

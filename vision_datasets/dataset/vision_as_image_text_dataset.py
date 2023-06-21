@@ -34,7 +34,7 @@ class VisionAsImageTextDataset(BaseDataset):
         self._rand = random.Random(rnd_seed)
 
     @property
-    def labels(self):
+    def categories(self):
         return None
 
     def __len__(self):
@@ -43,11 +43,11 @@ class VisionAsImageTextDataset(BaseDataset):
     def _get_single_item(self, index):
         img, target, _ = self._dataset[index]
         pos_class_indices = [x.category_id for x in target]
-        pos_class_names = [self._dataset.labels[x].name for x in pos_class_indices]
+        pos_class_names = [self._dataset.categories[x].name for x in pos_class_indices]
         labels = [ImageTextMatchingLabelManifest((self._text_aug(class_name), 1)) for class_name in pos_class_names]
         if self._negative_pair_ratio > 0:
-            neg_class_indices = set(range(len(self._dataset.labels))) - set(pos_class_indices)
-            neg_class_names = [self._dataset.labels[x].name for x in neg_class_indices]
+            neg_class_indices = set(range(len(self._dataset.categories))) - set(pos_class_indices)
+            neg_class_names = [self._dataset.categories[x].name for x in neg_class_indices]
             if neg_class_names:
                 down_sample_ratio = self._negative_pair_ratio * len(pos_class_names) / len(neg_class_names)
                 if down_sample_ratio < 1:

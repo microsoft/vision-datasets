@@ -11,4 +11,4 @@ class ImageMattingCocoManifestAdaptor(CocoManifestWithoutCategoriesAdaptor):
         super().__init__(DatasetTypes.IMAGE_MATTING)
 
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
-        image.labels.append(ImageMattingLabelManifest(label_path=self.append_zip_prefix_if_needed(annotation, annotation['label'])))
+        image.labels.append(ImageMattingLabelManifest(label_path=self._append_zip_prefix_if_needed(annotation, annotation['label'])))

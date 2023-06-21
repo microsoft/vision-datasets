@@ -1,5 +1,4 @@
 import abc
-import json
 import logging
 import pathlib
 from typing import Dict, List, Union
@@ -11,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 class ImageLabelManifest(abc.ABC):
     def __init__(self, label_data=None, label_path: pathlib.Path = None, additional_info: Dict = None):
-        assert label_data is not None or label_path is not None, 'must provide either label data or file path to label data'
+        if not ((label_data is None) ^ (label_path is None)):
+            raise ValueError('Must provide either label data or file path to label data, but not both of them.')
 
         self._label_data = label_data
         self.label_path = label_path
@@ -31,16 +31,9 @@ class ImageLabelManifest(abc.ABC):
     def label_data(self, val):
         self._label_data = val
 
+    @abc.abstractclassmethod
     def _read_label_data(self):
-        raise NotImplementedError
-
-    def __setstate__(self, state):
-        self._label_data = state['_label_data']
-        self.label_path = state['label_path']
-        self.additional_info = state['additional_info']
-
-    def __getstate__(self):
-        return {'_label_data': self.label_data, 'label_path': self.label_path, 'additional_info': self.additional_info}
+        pass
 
     def __eq__(self, other):
         if not isinstance(other, ImageLabelManifest) or self.additional_info != other.additional_info:
@@ -51,9 +44,6 @@ class ImageLabelManifest(abc.ABC):
             return self.label_path == other.label_path
 
         return self._label_data == self._label_data
-
-    def __str__(self) -> str:
-        return f'Label: {json.dumps(self.__getstate__())}'
 
 
 class ImageLabelWithCategoryManifest(ImageLabelManifest):
@@ -113,7 +103,7 @@ class ImageDataManifest:
         if not isinstance(self.labels, dict):
             return False
 
-        return sum([len(labels) for labels in self.labels.values()]) == 0
+        return not any(labels for labels in self.labels.values())
 
 
 class CategoryManifest:

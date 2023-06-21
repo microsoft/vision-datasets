@@ -14,3 +14,6 @@ class ImageTextMatchingLabelManifest(ImageLabelManifest):
         assert label[1] in [0, 1]
 
         super().__init__(label, label_path, additional_info)
+
+    def _read_label_data(self):
+        raise NotImplementedError

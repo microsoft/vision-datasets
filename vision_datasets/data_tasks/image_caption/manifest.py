@@ -11,3 +11,6 @@ class ImageCaptionLabelManifest(ImageLabelManifest):
     def __init__(self, label: str, label_path: pathlib.Path = None, additional_info: typing.Dict = None):
         assert label is not None
         super().__init__(label, label_path, additional_info)
+
+    def _read_label_data(self):
+        raise NotImplementedError

@@ -145,8 +145,8 @@ class DatasetDownloader:
         rt_dir = pathlib.Path(dataset_info.root_folder)
         for usage in purposes:
             if usage in dataset_info.index_files:
+                # index file can be included in a zip file as well, e.g., "index_files.zip@ann.json"
                 file = self._keep_until_including_pattern(dataset_info.index_files[usage], pattern=r'@*\.zip')
-                (print(file))
                 files_to_download.add(rt_dir / file)
             if usage in dataset_info.files_for_local_usage:
                 files_to_download.update([rt_dir / x for x in dataset_info.files_for_local_usage[usage]])

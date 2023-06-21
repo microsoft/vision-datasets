@@ -8,7 +8,8 @@ from PIL import Image, JpegImagePlugin
 from tqdm import tqdm
 
 from ..common import DatasetTypes
-from ..data_manifest import DatasetManifest, ImageDataManifest, ImageLabelWithCategoryManifest
+from ..data_manifest import DatasetManifest, ImageDataManifest
+from ..data_tasks.image_object_detection import ImageObjectDetectionLabelManifest
 from ..data_reader import FileReader, PILImageLoader
 from ..dataset.base_dataset import BaseDatasetInfo
 from .base_dataset import BaseDataset
@@ -17,7 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class VisionDataset(BaseDataset):
-    """Dataset class that accesses data from dataset manifest
+    """Dataset class that accesses data from dataset manifest.
+
     """
 
     def __init__(self, dataset_info: BaseDatasetInfo, dataset_manifest: DatasetManifest, coordinates='relative', dataset_resources=None):
@@ -26,7 +28,8 @@ class VisionDataset(BaseDataset):
         Args:
             dataset_info (BaseDatasetInfo): dataset info, containing high level information about the dataset, such as name, type, description, etc
             dataset_manifest (DatasetManifest): dataset manifest containing meta data such as image paths, annotations, etc
-            coordinates (str): 'relative' or 'absolute', indicating the desired format of the bboxes returned.
+            coordinates (str): 'relative' or 'absolute', indicating the desired format of the bboxes returned. Works for detection dataset only.
+                    This params will be refactored out later as it is OD-specific.
             dataset_resources (str): disposable resources associated with this dataset
         """
 
@@ -41,8 +44,20 @@ class VisionDataset(BaseDataset):
         self.dataset_resources = dataset_resources
 
     @property
-    def labels(self):
+    def categories(self):
         return self.dataset_manifest.categories
+
+    def get_targets(self, index):
+        image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
+        targets = image_manifest.labels
+        w, h = image_manifest.width, image_manifest.height
+
+        def load_image():
+            return self._load_image(image_manifest.img_path)
+
+        targets = VisionDataset._convert_box_to_relative_if_od(image_manifest.labels, w, h, load_image, self.dataset_info)
+
+        return targets
 
     def __len__(self):
         return len(self.dataset_manifest.images)
@@ -53,7 +68,7 @@ class VisionDataset(BaseDataset):
         target = image_manifest.labels
         if self.coordinates == 'relative':
             w, h = image.size
-            target = VisionDataset._convert_box_to_relative(image_manifest.labels, w, h, self.dataset_info)
+            target = VisionDataset._convert_box_to_relative_if_od(image_manifest.labels, w, h, None, self.dataset_info)
 
         return image, target, str(index)
 
@@ -61,25 +76,27 @@ class VisionDataset(BaseDataset):
         self._file_reader.close()
 
     def _load_image(self, filepath):
-        full_path = filepath.replace('\\', '/')
         try:
-            with self._file_reader.open(full_path, 'rb') as f:
+            with self._file_reader.open(filepath, 'rb') as f:
                 img = PILImageLoader.load_from_stream(f)
-                logger.debug(f'Loaded image from path: {full_path}')
+                logger.debug(f'Loaded image from path: {filepath}')
                 return img
         except Exception:
-            logger.exception(f'Failed to load an image with path: {full_path}')
+            logger.exception(f'Failed to load an image with path: {filepath}')
             raise
 
     @staticmethod
-    def _convert_box_to_relative(target: typing.Union[typing.List[ImageLabelWithCategoryManifest], dict], img_w, img_h, dataset_info):
+    def _convert_box_to_relative_if_od(target: typing.Union[typing.List[ImageObjectDetectionLabelManifest], dict], img_w, img_h, load_image, dataset_info):
         # Convert absolute coordinates to relative coordinates.
         # Example: for image with size (200, 200), (1, 100, 100, 200, 200) => (1, 0.5, 0.5, 1.0, 1.0)
         if dataset_info.type == DatasetTypes.MULTITASK:
-            return {task_name: VisionDataset._convert_box_to_relative(task_target, img_w, img_h, dataset_info.sub_task_infos[task_name]) for task_name, task_target in target.items()}
+            return {task_name: VisionDataset._convert_box_to_relative_if_od(task_target, img_w, img_h, load_image, dataset_info.sub_task_infos[task_name]) for task_name, task_target in target.items()}
 
         if dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION:
             relative_target = copy.deepcopy(target)
+            if not img_w or not img_h:
+                img_w, img_h = load_image().size
+
             for t in relative_target:
                 label = t.label_data
                 t.label_data = [label[0], label[1] / img_w, label[2] / img_h, label[3] / img_w, label[4] / img_h]
@@ -116,12 +133,13 @@ class LocalFolderCacheDecorator(BaseDataset):
         if not os.path.exists(self._local_cache_params['dir']):
             os.makedirs(self._local_cache_params['dir'])
 
+        self._local_dir = pathlib.Path(self._local_cache_params['dir'])
         self._annotations = {}
         self._paths = {}
 
     @property
-    def labels(self):
-        return self._dataset.labels
+    def categories(self):
+        return self._dataset.categories
 
     def __len__(self):
         return len(self._dataset) * self._local_cache_params['n_copies']
@@ -141,7 +159,7 @@ class LocalFolderCacheDecorator(BaseDataset):
         return img, annotations, str(index)
 
     def _construct_local_image_path(self, img_idx, img_format):
-        return pathlib.Path(self._local_cache_params['dir']) / f'{img_idx}.{img_format}'
+        return self._local_dir / f'{img_idx}.{img_format}'
 
     def _save_image_matching_quality(self, img, fp):
         """
@@ -170,7 +188,7 @@ class LocalFolderCacheDecorator(BaseDataset):
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
             images.append(image)
 
-        return DatasetManifest(images, self.labels, self._dataset.dataset_info.type)
+        return DatasetManifest(images, self.categories, self._dataset.dataset_info.type)
 
     def close(self):
         self._dataset.close()

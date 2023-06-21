@@ -35,8 +35,8 @@ class DetectionAsClassificationBaseDataset(BaseDataset, ABC):
         self._dataset.close()
 
     @property
-    def labels(self):
-        return self._dataset.labels
+    def categories(self):
+        return self._dataset.categories
 
     @abstractmethod
     def generate_manifest(self, **kwargs):
@@ -70,7 +70,7 @@ class DetectionAsClassificationIgnoreBoxesDataset(DetectionAsClassificationBaseD
             labels = DetectionAsClassificationIgnoreBoxesDataset._od_to_ic_labels(img.labels)
             ic_img = ImageDataManifest(len(images) + 1, img.img_path, img.width, img.height, labels)
             images.append(ic_img)
-        return DatasetManifest(images, self._dataset.labels, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
+        return DatasetManifest(images, self._dataset.categories, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
 
     @staticmethod
     def _od_to_ic_labels(labels: typing.List[ImageObjectDetectionLabelManifest]):

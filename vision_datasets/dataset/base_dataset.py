@@ -28,7 +28,7 @@ class BaseDataset(ABC):
 
     @property
     @abstractmethod
-    def labels(self):
+    def categories(self):
         pass
 
     @abstractmethod
