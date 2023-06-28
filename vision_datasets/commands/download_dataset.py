@@ -3,14 +3,15 @@ Download a dataset from shared storage either in original format or converted to
 """
 
 import argparse
-import tempfile
 import pathlib
+import tempfile
+
+from vision_datasets.common import DatasetHub, DatasetRegistry, DatasetTypes
 from vision_datasets.commands.utils import add_args_to_locate_dataset_from_name_and_reg_json, convert_to_tsv, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
-from vision_datasets import DatasetRegistry, DatasetHub, DatasetTypes
 
 logger = set_up_cmd_logger(__name__)
 
-TSV_SUPPORTED_TYPES = [DatasetTypes.IMCAP, DatasetTypes.OD, DatasetTypes.IC_MULTICLASS, DatasetTypes.IC_MULTILABEL]
+TSV_SUPPORTED_TYPES = [DatasetTypes.IMAGE_CAPTION, DatasetTypes.IMAGE_OBJECT_DETECTION, DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL]
 
 
 def list_datasets(registry: DatasetRegistry):

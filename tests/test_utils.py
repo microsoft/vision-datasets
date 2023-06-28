@@ -1,8 +1,10 @@
+import pathlib
 import tempfile
 import unittest
-import pathlib
+
 import numpy
 from PIL import Image, ImageChops
+
 from vision_datasets.commands.utils import Base64Utils
 
 

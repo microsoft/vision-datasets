@@ -1,7 +1,7 @@
 import pickle
 import unittest
 
-from vision_datasets.pytorch import TorchDataset
+from vision_datasets.common import TorchDataset
 
 
 class FakeDataset:

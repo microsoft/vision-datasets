@@ -4,7 +4,8 @@ Convert a dataset or coco json into TSV format
 
 import argparse
 import pathlib
-from vision_datasets import DatasetRegistry, DatasetHub
+
+from vision_datasets.common import DatasetHub, DatasetRegistry
 from vision_datasets.commands.utils import add_args_to_locate_dataset, convert_to_tsv, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
 
 logger = set_up_cmd_logger(__name__)
