@@ -21,7 +21,7 @@ Currently, seven `basic` types of data are supported:
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
-Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.
+**Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.**
 
 ## Dataset Contracts
 
@@ -30,6 +30,8 @@ Note that `image_caption` and `text_2_image_retrieval` might be merged into `ima
     1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
     2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
     3. an url
+- `ImageLabelManifest`: encapsulates one single image-level annotation
+- `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
 - `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
 
 `VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
@@ -83,7 +85,7 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
     }
 ```
 
-Coco annotation format details w.r.t. `multiclass/label_classification`, `object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
+Coco annotation format details w.r.t. `image_classification_multiclass/label`, `image_object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
 Index file can be put into a zip file as well (e.g., `annotations.zip@train.json`), no need to add the this zip to "files_for_local_usage" explicitly.
 
@@ -102,7 +104,7 @@ This repo offers the class `DatasetHub` for this purpose. Once instantiated with
 
 ```python
 import pathlib
-from vision_datasets import Usages, DatasetHub
+from vision_datasets.common import Usages, DatasetHub
 
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text())
@@ -139,11 +141,10 @@ There are supported operations on manifests for different data types, such as sp
 
 `vision_list_supported_operations -d {DATA_TYPE}`
 
-to see the supported operations for a specific data type. You can use the factory classes in `vision_datasets.factory` to create operations for certain data type.
+to see the supported operations for a specific data type. You can use the factory classes in `vision_datasets.common.factory` to create operations for certain data type.
 
 ```python
-from vision_datasets import SplitFactory, DatasetTypes
-from vision_datasets.data_manifest import SplitConfig
+from vision_datasets.common import DatasetTypes, SplitFactory, SplitConfig
 
 
 data_manifest = ....
@@ -153,7 +154,7 @@ manifest_1, manifest_2 = splitter.run(data_manifest)
 
 ### Training with PyTorch
 
-Training with PyTorch is easy. After instantiating a `VisionDataset`, simply passing it in `vision_datasets.pytorch.torch_dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
+Training with PyTorch is easy. After instantiating a `VisionDataset`, simply passing it in `vision_datasets.common.dataset.TorchDataset` together with the `transform`, then you are good to go with the PyTorch DataLoader for training.
 
 
 ## Helpful commands
