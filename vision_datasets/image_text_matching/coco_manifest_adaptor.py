@@ -8,4 +8,4 @@ class ImageTextMatchingCocoManifestAdaptor(CocoManifestWithoutCategoriesAdaptor)
         super().__init__(DatasetTypes.IMAGE_TEXT_MATCHING)
 
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
-        image.labels.append(ImageTextMatchingLabelManifest((annotation['text'], annotation['match'])))
+        image.labels.append(ImageTextMatchingLabelManifest((annotation['text'], annotation['match']), additional_info=self._get_additional_info(annotation, {'id', 'image_id', 'text', 'match'})))

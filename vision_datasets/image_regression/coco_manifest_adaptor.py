@@ -10,4 +10,4 @@ class ImageRegressionCocoManifestAdaptor(CocoManifestWithoutCategoriesAdaptor):
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
         if len(image.labels) != 0:
             raise ValueError(f"image with id {annotation['image_id']} has unexpected number of annotations {len(image.labels)} for {DatasetTypes.IMAGE_REGRESSION} dataset.")
-        image.labels.append(ImageRegressionLabelManifest(annotation['target']))
+        image.labels.append(ImageRegressionLabelManifest(annotation['target'], additional_info=self._get_additional_info(annotation, {'id', 'image_id', 'target'})))

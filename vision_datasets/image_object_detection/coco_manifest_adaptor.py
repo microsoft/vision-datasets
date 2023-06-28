@@ -14,5 +14,5 @@ class ImageObjectDetectionCocoManifestAdaptor(CocoManifestWithCategoriesAdaptor)
         c_id = label_id_to_pos[annotation['category_id']]
         bbox = annotation['bbox']
         bbox = bbox if bbox_format == BBoxFormat.LTRB else [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
-        label = ImageObjectDetectionLabelManifest([c_id] + bbox, additional_info={'iscrowd': annotation.get('iscrowd', 0)})
+        label = ImageObjectDetectionLabelManifest([c_id] + bbox, additional_info=self._get_additional_info(annotation, {'id', 'image_id', 'category_id', 'bbox'}))
         image.labels.append(label)

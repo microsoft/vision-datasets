@@ -54,7 +54,7 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
             manifest = CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION).create_dataset_manifest(str(file_path))
 
             image = manifest.images[0]
-            self.assertEqual([x.additional_info['iscrowd'] for x in image.labels], [1, 0, 0])
+            self.assertEqual([x.additional_info.get('iscrowd', 0) for x in image.labels], [1, 0, 0])
 
     def test_image_classification(self):
         dataset_manifest = TestCases.get_manifest(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, 0)
@@ -255,4 +255,4 @@ class TestCreateCocoDatasetManifest(unittest.TestCase):
         with tempfile.NamedTemporaryFile() as f:
             pathlib.Path(f.name).write_text(json.dumps(coco_file))
             manifest = CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS).create_dataset_manifest(f.name)
-            self.assertEqual(manifest.images[0].labels, [ImageClassificationLabelManifest(0)])
+            self.assertEqual(manifest.images[0].labels, [ImageClassificationLabelManifest(0, additional_info={'bbox': [10, 10, 80, 80]})])

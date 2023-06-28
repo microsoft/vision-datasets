@@ -8,4 +8,4 @@ class ImageCaptionCocoManifestAdaptor(CocoManifestWithoutCategoriesAdaptor):
         super().__init__(DatasetTypes.IMAGE_CAPTION)
 
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
-        image.labels.append(ImageCaptionLabelManifest(annotation['caption']))
+        image.labels.append(ImageCaptionLabelManifest(annotation['caption'], additional_info=self._get_additional_info(annotation, {'id', 'image_id', 'caption'})))

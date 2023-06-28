@@ -42,7 +42,8 @@ class CocoManifestAdaptorBase(ABC):
             coco_manifest = json.load(file_in)
         file_reader.close()
 
-        images_by_id = {img['id']: ImageDataManifest(img['id'], self._append_zip_prefix_if_needed(img, img['file_name']), img.get('width'), img.get('height'), []) for img in coco_manifest['images']}
+        images_by_id = {img['id']: ImageDataManifest(img['id'], self._append_zip_prefix_if_needed(img, img['file_name']), img.get('width'),
+                                                     img.get('height'), [], self._get_additional_info(img, {'id', 'file_name', 'width', 'height', 'zip_file'})) for img in coco_manifest['images']}
 
         images, categories = self.get_images_and_categories(images_by_id, coco_manifest)
         return DatasetManifest(images, categories, self.data_type)
@@ -61,6 +62,9 @@ class CocoManifestAdaptorBase(ABC):
 
         return get_full_url_or_path(zip_prefix + file_name)
 
+    def _get_additional_info(self, data, to_exclude):
+        return {x: data[x] for x in data if x not in to_exclude}
+
 
 class CocoManifestWithCategoriesAdaptor(CocoManifestAdaptorBase):
     """
@@ -70,7 +74,7 @@ class CocoManifestWithCategoriesAdaptor(CocoManifestAdaptorBase):
     """
 
     def get_images_and_categories(self, images_by_id, coco_manifest):
-        label_id_to_pos, categories = CocoManifestWithCategoriesAdaptor._process_categories(coco_manifest['categories'])
+        label_id_to_pos, categories = self._process_categories(coco_manifest['categories'])
 
         for annotation in coco_manifest['annotations']:
             img = images_by_id[annotation['image_id']]
@@ -82,16 +86,15 @@ class CocoManifestWithCategoriesAdaptor(CocoManifestAdaptorBase):
         return images, categories
 
     @abstractmethod
-    def process_label(self, image, annotation, coco_manifest, label_id_to_pos):
+    def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict, label_id_to_pos):
         pass
 
-    @staticmethod
-    def _process_categories(coco_categories):
-        cate_id_name = [(cate['id'], cate['name'], cate.get('supercategory')) for cate in coco_categories]
+    def _process_categories(self, coco_categories):
+        cate_id_name = [(cate['id'], cate['name'], cate.get('supercategory'), self._get_additional_info(cate, {'id', 'name', 'supercategory'})) for cate in coco_categories]
         cate_id_name.sort(key=lambda x: x[0])
 
         label_id_to_pos = {x[0]: i for i, x in enumerate(cate_id_name)}
-        categories = [CategoryManifest(i, x[1], x[2]) for i, x in enumerate(cate_id_name)]
+        categories = [CategoryManifest(i, x[1], x[2], x[3]) for i, x in enumerate(cate_id_name)]
 
         return label_id_to_pos, categories
 

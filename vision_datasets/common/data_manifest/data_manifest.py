@@ -82,7 +82,8 @@ class ImageDataManifest:
                  img_path: Union[pathlib.Path, str],
                  width: int,
                  height: int,
-                 labels: Union[List[ImageLabelManifest], Dict[str, List[ImageLabelManifest]]]):
+                 labels: Union[List[ImageLabelManifest], Dict[str, List[ImageLabelManifest]]],
+                 additional_info: Dict = None):
         """
         Args:
             id (int or str): image id
@@ -90,6 +91,7 @@ class ImageDataManifest:
             width (int): image width
             height (int): image height
             labels (list or dict): labels for the image
+            additional_info (dict): additional info about this image
         """
 
         self.id = id
@@ -97,13 +99,14 @@ class ImageDataManifest:
         self.width = width
         self.height = height
         self.labels = labels
+        self.additional_info = additional_info
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, ImageDataManifest):
             return False
 
         return self.id == other.id and self.img_path == other.img_path and self.width == other.width \
-            and self.height == other.height and self.labels == other.labels
+            and self.height == other.height and self.labels == other.labels and self.additional_info == other.additional_info
 
     def is_negative(self) -> bool:
         if not self.labels:
@@ -116,13 +119,14 @@ class ImageDataManifest:
 
 
 class CategoryManifest:
-    def __init__(self, id, name: str, super_category: str = None):
+    def __init__(self, id, name: str, super_category: str = None, addtional_info=None):
         self.id = id
         self.name = name
         self.super_category = super_category
+        self.additional_info = addtional_info
 
     def __eq__(self, other) -> bool:
-        return self.id == other.id and self.name == other.name and self.super_category == other.super_category
+        return self.id == other.id and self.name == other.name and self.super_category == other.super_category and self.additional_info == other.additional_info
 
 
 class DatasetManifest:

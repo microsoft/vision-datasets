@@ -12,6 +12,10 @@ class TestObjectDetection(BaseCocoAdaptor):
     def test_create_data_manifest(self, coco_dict):
         super().test_create_data_manifest(coco_dict)
 
+    @pytest.mark.parametrize("coco_dict", coco_database[TASK])
+    def test_create_data_manifest_with_additional_info(self, coco_dict):
+        super().test_create_data_manifest_with_additional_info(coco_dict)
+
     def test_iscrowd_working(self):
         coco_dict = copy.deepcopy(coco_database[self.TASK][0])
         coco_dict['annotations'][0]['iscrowd'] = 1
