@@ -1,18 +1,16 @@
 import copy
+import json
 import pathlib
 import tempfile
 import unittest
 import zipfile
-import json
 
-from PIL import Image
 import numpy as np
+from PIL import Image
 
 from tests.test_fixtures import DetectionTestFixtures
-from vision_datasets import DatasetInfo, VisionDataset
-from vision_datasets.factory import CocoManifestAdaptorFactory
-from vision_datasets.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
-from vision_datasets.common.constants import Usages
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfo, Usages, VisionDataset
+from vision_datasets.common.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
 
 
 class TestVisionDataset(unittest.TestCase):

@@ -2,7 +2,8 @@ import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets.common.constants import DatasetTypes
-from vision_datasets.dataset import VisionAsImageTextDataset, DetectionAsClassificationIgnoreBoxesDataset
+from vision_datasets.image_text_matching import VisionAsImageTextDataset
+from vision_datasets.image_object_detection import DetectionAsClassificationIgnoreBoxesDataset
 
 
 class TestVisionAsImageTextDataset(unittest.TestCase):
@@ -27,10 +28,10 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             assert len(it_dataset) == n_images, len(it_dataset)
             matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
             assert sum(matches) == 6, matches
-            assert len(matches) == 22, len(matches)
+            assert len(matches) == 24, len(matches)
 
     def test_od_as_image_text_dataset_with_down_sampling_neg_pairs(self):
-        n_images = 3
+        n_images = 10
         n_categories = 10
         dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(n_images, n_categories)
         with tempdir:
@@ -38,8 +39,8 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
             matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
-            assert sum(matches) == 6, matches
-            assert len(matches) == 10, matches
+            assert sum(matches) == 20, matches
+            assert len(matches) == 27, matches
 
     def test_od_as_image_text_dataset_with_neg_pairs_under_expected_ratio(self):
         n_images = 3
@@ -56,7 +57,7 @@ class TestVisionAsImageTextDataset(unittest.TestCase):
 
 class TestClassificationAsImageTextDataset(unittest.TestCase):
     def test_ic_as_image_text_dataset(self):
-        n_images = 3
+        n_images = 10
         n_categories = 10
         dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(n_images, n_categories)
         with tempdir:
@@ -65,5 +66,5 @@ class TestClassificationAsImageTextDataset(unittest.TestCase):
             assert it_dataset.dataset_info.type == DatasetTypes.IMAGE_TEXT_MATCHING, it_dataset.dataset_info.type
             assert len(it_dataset) == n_images, len(it_dataset)
             matches = [label.label_data[1] for x, labels, _ in it_dataset for label in labels]
-            assert sum(matches) == 6, matches
-            assert len(matches) == 10, matches
+            assert sum(matches) == 20, matches
+            assert len(matches) == 27, matches

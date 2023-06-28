@@ -2,9 +2,7 @@ import copy
 
 import pytest
 
-from vision_datasets import DatasetTypes
-from vision_datasets.data_manifest import ManifestMerger
-from vision_datasets.factory import ManifestMergeStrategyFactory
+from vision_datasets.common import DatasetTypes, ManifestMerger, ManifestMergeStrategyFactory
 
 from ..resources.util import TYPES_WITH_CATEGORIES, coco_database, coco_dict_to_manifest
 

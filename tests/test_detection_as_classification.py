@@ -1,11 +1,11 @@
 import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
-from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
-from vision_datasets.data_tasks.image_classification.manifest import ImageClassificationLabelManifest
-from vision_datasets.dataset import DetectionAsClassificationByCroppingDataset, DetectionAsClassificationIgnoreBoxesDataset
-from vision_datasets.dataset.base_dataset import BaseDataset
-from vision_datasets.dataset.vision_dataset import LocalFolderCacheDecorator
+from vision_datasets.common import DatasetInfo, DatasetTypes, VisionDataset
+from vision_datasets.common.dataset.base_dataset import BaseDataset
+from vision_datasets.common.dataset.vision_dataset import LocalFolderCacheDecorator
+from vision_datasets.image_classification.manifest import ImageClassificationLabelManifest
+from vision_datasets.image_object_detection import DetectionAsClassificationByCroppingDataset, DetectionAsClassificationIgnoreBoxesDataset
 
 
 class TestDetectionAsClassification(unittest.TestCase):

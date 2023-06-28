@@ -1,8 +1,3 @@
-from vision_datasets.factory import CocoDictGeneratorFactory
-from vision_datasets.data_manifest import DatasetFilter, ImageNoAnnotationFilter
-from vision_datasets.data_manifest import RemoveCategoriesConfig, RemoveCategories
-from vision_datasets.data_manifest import SpawnConfig
-from vision_datasets.factory import SpawnFactory
 import copy
 import json
 import pathlib
@@ -10,12 +5,12 @@ import tempfile
 import unittest
 from collections import Counter
 
-from vision_datasets import CocoManifestAdaptorFactory, DatasetManifest, DatasetTypes, ImageDataManifest
-from vision_datasets.data_manifest import CategoryManifest, ManifestMerger, ManifestSampler, SampleByFewShotConfig, SampleByNumSamplesConfig, SampleStrategyType, SplitConfig
-from vision_datasets.data_manifest.utils import generate_multitask_dataset_manifest
-from vision_datasets.data_tasks.image_classification.manifest import ImageClassificationLabelManifest
-from vision_datasets.data_tasks.image_object_detection.manifest import ImageObjectDetectionLabelManifest
-from vision_datasets.factory import ManifestMergeStrategyFactory, SampleStrategyFactory, SplitFactory
+from vision_datasets.common import CategoryManifest, CocoDictGeneratorFactory, CocoManifestAdaptorFactory, DatasetFilter, DatasetManifest, DatasetTypes, ImageDataManifest, ImageNoAnnotationFilter, \
+    ManifestMerger, ManifestMergeStrategyFactory, ManifestSampler, RemoveCategories, RemoveCategoriesConfig, SampleByFewShotConfig, SampleByNumSamplesConfig, \
+    SampleStrategyFactory, SampleStrategyType, SpawnConfig, SpawnFactory, SplitConfig, SplitFactory
+from vision_datasets.common.data_manifest.utils import generate_multitask_dataset_manifest
+from vision_datasets.image_classification.manifest import ImageClassificationLabelManifest
+from vision_datasets.image_object_detection.manifest import ImageObjectDetectionLabelManifest
 
 
 def _generate_categories(n_classes):
@@ -675,7 +670,7 @@ class TestSpawn(unittest.TestCase):
         self.assertEqual(len(new_manifest), dst_size)
 
         # Generate balanced instance weights, spawn the dataset to balance classes.
-        from vision_datasets.data_manifest import BalancedInstanceWeightsGenerator, WeightsGenerationConfig
+        from vision_datasets.common.data_manifest import BalancedInstanceWeightsGenerator, WeightsGenerationConfig
         instance_weights = BalancedInstanceWeightsGenerator(WeightsGenerationConfig(False)).run(manifest)
         spawner = SpawnFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, SpawnConfig(0, dst_size, instance_weights))
         new_manifest = spawner.run(manifest)
@@ -788,7 +783,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         })
         strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK)
         merger = ManifestMerger(strategy)
-        self.assertRaises(AssertionError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
+        self.assertRaises(ValueError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
 
     def test_merge_multitask_datasets_flavor0_with_different_tasks_should_raise(self):
         multitask_manifest_1 = generate_multitask_dataset_manifest({
@@ -802,7 +797,7 @@ class TestDatasetManifestMerge(unittest.TestCase):
         })
         strategy = ManifestMergeStrategyFactory.create(DatasetTypes.MULTITASK)
         merger = ManifestMerger(strategy)
-        self.assertRaises(AssertionError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
+        self.assertRaises(ValueError, lambda: merger.run(multitask_manifest_1, multitask_manifest_2))
 
 
 if __name__ == '__main__':

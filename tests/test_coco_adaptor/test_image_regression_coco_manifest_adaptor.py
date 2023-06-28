@@ -1,7 +1,9 @@
 import pytest
-from vision_datasets import DatasetTypes
-from .coco_adaptor_base import BaseCocoAdaptor
+
+from vision_datasets.common import DatasetTypes
+
 from ..resources.util import coco_database, coco_dict_to_manifest
+from .coco_adaptor_base import BaseCocoAdaptor
 
 
 class TestImageRegression(BaseCocoAdaptor):
@@ -22,5 +24,5 @@ class TestImageRegression(BaseCocoAdaptor):
             ]
         }
 
-        with pytest.raises(AssertionError, match='There should be exactly one label per image for DatasetTypes.IMAGE_REGRESSION datasets, but image with id 1 has more than one.'):
+        with pytest.raises(ValueError, match='image with id 1 has unexpected number of annotations 1 for DatasetTypes.IMAGE_REGRESSION dataset.'):
             coco_dict_to_manifest(self.TASK, coco_dict)

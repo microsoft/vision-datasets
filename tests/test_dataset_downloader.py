@@ -3,11 +3,9 @@ import json
 import os
 import pathlib
 import unittest
-from unittest.mock import MagicMock, ANY
+from unittest.mock import ANY, MagicMock
 
-from vision_datasets import DatasetTypes
-from vision_datasets.dataset_management import DatasetRegistry
-from vision_datasets.data_reader.dataset_downloader import DatasetDownloader
+from vision_datasets.common import DatasetDownloader, DatasetRegistry, DatasetTypes
 
 
 class TestDatasetDownloader(unittest.TestCase):

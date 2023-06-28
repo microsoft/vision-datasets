@@ -1,7 +1,8 @@
 import pytest
-from vision_datasets.factory import CocoDictGeneratorFactory
-from vision_datasets import DatasetTypes
-from ..resources.util import coco_dict_to_manifest, coco_database
+
+from vision_datasets.common import CocoDictGeneratorFactory, DatasetTypes
+
+from ..resources.util import coco_database, coco_dict_to_manifest
 
 
 class TestManifestToCoco:

@@ -8,9 +8,8 @@ import os
 import pathlib
 import shutil
 
-from vision_datasets import DatasetHub, DatasetTypes
-from vision_datasets.dataset import DetectionAsClassificationByCroppingDataset
-from vision_datasets.factory import CocoDictGeneratorFactory
+from vision_datasets.common import CocoDictGeneratorFactory, DatasetHub, DatasetTypes
+from vision_datasets.image_object_detection import DetectionAsClassificationByCroppingDataset
 
 from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger, write_to_json_file_utf8
 
@@ -28,7 +27,6 @@ def create_arg_parser():
                         help='lower/upper bounds of relative ratio wrt box width and height that a box can shift, during cropping, e.g., "-0.3/0.1"')
     parser.add_argument('-np', '--n_copies', type=int, required=False, default=1, help='number of copies per bbox')
     parser.add_argument('-s', '--rnd_seed', type=int, required=False, help='random see for box expansion/shrink/shifting.', default=0)
-    parser.add_argument('--zip', dest='zip', action='store_true', help='Flag to add zip prefix to the image paths.')
 
     return parser
 
@@ -43,17 +41,15 @@ def process_usage(params):
         logger.info(f'Skipping non-existent phase {usage}.')
         return
 
-    assert dataset.dataset_info.type == DatasetTypes.IMAGE_OBJECT_DETECTION
+    if dataset.dataset_info.type != DatasetTypes.IMAGE_OBJECT_DETECTION:
+        raise ValueError(f'Data type must be {DatasetTypes.IMAGE_OBJECT_DETECTION}')
     logger.info(f'start conversion for {args.name}...')
     ic_dataset = DetectionAsClassificationByCroppingDataset(dataset, aug_params)
     ic_manifest = ic_dataset.generate_manifest(dir=str(usage), n_copies=args.n_copies)
 
     coco_gen = CocoDictGeneratorFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
     coco = coco_gen.run(ic_manifest)
-    if args.zip:
-        for img in coco['images']:
-            img['zip_file'] = f'{usage}.zip'
-        write_to_json_file_utf8(coco, args.output_folder / f'{usage}.json')
+    write_to_json_file_utf8(coco, args.output_folder / f'{usage}.json')
     shutil.move(f'{usage}', f'{args.output_folder.as_posix()}/', copy_function=shutil.copytree)
 
 

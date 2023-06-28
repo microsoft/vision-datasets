@@ -43,7 +43,8 @@ class BaseDatasetInfo:
 class DatasetInfo(BaseDatasetInfo):
     def __init__(self, dataset_info_dict):
         data_type = _data_type_to_enum(dataset_info_dict.get('type'))
-        assert data_type != DatasetTypes.MULTITASK
+        if data_type == DatasetTypes.MULTITASK:
+            raise ValueError
         super(DatasetInfo, self).__init__(dataset_info_dict)
 
         self.index_files = dict()
@@ -61,9 +62,11 @@ class DatasetInfo(BaseDatasetInfo):
 
 class MultiTaskDatasetInfo(BaseDatasetInfo):
     def __init__(self, dataset_info_dict):
-        assert 'tasks' in dataset_info_dict
+        if 'tasks' not in dataset_info_dict:
+            raise ValueError
         data_type = _data_type_to_enum(dataset_info_dict.get('type'))
-        assert data_type == DatasetTypes.MULTITASK
+        if data_type != DatasetTypes.MULTITASK:
+            raise ValueError
 
         super(MultiTaskDatasetInfo, self).__init__(dataset_info_dict)
 

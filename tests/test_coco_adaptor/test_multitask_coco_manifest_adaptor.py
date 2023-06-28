@@ -1,5 +1,5 @@
 import pytest
-from vision_datasets import DatasetTypes
+from vision_datasets.common import DatasetTypes
 from ..resources.util import coco_database, coco_dict_to_manifest_multitask
 
 

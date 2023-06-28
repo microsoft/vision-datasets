@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from vision_datasets.dataset.detection_as_classification_dataset import BoxAlteration
+from vision_datasets.image_object_detection.detection_as_classification_dataset import BoxAlteration
 
 
 class TestBoxAlteration(unittest.TestCase):

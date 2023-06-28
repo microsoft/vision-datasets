@@ -1,11 +1,9 @@
-import tempfile
-import pathlib
-import json
 import itertools
+import json
+import pathlib
+import tempfile
 
-from vision_datasets import DatasetTypes
-from vision_datasets.factory.coco_manifest_adaptor_factory import CocoManifestAdaptorFactory
-
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetTypes
 TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]
 
 
@@ -23,7 +21,7 @@ def coco_dict_to_manifest(task, coco_dict):
 def coco_dict_to_manifest_multitask(tasks, coco_dicts):
     assert len(tasks) == len(coco_dicts)
     task_names = [f'{i}_{task}' for i, task in enumerate(tasks)]
-    adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.MULTITASK, data_tasks={x: y for x, y in zip(task_names, tasks)})
+    adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.MULTITASK, {x: y for x, y in zip(task_names, tasks)})
     coco_files = {}
     with tempfile.TemporaryDirectory() as temp_dir:
         for i in range(len(tasks)):

@@ -1,17 +1,18 @@
 import argparse
 import base64
 import io
+import json
 import locale
 import logging
 import os
 import pathlib
-import json
-from typing import Union
-from vision_datasets import DatasetTypes, DatasetManifest, Usages
-from vision_datasets.data_reader.image_loader import PILImageLoader
-from vision_datasets.data_reader import FileReader
-from tqdm import tqdm
 import zipfile
+from typing import Union
+
+from tqdm import tqdm
+
+from vision_datasets.common import DatasetManifest, DatasetTypes, Usages
+from vision_datasets.common import FileReader, PILImageLoader
 
 
 def set_up_cmd_logger(name):

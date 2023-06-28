@@ -15,7 +15,7 @@ def can_be_url(candidate: Union[str, pathlib.Path]):
 
     """
     try:
-        if not isinstance(candidate, str):
+        if not candidate or not isinstance(candidate, str):
             return False
 
         result = urlparse.urlparse(candidate)
@@ -25,7 +25,8 @@ def can_be_url(candidate: Union[str, pathlib.Path]):
 
 
 def unix_path(path: Union[pathlib.Path, str]) -> Union[pathlib.Path, str]:
-    assert path is not None
+    if path is None:
+        raise ValueError
 
     if isinstance(path, pathlib.Path):
         return path.as_posix()
@@ -63,7 +64,8 @@ def _construct_full_url_generator(container_sas: str):
         return unix_path
 
     def add_path_to_url(url, path_or_dir):
-        assert url
+        if not url:
+            raise ValueError
 
         if not path_or_dir:
             return url

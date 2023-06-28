@@ -5,17 +5,20 @@ Check if a dataset is prepared well to be consumed by this pkg
 import argparse
 import pathlib
 import random
+
 from tqdm import tqdm
-from vision_datasets import DatasetHub, DatasetTypes, VisionDataset
+
+from vision_datasets.common import DatasetHub, DatasetTypes, VisionDataset
+
 from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
 
 logger = set_up_cmd_logger(__name__)
 
 
-def show_dataset_stats(dataset):
+def show_dataset_stats(dataset: VisionDataset):
     logger.info(f'Dataset stats: #images {len(dataset)}')
-    if dataset.labels:
-        logger.info(f'Dataset stats: #tags {len(dataset.labels)}')
+    if dataset.categories:
+        logger.info(f'Dataset stats: #tags {len(dataset.categories)}')
 
 
 def show_img(sample):

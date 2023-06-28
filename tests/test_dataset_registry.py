@@ -1,7 +1,7 @@
 import json
 import unittest
-from vision_datasets import Usages, DatasetTypes
-from vision_datasets.dataset_management import DatasetRegistry
+
+from vision_datasets.common import DatasetRegistry, DatasetTypes, Usages
 
 
 class TestDatasetRegistry(unittest.TestCase):

@@ -5,8 +5,7 @@ import tempfile
 
 from PIL import Image
 
-from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
-from vision_datasets.factory import CocoManifestAdaptorFactory
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfo, DatasetTypes, VisionDataset
 
 
 class DetectionTestFixtures:

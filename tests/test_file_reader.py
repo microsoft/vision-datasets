@@ -7,8 +7,8 @@ import tempfile
 import unittest
 import zipfile
 
-from vision_datasets.data_reader import FileReader
-from vision_datasets.data_reader.file_reader import MultiProcessZipFile
+from vision_datasets.common import FileReader
+from vision_datasets.common.data_reader.file_reader import MultiProcessZipFile
 
 
 def open_zipfile(zip_file, filename, queue):

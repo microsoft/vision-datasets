@@ -2,9 +2,7 @@ import itertools
 
 import pytest
 
-from vision_datasets import DatasetTypes
-from vision_datasets.data_manifest import ManifestSampler, SampleByFewShotConfig, SampleByNumSamplesConfig, SampleStrategyType
-from vision_datasets.factory import SampleStrategyFactory
+from vision_datasets.common import DatasetTypes, ManifestSampler, SampleByFewShotConfig, SampleByNumSamplesConfig, SampleStrategyFactory, SampleStrategyType
 
 from ..resources.util import TYPES_WITH_CATEGORIES, coco_database, coco_dict_to_manifest
 

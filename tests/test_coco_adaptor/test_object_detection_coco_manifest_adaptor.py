@@ -1,6 +1,6 @@
 import pytest
 import copy
-from vision_datasets import DatasetTypes
+from vision_datasets.common import DatasetTypes
 from .coco_adaptor_base import BaseCocoAdaptor
 from ..resources.util import coco_database
 

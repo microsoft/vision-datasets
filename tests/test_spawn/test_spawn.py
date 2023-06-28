@@ -1,7 +1,6 @@
 import pytest
 
-from vision_datasets import DatasetTypes
-from vision_datasets.data_manifest import Spawn, SpawnConfig
+from vision_datasets.common import DatasetTypes, Spawn, SpawnConfig
 
 from ..resources.util import coco_database, coco_dict_to_manifest
 

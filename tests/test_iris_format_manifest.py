@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from vision_datasets import DatasetInfo, DatasetManifest, Usages
-from vision_datasets.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
+from vision_datasets.common import DatasetInfo, DatasetManifest, Usages
+from vision_datasets.common.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
 
 
 class TestCreateIrisDatasetManifest(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestCreateIrisDatasetManifest(unittest.TestCase):
             dataset_dict['root_folder'] = str(tempdir)
             assert IrisManifestAdaptor.create_dataset_manifest(DatasetInfo(dataset_dict), Usages.TEST)
 
-    @patch('vision_datasets.data_manifest.data_manifest.DatasetManifest')
+    @patch('vision_datasets.common.data_manifest.data_manifest.DatasetManifest')
     def test_detect_multiclass(self, m):
         dataset_dict = copy.deepcopy(self.DATASET_INFO_DICT)
         with tempfile.TemporaryDirectory() as tempdir:

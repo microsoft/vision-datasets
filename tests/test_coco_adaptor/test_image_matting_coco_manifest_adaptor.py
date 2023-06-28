@@ -1,7 +1,9 @@
 import pytest
-from vision_datasets import DatasetTypes
-from .coco_adaptor_base import BaseCocoAdaptor
+
+from vision_datasets.common import DatasetTypes
+
 from ..resources.util import coco_database
+from .coco_adaptor_base import BaseCocoAdaptor
 
 
 class TestImageMatting(BaseCocoAdaptor):

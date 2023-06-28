@@ -1,6 +1,6 @@
 import copy
 import pytest
-from vision_datasets import DatasetTypes
+from vision_datasets.common import DatasetTypes
 from .coco_adaptor_base import BaseCocoAdaptor
 from ..resources.util import coco_database, coco_dict_to_manifest
 
@@ -27,7 +27,7 @@ class TestMultiClassClassification(BaseCocoAdaptor):
                 {"id": 2, "name": "dog"}
             ]
         }
-        with pytest.raises(AssertionError, match='There should be exactly one label per image for DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS datasets, but image with id 1 has more than one.'):
+        with pytest.raises(ValueError, match='image with id 1 has unexpected number of annotations 1 for DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS dataset.'):
             coco_dict_to_manifest(self.TASK, coco_dict)
 
     def test_supercategory_working(self):
