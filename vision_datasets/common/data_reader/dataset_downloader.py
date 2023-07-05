@@ -121,7 +121,7 @@ class DatasetDownloader:
     def _download_files(self, file_paths: List, target_dir: pathlib.Path):
         parts = urlparse.urlparse(self._base_url)
 
-        azure_downloader = AzureDownloader(self._base_url)
+        azure_downloader = AzureDownloader(self._base_url) if AzureDownloader.is_azure_blob_url(self._base_url) else None
         for file_path in file_paths:
             path = os.path.join(parts[2], file_path).replace('\\', '/')
             url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
