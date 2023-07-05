@@ -118,7 +118,7 @@ def main():
     prefix = logging_prefix(args.name, args.version)
 
     data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
-    dataset_hub = DatasetHub(data_reg_json)
+    dataset_hub = DatasetHub(data_reg_json, args.blob_container, args.local_dir.as_posix())
     dataset_info = dataset_hub.dataset_registry.get_dataset_info(args.name, args.version)
 
     if not dataset_info:
@@ -132,7 +132,7 @@ def main():
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
 
         # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
-        dataset = dataset_hub.create_manifest_dataset(container_sas=args.blob_container, local_dir=args.local_dir, name=dataset_info.name, version=args.version, usage=usage, coordinates='absolute')
+        dataset = dataset_hub.create_manifest_dataset(name=dataset_info.name, version=args.version, usage=usage, coordinates='absolute')
         if dataset:
             err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             errors = []

@@ -21,6 +21,8 @@ setuptools.setup(name='vision_datasets',
                  packages=setuptools.find_packages(),
                  package_data={'': ['resources/*']},
                  install_requires=[
+                     'azure-identity',
+                     'azure-storage-blob',
                      'numpy>=1.18.3',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',

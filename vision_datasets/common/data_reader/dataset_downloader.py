@@ -1,17 +1,17 @@
 import logging
 import os
 import pathlib
-import platform
 import re
 import shutil
-import subprocess
 import tempfile
-import zipfile
 from typing import List
 from urllib import parse as urlparse
 
+import azure.storage.blob
 import requests
 import tenacity
+from azure.core.exceptions import AzureError
+from azure.identity import DefaultAzureCredential
 
 from ..constants import DatasetTypes, Usages
 from ..dataset_info import BaseDatasetInfo, DatasetInfo
@@ -20,67 +20,24 @@ from ..utils import can_be_url
 logger = logging.getLogger(__name__)
 
 
-@tenacity.retry(stop=tenacity.stop_after_attempt(3))
-def _download(url: str, filepath: pathlib.Path):
-    logger.info(f'Downloading from {url} to {filepath.absolute()}.')
-    with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
-        if r.status_code > 200:
-            raise RuntimeError(f'Failed in downloading from {url}, status code {r.status_code}.')
-        with open(filepath, 'wb') as f:
-            shutil.copyfileobj(r.raw, f, length=4194304)
+class AzureDownloader:
+    def __init__(self, container_url: str) -> None:
+        self._container_url = container_url
+        has_sas = 'sig=' in container_url
+        credential = None if has_sas else DefaultAzureCredential()
+        self._container_client = azure.storage.blob.ContainerClient.from_container_url(container_url, credential=credential)
 
-
-class AzcopyDownloader:
-    AZCOPY_URL_BY_PLATOFRM = {
-        'Windows': 'https://aka.ms/downloadazcopy-v10-windows',
-        'Linux': 'https://aka.ms/downloadazcopy-v10-linux',
-        # 'Darwin': 'https://aka.ms/downloadazcopy-v10-mac',
-    }
-
-    AZCOPY_NAME_BY_PLATOFRM = {
-        'Windows': 'azcopy.exe',
-        'Linux': 'azcopy',
-        # 'Darwin': 'azcopy',
-    }
-
-    def __init__(self, azcopy_path: pathlib.Path = None) -> None:
-        self._platform = platform.system()
-        self._temp_dir = tempfile.TemporaryDirectory()
-        self._azcopy_path = azcopy_path or pathlib.Path(self._temp_dir.name) / 'azcopy'
-        if not self._azcopy_path.exists():
-            temp_zip_file_path = pathlib.Path(self._temp_dir.name) / 'temp_zip_file'
-            _download(self.AZCOPY_URL_BY_PLATOFRM[self._platform], temp_zip_file_path)
-            shutil.move(self._unzip(temp_zip_file_path, self._azcopy_path.parent), self._azcopy_path)
-
-    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
-    def download(self, url, target_file_path):
-        result = subprocess.run([self._azcopy_path.absolute(), 'copy', url, target_file_path])
-        if result.returncode != 0:
-            raise RuntimeError('azcopy failed to download {url}.')
-
-    def _unzip(self, zip_file: pathlib.Path, target_dir: pathlib.Path):
-        if self._platform == 'Linux':
-            import tarfile
-            tar = tarfile.open(zip_file, "r:gz")
-            tar.extractall(target_dir)
-            tar.close()
-        else:
-            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-                zip_ref.extractall(target_dir)
-
-        azcopy_path = list(target_dir.rglob(self.AZCOPY_NAME_BY_PLATOFRM[self._platform]))[0]
-        return azcopy_path
+    @tenacity.retry(stop=tenacity.stop_after_attempt(3), retry=tenacity.retry_if_exception_type(AzureError), reraise=True)
+    def download(self, file_path, target_dir):
+        target_dir = pathlib.Path(target_dir)
+        (target_dir / file_path).parent.mkdir(parents=True, exist_ok=True)
+        stream = self._container_client.download_blob(file_path, max_concurrency=8, read_timeout=1800)
+        with open((target_dir / file_path), 'wb') as f:
+            stream.readinto(f)
 
     @staticmethod
     def is_azure_blob_url(url):
         return 'blob.core.windows.net' in url
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        logger.info(f'Closing temp folder: {self._temp_dir}.')
-        self._temp_dir.__exit__(exc_type, exc_value, traceback)
 
 
 class DownloadedDatasetsResources:
@@ -163,32 +120,33 @@ class DatasetDownloader:
 
     def _download_files(self, file_paths: List, target_dir: pathlib.Path):
         parts = urlparse.urlparse(self._base_url)
-        temp_dir = None
+
+        azure_downloader = AzureDownloader(self._base_url)
         for file_path in file_paths:
             path = os.path.join(parts[2], file_path).replace('\\', '/')
             url = urlparse.urlunparse((parts[0], parts[1], path, parts[3], parts[4], parts[5]))
             target_file_path = target_dir / file_path
-            target_file_dir = target_file_path.parent
-            target_file_dir.mkdir(parents=True, exist_ok=True)
+            target_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             if target_file_path.exists():
                 logger.info(f'{target_file_path} exists. Skip downloading.')
                 continue
 
-            if AzcopyDownloader.is_azure_blob_url(url):
+            if AzureDownloader.is_azure_blob_url(url):
                 try:
-                    logger.info('Detected the URL is from Azure blob. Use azcopy for the download.')
-                    temp_dir = temp_dir or tempfile.TemporaryDirectory()
-                    with AzcopyDownloader(pathlib.Path(temp_dir.name) / 'azcopy') as azcopy:
-                        azcopy.download(url, target_file_path)
+                    logger.info('Detected the URL is from Azure blob.')
+                    azure_downloader.download(file_path.as_posix(), target_dir)
                 except Exception as e:
-                    logger.warn(f'Azcopy downloading fails {e}. Fallback to regular download.')
+                    logger.warn(f'Azure downloading fails {e}. Fallback to regular download.')
                     self._download_file(url, target_file_path)
             else:
                 self._download_file(url, target_file_path)
 
-        if temp_dir:
-            temp_dir.cleanup()
-
-    def _download_file(self, url, filepath):
-        _download(url, filepath)
+    @tenacity.retry(stop=tenacity.stop_after_attempt(3))
+    def _download_file(self, url: str, filepath: pathlib.Path):
+        logger.info(f'Downloading from {url} to {filepath.absolute()}.')
+        with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
+            if r.status_code > 200:
+                raise RuntimeError(f'Failed in downloading from {url}, status code {r.status_code}.')
+            with open(filepath, 'wb') as f:
+                shutil.copyfileobj(r.raw, f, length=4194304)
