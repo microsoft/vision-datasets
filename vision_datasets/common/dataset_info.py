@@ -58,6 +58,9 @@ class DatasetInfo(BaseDatasetInfo):
         if self.data_format == AnnotationFormats.IRIS:
             self.labelmap = dataset_info_dict.get('labelmap')
             self.image_metadata_path = dataset_info_dict.get('image_metadata_path')
+        else:
+            self.labelmap = None
+            self.image_metadata_path = None
 
 
 class MultiTaskDatasetInfo(BaseDatasetInfo):
