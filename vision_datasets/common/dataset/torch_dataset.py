@@ -1,7 +1,7 @@
 import logging
 
-from .vision_dataset import VisionDataset
 from .dataset import Dataset
+from .vision_dataset import VisionDataset
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class TorchDataset(Dataset):
         self.dataset = manifest_dataset
 
     @property
-    def labels(self):
+    def categories(self):
         return self.dataset.categories
 
     @property
@@ -30,7 +30,7 @@ class TorchDataset(Dataset):
     def __getitem__(self, index):
         if isinstance(index, int):
             image, target, idx_str = self.dataset[index]
-            image, target = self.transform(image, target.label_data)
+            image, target = self.transform(image, target)
             return image, target, idx_str
         else:
             return [self.transform(img, target) + (idx,) for img, target, idx in self.dataset[index]]

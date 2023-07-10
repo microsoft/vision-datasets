@@ -12,6 +12,22 @@ class ImageObjectDetectionLabelManifest(ImageLabelWithCategoryManifest):
     def category_id(self):
         return self.label_data[0]
 
+    @property
+    def left(self):
+        return self.label_data[1]
+
+    @property
+    def top(self):
+        return self.label_data[2]
+
+    @property
+    def right(self):
+        return self.label_data[3]
+
+    @property
+    def bottom(self):
+        return self.label_data[4]
+
     @category_id.setter
     def category_id(self, value):
         self._category_id_check(value)

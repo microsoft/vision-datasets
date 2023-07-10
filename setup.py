@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -21,11 +21,14 @@ setuptools.setup(name='vision_datasets',
                  packages=setuptools.find_packages(),
                  package_data={'': ['resources/*']},
                  install_requires=[
+                     'azure-identity',
+                     'azure-storage-blob',
                      'numpy>=1.18.3',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
                      'tqdm',
+                     'torch',
                      'matplotlib'
                  ],
                  classifiers=[

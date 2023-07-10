@@ -33,7 +33,7 @@ def main():
     assert args.local_dir is None, 'Accessing data from "local_dir" is not supported for now. Data must be present in blob_container.'
 
     data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
-    dataset_hub = DatasetHub(data_reg_json)
+    dataset_hub = DatasetHub(data_reg_json, args.blob_container, args.local_dir)
     dataset_info = dataset_hub.dataset_registry.get_dataset_info(args.name, args.version)
 
     if not dataset_info:
@@ -45,7 +45,7 @@ def main():
     coco_gen = CocoDictGeneratorFactory.create(dataset_info.type)
     file_reader = FileReader()
     for usage in usages:
-        manifest = dataset_hub.create_dataset_manifest(args.blob_container, None, args.name, version=1, usage=usage)
+        manifest = dataset_hub.create_dataset_manifest(args.name, version=1, usage=usage)
         if not manifest:
             logger.info(f'{usage} not exist. Skipping.')
             continue

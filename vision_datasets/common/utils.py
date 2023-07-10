@@ -59,8 +59,8 @@ def _construct_full_path_generator(dirs: List[str]):
     return full_path_func
 
 
-def _construct_full_url_generator(container_sas: str):
-    if not container_sas:
+def _construct_full_url_generator(container_url: str):
+    if not container_url:
         return unix_path
 
     def add_path_to_url(url, path_or_dir):
@@ -78,7 +78,7 @@ def _construct_full_url_generator(container_sas: str):
 
     def func(file_path):
         file_path = file_path.replace('.zip@', '/')  # cannot read from zip file with path targeting a url
-        return add_path_to_url(container_sas, file_path)
+        return add_path_to_url(container_url, file_path)
 
     return func
 
