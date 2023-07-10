@@ -132,7 +132,7 @@ def main():
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
 
         # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
-        dataset = dataset_hub.create_manifest_dataset(name=dataset_info.name, version=args.version, usage=usage, coordinates='absolute')
+        dataset = dataset_hub.create_vision_dataset(name=dataset_info.name, version=args.version, usage=usage, coordinates='absolute')
         if dataset:
             err_msg_file = pathlib.Path(f'{args.name}_{usage}_errors.txt')
             errors = []

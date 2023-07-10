@@ -146,7 +146,6 @@ class DatasetDownloader:
     def _download_file(self, url: str, filepath: pathlib.Path):
         logger.info(f'Downloading from {url} to {filepath.absolute()}.')
         with requests.get(url, stream=True, allow_redirects=True, timeout=60) as r:
-            if r.status_code > 200:
-                raise RuntimeError(f'Failed in downloading from {url}, status code {r.status_code}.')
+            r.raise_for_status()
             with open(filepath, 'wb') as f:
                 shutil.copyfileobj(r.raw, f, length=4194304)

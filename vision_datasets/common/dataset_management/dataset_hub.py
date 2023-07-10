@@ -38,8 +38,8 @@ class DatasetHub(object):
         self.container_url = container_url
         self.local_dir = local_dir
 
-    def create_manifest_dataset(self, name: str, version: int = None, usage: Union[str, List] = Usages.TRAIN, coordinates: str = 'relative',
-                                few_shot_samples_per_class=None, rnd_seed=0):
+    def create_vision_dataset(self, name: str, version: int = None, usage: Union[str, List] = Usages.TRAIN, coordinates: str = 'relative',
+                              few_shot_samples_per_class=None, rnd_seed=0):
         """Create manifest dataset.
 
             Note that for data stored in zipped files, they can be consumed locally without unzip. However, in blob they must be stored in unzipped folders. In this case image/label file paths can
@@ -106,12 +106,12 @@ class DatasetHub(object):
         for usage in usages:
             manifest_usage = DataManifestFactory.create(dataset_info, usage, self.local_dir or self.container_url)
             if manifest_usage is not None:
+                print(f"!! {usage}")
                 merger = ManifestMerger(ManifestMergeStrategyFactory.create(dataset_info.type))
                 manifest = merger.run(manifest, manifest_usage) if manifest else manifest_usage
 
             if downloader_resources_usage:
                 downloader_resources = DownloadedDatasetsResources.merge(downloader_resources, downloader_resources_usage) if downloader_resources else downloader_resources_usage
-
         if manifest is None:
             return None
 

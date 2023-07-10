@@ -48,7 +48,7 @@ def main():
             convert_to_tsv(dataset_manifest, pathlib.Path(args.local_dir) / f'{name}-{usage}.tsv')
     else:
         for usage in usages:
-            dataset_hub.create_manifest_dataset(name, usage=usage)
+            dataset_hub.create_vision_dataset(name, usage=usage)
 
 
 if __name__ == '__main__':

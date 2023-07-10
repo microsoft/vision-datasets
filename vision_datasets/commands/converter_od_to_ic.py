@@ -36,7 +36,7 @@ def process_usage(params):
 
     logger.info(f'download dataset manifest for {args.name}...')
     dataset_resources = DatasetHub(data_reg_json, args.blob_container, args.local_dir.as_posix())
-    dataset = dataset_resources.create_manifest_dataset(args.name, usage=usage, coordinates='absolute')
+    dataset = dataset_resources.create_vision_dataset(args.name, usage=usage, coordinates='absolute')
     if not dataset:
         logger.info(f'Skipping non-existent phase {usage}.')
         return
