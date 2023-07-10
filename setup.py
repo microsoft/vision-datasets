@@ -28,6 +28,7 @@ setuptools.setup(name='vision_datasets',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
                      'tqdm',
+                     'torch',
                      'matplotlib'
                  ],
                  classifiers=[
