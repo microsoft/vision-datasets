@@ -45,12 +45,11 @@ def main():
     coco_gen = CocoDictGeneratorFactory.create(dataset_info.type)
     file_reader = FileReader()
     for usage in usages:
-        manifest = dataset_hub.create_dataset_manifest(args.name, version=1, usage=usage)
-        if not manifest:
+        manifest, _, _ = dataset_hub.create_dataset_manifest(args.name, version=1, usage=usage)
+        if manifest is None:
             logger.info(f'{usage} not exist. Skipping.')
             continue
 
-        manifest = manifest[0]
         coco_dict = coco_gen.run(manifest)
         for image in tqdm(coco_dict['images'], f'{usage}: Processing images...'):
             image['coco_url'] = keep_base_url(image['file_name'])
