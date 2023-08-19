@@ -106,7 +106,6 @@ class DatasetHub(object):
         for usage in usages:
             manifest_usage = DataManifestFactory.create(dataset_info, usage, self.local_dir or self.container_url)
             if manifest_usage is not None:
-                print(f"!! {usage}")
                 merger = ManifestMerger(ManifestMergeStrategyFactory.create(dataset_info.type))
                 manifest = merger.run(manifest, manifest_usage) if manifest else manifest_usage
 
