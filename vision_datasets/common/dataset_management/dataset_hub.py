@@ -75,27 +75,26 @@ class DatasetHub(object):
         if not usage:
             raise ValueError
 
-        usages = usage if isinstance(usage, list) else [usage]
-
-        manifest = None
-        downloader_resources = None
         dataset_info = self.dataset_registry.get_dataset_info(name, version)
         if dataset_info is None:
             logger.warning(f'Dataset with {name} and version {version} not found.')
-            return None
+            return None, None, None
 
+        usages = usage if isinstance(usage, list) else [usage]        
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             for task_info in dataset_info.sub_task_infos.values():
                 task_info.index_files = {usage: task_info.index_files[usage] for usage in usages if usage in task_info.index_files}
         else:
             dataset_info.index_files = {usage: dataset_info.index_files[usage] for usage in usages if usage in dataset_info.index_files}
 
+        downloader_resources = None
         if self.container_url and self.local_dir:
             downloader = DatasetDownloader(self.container_url, self.dataset_registry.get_dataset_info(name, version))
             downloader_resources_usage = downloader.download(self.local_dir, usages)
         else:
             downloader_resources_usage = None
 
+        manifest = None
         for usage in usages:
             manifest_usage = DataManifestFactory.create(dataset_info, usage, self.local_dir or self.container_url)
             if manifest_usage is not None:
@@ -105,6 +104,7 @@ class DatasetHub(object):
             if downloader_resources_usage:
                 downloader_resources = DownloadedDatasetsResources.merge(downloader_resources, downloader_resources_usage) if downloader_resources else downloader_resources_usage
         if manifest is None:
+            logger.warning(f'Dataset with {name}, version {version}, and usage(s) {usages} not found.')
             return None, None, None
 
         return manifest, dataset_info, downloader_resources
