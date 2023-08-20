@@ -42,7 +42,7 @@ class Split(Operation):
         images = deepcopy(manifest.images)
         rng.shuffle(images)
 
-        return DatasetManifest(images[: first_cnt], deepcopy(manifest.categories), deepcopy(manifest.data_type)),\
+        return DatasetManifest(images[: first_cnt], deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
             DatasetManifest(images[first_cnt:], deepcopy(manifest.categories), deepcopy(manifest.data_type))
 
 

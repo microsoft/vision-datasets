@@ -32,7 +32,7 @@ def main():
     else:
         logger.info(f'{prefix} dataset found in registration file.')
 
-    vision_datasets = DatasetHub(data_reg_json, args.blob_container, args.local_dir.as_posix())
+    hub = DatasetHub(data_reg_json, args.blob_container, args.local_dir.as_posix())
     if args.blob_container and args.local_dir:
         args.local_dir.mkdir(parents=True, exist_ok=True)
 
@@ -40,12 +40,11 @@ def main():
         logger.info(f'{prefix} Check dataset with usage: {usage}.')
 
         # if args.local_dir is none, then this check will directly try to access data from azure blob. Images must be present in uncompressed folder on azure blob.
-        dataset_manifest = vision_datasets.create_dataset_manifest(name=dataset_info.name, version=args.version, usage=usage)
-        if dataset_manifest:
-            dataset_manifest = dataset_manifest[0]
-            convert_to_tsv(dataset_manifest, args.output_dir / f"{usage}.tsv")
-        else:
+        dataset_manifest, _, _ = hub.create_dataset_manifest(name=dataset_info.name, version=args.version, usage=usage)
+        if dataset_manifest is None:
             logger.info(f'{prefix} No split for {usage} available.')
+        else:
+            convert_to_tsv(dataset_manifest, args.output_dir / f"{usage}.tsv")
 
 
 if __name__ == '__main__':

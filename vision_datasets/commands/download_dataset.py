@@ -38,11 +38,9 @@ def main():
 
         logger.info(f'downloading {name}...')
         for usage in usages:
-            dataset_manifest = dataset_hub.create_dataset_manifest(name, usage=usage)
-            if not dataset_manifest:
+            dataset_manifest, _, _ = dataset_hub.create_dataset_manifest(name, usage=usage)
+            if dataset_manifest is None:
                 continue
-
-            dataset_manifest = dataset_manifest[0]
 
             logger.info(f'converting {name}, usage {usage} to TSV format...')
             convert_to_tsv(dataset_manifest, pathlib.Path(args.local_dir) / f'{name}-{usage}.tsv')
