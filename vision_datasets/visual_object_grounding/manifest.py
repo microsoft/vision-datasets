@@ -2,7 +2,7 @@ from typing import List
 from ..common import ImageLabelManifest
 
 
-class GroundingAnswer:
+class Grounding:
     def __init__(self, label_data: dict):
         self._label_data = label_data
 
@@ -17,18 +17,21 @@ class GroundingAnswer:
 
 class VisualObjectGroundingLabelManifest(ImageLabelManifest):
     """
-    {"question": "a question about the image",  "answer": [{"text": " in text", "bbox": [left, top, right, bottom]}, ...]}
+    {"question": "a question about the image",  "answer": "generic caption or answer to the question", "grounding": [{"text": "....", "bbox": [left, top, right, bottom]}, ...]}
     """
 
     def _read_label_data(self):
         raise NotImplementedError
 
     def _check_label(self, label_data):
-        if label_data is None or "question" not in label_data or "answer" not in label_data:
+        def is_present(key):
+            return key in label_data and label_data[key] is not None
+
+        if label_data is None or any(not is_present(key) for key in ['question', 'answer', 'grounding']):
             raise ValueError
 
-        for ans in label_data["answer"]:
-            if "text" not in ans or "bbox" not in ans or len(ans['bbox']) != 4:
+        for grounding in label_data["grounding"]:
+            if "text" not in grounding or "bbox" not in grounding or len(grounding['bbox']) != 4:
                 raise ValueError
 
     @property
@@ -36,5 +39,9 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
         return self._label_data["question"]
 
     @property
-    def answer(self) -> List[GroundingAnswer]:
-        return [GroundingAnswer(x) for x in self._label_data["answer"]]
+    def answer(self) -> str:
+        return self._label_data["answer"]
+
+    @property
+    def grounding(self) -> List[Grounding]:
+        return [Grounding(x) for x in self._label_data["grounding"]]

@@ -315,8 +315,19 @@ class VisualObjectGroundingTestCases:
                 {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
             ],
             "annotations": [
-                {"image_id": 1, "id": 1, "question": "where are the apples", "answer": [{"text": "left top corner", "bbox": [0, 10, 10, 10]}]},
-                {"image_id": 2, "id": 2, "question": "where are the banana", "answer": [{"text": "right bottom corner", "bbox": [90, 90, 10, 10]}]},
+                {
+                    "image_id": 1,
+                    "id": 1,
+                    "question": "where are the apples",
+                    "answer": "who knows",
+                    "grounding": [{"text": "left top corner", "bbox": [0, 10, 10, 10]}]},
+                {
+                    "image_id": 2,
+                    "id": 2,
+                    "question": "where are the banana",
+                    "answer": "check the grounding",
+                    "grounding": [{"text": "right bottom corner", "bbox": [90, 90, 10, 10]}]
+                },
             ]
         },
         {
@@ -324,9 +335,26 @@ class VisualObjectGroundingTestCases:
                 {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}, {"id": 3, "file_name": "test2.zip@test/1/image_3.jpg"}
             ],
             "annotations": [
-                {"image_id": 1, "id": 1, "question": "Describe the image", "answer": [{"text": "left top corner", "bbox": [0, 10, 10, 10]}, {"text": "right bottom corner", "bbox": [90, 90, 10, 10]}]},
-                {"image_id": 2, "id": 2, "question": "where is an banana", "answer": [{"text": "mid of the image", "bbox": [50, 50, 10, 10]}]},
-                {"image_id": 2, "id": 3, "question": "describe the top half of the image", "answer": [{"text": "Sun rise", "bbox": [0, 0, 100, 50]}]},
+                {
+                    "image_id": 1,
+                    "id": 1,
+                    "question": "Describe the image",
+                    "answer": "many books",
+                    "grounding": [{"text": "20 books", "bbox": [0, 10, 10, 10]}, {"text": "10 books", "bbox": [90, 90, 10, 10]}]},
+                {
+                    "image_id": 2,
+                    "id": 2,
+                    "question": "where is an banana",
+                    "answer": "present in the image",
+                    "grounding": [{"text": "mid of the image", "bbox": [50, 50, 10, 10]}]
+                },
+                {
+                    "image_id": 2,
+                    "id": 3,
+                    "question": "describe the top half of the image",
+                    "answer": "ok",
+                    "grounding": [{"text": "Sun rise", "bbox": [0, 0, 100, 50]}]
+                },
             ]
         }
     ]

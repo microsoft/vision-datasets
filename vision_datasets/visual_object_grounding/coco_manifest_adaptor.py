@@ -8,5 +8,5 @@ class VisualObjectGroundingCocoManifestAdaptor(CocoManifestWithoutCategoriesAdap
         super().__init__(DatasetTypes.VISUAL_OBJECT_GROUNDING)
 
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
-        image.labels.append(VisualObjectGroundingLabelManifest({"question": annotation['question'], "answer": annotation['answer']},
-                                                               additional_info=self._get_additional_info(annotation, {'id', 'question', 'answer'})))
+        image.labels.append(VisualObjectGroundingLabelManifest({'question': annotation['question'], 'answer': annotation['answer'], 'grounding': annotation['grounding']},
+                                                               additional_info=self._get_additional_info(annotation, {'id', 'question', 'answer', 'grounding'})))

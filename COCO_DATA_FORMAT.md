@@ -139,8 +139,8 @@ This is Visual Question & Answering with bboxes in the groundtruth.
         {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
     ],
     "annotations": [
-        {"image_id": 1, "id": 1, "question": "whats animal are in the image?", "answer": [{"text": "a cat", "bbox": [10, 10, 100, 100]}, {"text": "a bird", "bbox": [15, 15, 30, 30]}]},
-        {"image_id": 2, "id": 2, "question": "What is the title of the book on the shelf?",  "answer": [{"text": "a cat", "bbox": [10, 10, 100, 100]}]}
+        {"image_id": 1, "id": 1, "question": "whats animal are in the image?", "answer": "cat and bird", "grounding": [{"text": "a cat", "bbox": [10, 10, 100, 100]}, {"text": "a bird", "bbox": [15, 15, 30, 30]}]},
+        {"image_id": 2, "id": 2, "question": "What is the title and auther of the book on the shelf?", "answer": "Tile is baking and auther is John", : [{"text": "Title: Baking", "bbox": [10, 10, 100, 100]}, {"text": "Author: John", "bbox": [0, 0, 50, 50]}]}
     ]
 }
 ```
