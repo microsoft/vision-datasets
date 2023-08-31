@@ -12,6 +12,8 @@ class DatasetTypes(Enum):
     # types below will be consolidated with image text matching in future
     IMAGE_CAPTION = 8
     TEXT_2_IMAGE_RETRIEVAL = 9
+    VISUAL_QUESTION_ANSWERING = 10
+    VISUAL_OBJECT_GROUNDING = 11
 
 
 class Usages(Enum):

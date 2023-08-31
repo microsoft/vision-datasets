@@ -108,6 +108,44 @@ Specifically, **only** image files are supported for the label files. The ground
 }
 ```
 
+
+## Visual Question Answering
+
+This data kind represents the problem where one asks a question about an image and a grounth  is associated.
+
+```json
+{
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
+        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "annotations": [
+        {"image_id": 1, "id": 1, "question": "what animal is in the image?", "answer": "a cat"},
+        {"image_id": 2, "id": 2, "query": "What is the title of the book on the shelf?", "answer": "How to make bread"}
+    ]
+}
+```
+
+
+## Visual Object Grounding
+
+This is Visual Question & Answering with bboxes in the groundtruth.
+
+
+```json
+{
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
+        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "annotations": [
+        {"image_id": 1, "id": 1, "question": "whats animal are in the image?", "answer": [{"text": "a cat", "bbox": [10, 10, 100, 100]}, {"text": "a bird", "bbox": [15, 15, 30, 30]}]},
+        {"image_id": 2, "id": 2, "question": "What is the title of the book on the shelf?",  "answer": [{"text": "a cat", "bbox": [10, 10, 100, 100]}]}
+    ]
+}
+```
+
+
 ## Image regression
 
 Here is one example of the json file for the image regression task, where the "target" in the "annotations" field is a real-valued number (e.g. a score, an age, etc.). Note that each image should only have one regression target (i.e. there should be exactly one annotation for each image).

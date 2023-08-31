@@ -6,10 +6,11 @@ from vision_datasets.common import DatasetTypes, ManifestMerger, ManifestMergeSt
 
 from ..resources.util import TYPES_WITH_CATEGORIES, coco_database, coco_dict_to_manifest
 
+DATA_TYPES = [x for x in ManifestMergeStrategyFactory.list_data_types() if x != DatasetTypes.MULTITASK]
+
 
 class TestMergeManifest:
-    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DatasetTypes
-                                                       if data_type != DatasetTypes.MULTITASK and data_type not in TYPES_WITH_CATEGORIES])
+    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DATA_TYPES if data_type not in TYPES_WITH_CATEGORIES])
     def test_merge_data_manifest_single_task_without_categories(self, data_type, coco_dicts):
         coco_dict_1, coco_dict_2 = coco_dicts[0], coco_dicts[-1]
         manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)

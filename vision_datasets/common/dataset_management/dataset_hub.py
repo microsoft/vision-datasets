@@ -80,7 +80,7 @@ class DatasetHub(object):
             logger.warning(f'Dataset with {name} and version {version} not found.')
             return None, None, None
 
-        usages = usage if isinstance(usage, list) else [usage]        
+        usages = usage if isinstance(usage, list) else [usage]
         if isinstance(dataset_info, MultiTaskDatasetInfo):
             for task_info in dataset_info.sub_task_infos.values():
                 task_info.index_files = {usage: task_info.index_files[usage] for usage in usages if usage in task_info.index_files}

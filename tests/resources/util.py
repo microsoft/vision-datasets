@@ -284,6 +284,54 @@ class Text2ImageRetrievalTestCases:
     ]
 
 
+class VisualQuestionAnsweringTestCases:
+    manifest_dicts = [
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "question": "what is an apple", "answer": "a kind of fruit"},
+                {"image_id": 2, "id": 2, "question": "is apple better than banana", "answer": "no idea"},
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}, {"id": 3, "file_name": "test2.zip@test/1/image_3.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "question": "what is apple", "answer": "a kind of fruit"},
+                {"image_id": 2, "id": 2, "question": "is apple better than banana", "answer": "no idea"},
+                {"image_id": 2, "id": 3, "question": "is banana better than apple", "answer": "stop"},
+            ]
+        }
+    ]
+
+
+class VisualObjectGroundingTestCases:
+    manifest_dicts = [
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "question": "where are the apples", "answer": [{"text": "left top corner", "bbox": [0, 10, 10, 10]}]},
+                {"image_id": 2, "id": 2, "question": "where are the banana", "answer": [{"text": "right bottom corner", "bbox": [90, 90, 10, 10]}]},
+            ]
+        },
+        {
+            "images": [
+                {"id": 1, "file_name": "test1.zip@test/0/image_1.jpg"}, {"id": 2, "file_name": "test2.zip@test/1/image_2.jpg"}, {"id": 3, "file_name": "test2.zip@test/1/image_3.jpg"}
+            ],
+            "annotations": [
+                {"image_id": 1, "id": 1, "question": "Describe the image", "answer": [{"text": "left top corner", "bbox": [0, 10, 10, 10]}, {"text": "right bottom corner", "bbox": [90, 90, 10, 10]}]},
+                {"image_id": 2, "id": 2, "question": "where is an banana", "answer": [{"text": "mid of the image", "bbox": [50, 50, 10, 10]}]},
+                {"image_id": 2, "id": 3, "question": "describe the top half of the image", "answer": [{"text": "Sun rise", "bbox": [0, 0, 100, 50]}]},
+            ]
+        }
+    ]
+
+
 # Database for valid coco dicts per task
 coco_database = {
     DatasetTypes.IMAGE_CAPTION: ImageCaptionTestCases.manifest_dicts,
@@ -294,6 +342,8 @@ coco_database = {
     DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL: MultiLabelClassificationTestCases.manifest_dicts,
     DatasetTypes.IMAGE_OBJECT_DETECTION: ObjectDetectionTestCases.manifest_dicts,
     DatasetTypes.TEXT_2_IMAGE_RETRIEVAL: Text2ImageRetrievalTestCases.manifest_dicts,
+    DatasetTypes.VISUAL_QUESTION_ANSWERING: VisualQuestionAnsweringTestCases.manifest_dicts,
+    DatasetTypes.VISUAL_OBJECT_GROUNDING: VisualObjectGroundingTestCases.manifest_dicts,
 }
 
 
