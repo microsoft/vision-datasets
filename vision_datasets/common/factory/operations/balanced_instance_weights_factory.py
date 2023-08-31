@@ -27,4 +27,3 @@ class BalancedInstanceWeightsFactory:
     @classmethod
     def list_data_types(cls) -> typing.Iterable[DatasetTypes]:
         return list(cls._mapping.keys())
-    
