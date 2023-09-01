@@ -43,7 +43,7 @@ def check_images(dataset: VisionDataset):
     file_not_found_list = []
     for i in tqdm(range(len(dataset)), 'Checking image access..'):
         try:
-            _ = dataset[i]
+            dataset[i]
         except (KeyError, FileNotFoundError) as e:
             file_not_found_list.append(str(e))
 

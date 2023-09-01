@@ -95,7 +95,7 @@ Here is one example of the json file for image matting task. The "label" in the 
 - a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
 - a url to the label file
 
-Specifically, **only** image files are supported for the label files. The ground turth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
+Specifically, **only** image files are supported for the label files. The ground truth image should be one channel image (i.e. `PIL.Image` mode "L", instead of "RGB") that has the same width and height with the image file. Refer to the images in [tests/image_matting_test_data.zip](tests/image_matting_test_data.zip) as an example.
 
 ```json
 {
@@ -107,6 +107,67 @@ Specifically, **only** image files are supported for the label files. The ground
     ]
 }
 ```
+
+
+## Visual Question Answering
+
+VQA represents the problem where one asks a question about an image and a ground truth answer is associated.
+
+```json
+{
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
+        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "annotations": [
+        {"image_id": 1, "id": 1, "question": "what animal is in the image?", "answer": "a cat"},
+        {"image_id": 2, "id": 2, "question": "What is the title of the book on the shelf?", "answer": "How to make bread"}
+    ]
+}
+```
+
+
+## Visual Object Grounding
+
+Visual Object Grounding is a problem where a text query/question about an image is provided, and an answer/caption about the image along with the most relevant grounding(s) are returned.
+
+A grounding is composed of three parts:
+- `bbox`: bounding box around the region of interest, same with object detection task
+- `text`: description about the region
+- `text_span`: two ints (start-inclusive, end-exclusive), indicating the section of text that the region is relevant to in the answer/caption
+
+
+```json
+{
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg"},
+        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "annotations": [
+        {
+            "image_id": 1,
+            "id": 1,
+            "question": "whats animal are in the image?",
+            "answer": "cat and bird",
+            "grounding": [
+                {"text": "a cat", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
+                {"text": "a bird", "text_span": [3, 4], "bbox": [15, 15, 30, 30]}
+            ]
+        },
+        {
+            "image_id": 2,
+            "id": 2,
+            "question": "What is the title and auther of the book on the shelf?",
+            "answer": "Tile is baking and auther is John",
+            "grounding": [
+                {"text": "Title: Baking", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
+                {"text": "Author: John", "text_span": [3, 4], "bbox": [0, 0, 50, 50]}
+            ]
+        }
+    ]
+}
+```
+
 
 ## Image regression
 

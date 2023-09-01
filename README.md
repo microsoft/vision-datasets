@@ -18,6 +18,8 @@ Currently, seven `basic` types of data are supported:
 - `image_regression`: each image is labeled with a real-valued numeric regression target.
 - `image_caption`: each image is labeled with a few texts describing the images.
 - `text_2_image_retrieval`: each image is labeled with a number of text queries describing the image. Optionally, an image is associated with one label.
+- `visual_question_answering`: each image is labeled with a number of question-answer pairs
+- `visual_object_grounding`: each image is labeled with a number of question-answer-bboxes triplets.
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 

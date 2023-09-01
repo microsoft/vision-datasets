@@ -1,3 +1,4 @@
+import typing
 from ...constants import DatasetTypes
 from ...data_manifest import BalancedInstanceWeightsGenerator, WeightsGenerationConfig
 from .supported_operations_by_data_type import SupportedOperationsByDataType
@@ -22,3 +23,7 @@ class BalancedInstanceWeightsFactory:
     def create(cls, data_type: DatasetTypes, config: WeightsGenerationConfig, *args, **kwargs) -> BalancedInstanceWeightsGenerator:
 
         return cls._mapping[data_type](config, *args, **kwargs)
+
+    @classmethod
+    def list_data_types(cls) -> typing.Iterable[DatasetTypes]:
+        return list(cls._mapping.keys())
