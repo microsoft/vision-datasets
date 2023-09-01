@@ -21,8 +21,7 @@ class Grounding:
 
         start = label_data['text_span'][0]
         end = label_data['text_span'][1]
-        text = label_data['text']
-        if start < 0 or end < 0 or start > end or start > len(text) or end > len(text):
+        if start < 0 or end < 0 or start >= end or start >= answer_len or end >= answer_len:
             raise ValueError
 
     @property
@@ -55,8 +54,8 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
         raise NotImplementedError
 
     def _check_label(self, label_data):
-        if not label_data or any(label_data.get(key, None) is None for key in ['id', 'text_span', 'text', 'bbox']):
-            raise ValueError
+        if not label_data or any(label_data.get(key, None) is None for key in ['question', 'answer', 'grounding']):
+            raise ValueError(str(label_data.keys()))
 
         for grounding in label_data["grounding"]:
             Grounding.check_label(grounding, len(label_data["answer"]))
