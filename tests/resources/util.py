@@ -340,20 +340,26 @@ class VisualObjectGroundingTestCases:
                     "id": 1,
                     "question": "Describe the image",
                     "answer": "many books",
-                    "grounding": [{"text": "20 books", "bbox": [0, 10, 10, 10]}, {"text": "10 books", "bbox": [90, 90, 10, 10]}]},
+                    "grounding": [
+                            {"text": "20 books", "text_span": [0, 1], "bbox": [0, 10, 10, 10]},
+                            {"text": "10 books", "text_span": [2, 4], "bbox": [90, 90, 10, 10]}
+                    ]
+                },
                 {
                     "image_id": 2,
                     "id": 2,
                     "question": "where is an banana",
                     "answer": "present in the image",
-                    "grounding": [{"text": "mid of the image", "bbox": [50, 50, 10, 10]}]
+                    "grounding": [
+                        {"text": "mid of the image", "text_span": [0, 4], "bbox": [50, 50, 10, 10]}
+                    ]
                 },
                 {
                     "image_id": 2,
                     "id": 3,
                     "question": "describe the top half of the image",
                     "answer": "ok",
-                    "grounding": [{"text": "Sun rise", "bbox": [0, 0, 100, 50]}]
+                    "grounding": [{"text": "Sun rise", "text_span": [0, 1], "bbox": [0, 0, 100, 50]}]
                 },
             ]
         }

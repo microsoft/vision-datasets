@@ -3,7 +3,7 @@ from ..common import ImageLabelManifest
 
 class VisualQuestionAnsweringLabelManifest(ImageLabelManifest):
     """
-    {"question": "a question about the image",  "answer": " answer to the question"}: where text is str, and match in [0, 1]
+    {"question": "a question about the image",  "answer": "answer to the question"}
     """
 
     def _read_label_data(self):
