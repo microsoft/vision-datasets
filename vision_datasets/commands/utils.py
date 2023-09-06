@@ -29,18 +29,21 @@ TSV_FORMAT_LTWH_NORM = 'ltwh-normalized'
 
 
 class Base64Utils:
+    @staticmethod
     def b64_str_to_pil(img_b64_str: str):
         assert img_b64_str
 
         return PILImageLoader.load_from_stream(io.BytesIO(base64.b64decode(img_b64_str)))
 
-    def file_to_b64_str(filepath: pathlib.Path):
+    @staticmethod
+    def file_to_b64_str(filepath: pathlib.Path, file_reader=None):
         assert filepath
 
-        fr = FileReader()
+        fr = file_reader or FileReader()
         with fr.open(filepath.as_posix(), "rb") as file_in:
             return base64.b64encode(file_in.read()).decode('utf-8')
 
+    @staticmethod
     def b64_str_to_file(b64_str: str, file_name: Union[pathlib.Path, str]):
         assert b64_str
         assert file_name
@@ -138,7 +141,7 @@ def generate_reg_json(name, type, coco_path):
     return json.dumps(data_info)
 
 
-def convert_to_tsv(manifest: DatasetManifest, file_path):
+def convert_to_tsv(manifest: DatasetManifest, file_path: Union[str, pathlib.Path]):
     with open(file_path, 'w', encoding='utf-8') as file_out:
         for img in tqdm(manifest.images, desc=f'Writing to {file_path}'):
             converted_labels = []
@@ -159,6 +162,19 @@ def convert_to_tsv(manifest: DatasetManifest, file_path):
 
             b64img = Base64Utils.file_to_b64_str(pathlib.Path(img.img_path))
             file_out.write(f'{img.id}\t{json.dumps(converted_labels, ensure_ascii=False)}\t{b64img}\n')
+
+
+def convert_to_jsonl(manifest: DatasetManifest, file_path: Union[str, pathlib.Path]):
+    file_reader = FileReader()
+    with open(file_path, 'w', encoding='utf-8') as file_out:
+        for img in tqdm(manifest.images, desc=f'Writing to {file_path}.'):
+            img_dict = {
+                'id': img.id,
+                'labels': img.labels,
+                'image': Base64Utils.file_to_b64_str(pathlib.Path(img.img_path), file_reader=file_reader)
+            }
+
+            file_out.write(json.dumps(img_dict, ensure_ascii=False) + '\n')
 
 
 def guess_encoding(tsv_file):
