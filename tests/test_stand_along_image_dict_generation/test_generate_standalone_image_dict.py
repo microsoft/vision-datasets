@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch
 
-from vision_datasets.common import StandAloneImageDictsGeneratorFactory, Base64Utils, DatasetTypes
+from vision_datasets.common import StandAloneImageListGeneratorFactory, Base64Utils, DatasetTypes
 
 from ..resources.util import coco_database, coco_dict_to_manifest
 
-DATASET_TYPES = StandAloneImageDictsGeneratorFactory.list_data_types()
+DATASET_TYPES = StandAloneImageListGeneratorFactory.list_data_types()
 
 
 class TestManifestToStandAloneImageDict:
@@ -22,7 +22,7 @@ class TestManifestToStandAloneImageDict:
     def _test_manifest_to_standalone_image_dict_flattened(self, coco_dict, task, flatten, expected_num_items, custom_check=lambda _: True):
         manifest = coco_dict_to_manifest(task, coco_dict)
         with patch.object(Base64Utils, 'file_to_b64_str', return_value="b64string") as mocked_method:
-            coco_generator = StandAloneImageDictsGeneratorFactory.create(task, flatten)
+            coco_generator = StandAloneImageListGeneratorFactory.create(task, flatten)
             n_items = 0
             for item in coco_generator.run(manifest):
                 assert item['image'] == "b64string"

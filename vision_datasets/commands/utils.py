@@ -11,7 +11,7 @@ from typing import Union
 from tqdm import tqdm
 
 from vision_datasets import DatasetManifest, DatasetTypes, Usages
-from vision_datasets.common import StandAloneImageDictsGeneratorFactory, Base64Utils
+from vision_datasets.common import StandAloneImageListGeneratorFactory, Base64Utils
 
 
 def set_up_cmd_logger(name):
@@ -140,7 +140,7 @@ def convert_to_tsv(manifest: DatasetManifest, file_path: Union[str, pathlib.Path
 
 
 def convert_to_jsonl(manifest: DatasetManifest, file_path: Union[str, pathlib.Path], flatten=True):
-    generator = StandAloneImageDictsGeneratorFactory.create(manifest.data_type, flatten=flatten)
+    generator = StandAloneImageListGeneratorFactory.create(manifest.data_type, flatten=flatten)
     with open(file_path, 'w', encoding='utf-8') as file_out:
         for item in tqdm(generator.run(manifest), desc=f'Writing to {file_path}.'):
             file_out.write(json.dumps(item, ensure_ascii=False) + '\n')

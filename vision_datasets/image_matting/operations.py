@@ -1,5 +1,5 @@
 from ..common import DatasetTypes, GenerateCocoDictBase, DatasetManifest, ImageDataManifest, ImageLabelManifest, SampleByNumSamples, SampleStrategyType, SingleTaskMerge, Spawn, Split, \
-    CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, FileReader
+    CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, FileReader
 from ..common.base64_utils import Base64Utils
 _DATA_TYPE = DatasetTypes.IMAGE_MATTING
 
@@ -18,8 +18,8 @@ SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
 
 
-@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
-class ImageMattingStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+@StandAloneImageListGeneratorFactory.register(_DATA_TYPE)
+class ImageMattingStandAloneImageListGenerator(GenerateStandAloneImageListBase):
     def __init__(self, flatten: bool) -> None:
         super().__init__(flatten)
 

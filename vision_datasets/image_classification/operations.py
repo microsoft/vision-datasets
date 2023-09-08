@@ -1,6 +1,6 @@
 from ..common import DatasetTypes, BalancedInstanceWeightsGenerator, GenerateCocoDictBase, SampleByNumSamples, SampleFewShot, SampleStrategyType, SingleTaskMerge, Spawn, \
     SplitWithCategories, BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, \
-    StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, DatasetManifest, ImageDataManifest
+    StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, DatasetManifest, ImageDataManifest
 from .manifest import ImageClassificationLabelManifest
 
 
@@ -32,8 +32,8 @@ SplitFactory.direct_register(SplitWithCategories, DatasetTypes.IMAGE_CLASSIFICAT
 SplitFactory.direct_register(SplitWithCategories, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
 
 
-@StandAloneImageDictsGeneratorFactory.register(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS)
-@StandAloneImageDictsGeneratorFactory.register(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
-class ImageClassificationStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+@StandAloneImageListGeneratorFactory.register(DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS)
+@StandAloneImageListGeneratorFactory.register(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL)
+class ImageClassificationStandAloneImageListGenerator(GenerateStandAloneImageListBase):
     def _generate_label(self, label: ImageClassificationLabelManifest, image: ImageDataManifest, manifest: DatasetManifest):
         return {'category_name': manifest.categories[label.category_id]}

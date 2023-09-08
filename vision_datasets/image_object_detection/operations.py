@@ -1,6 +1,6 @@
 from ..common import DatasetTypes, BalancedInstanceWeightsGenerator, GenerateCocoDictBase, SampleByNumSamples, SampleFewShot, SampleStrategyType, \
     SingleTaskMerge, Spawn, Split, BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, \
-    SpawnFactory, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, \
+    SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
     ImageDataManifest, DatasetManifest
 from .manifest import ImageObjectDetectionLabelManifest
 
@@ -28,7 +28,7 @@ SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
 
 
-@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
-class ImageObjectDetectionStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+@StandAloneImageListGeneratorFactory.register(_DATA_TYPE)
+class ImageObjectDetectionStandAloneImageListGenerator(GenerateStandAloneImageListBase):
     def _generate_label(self, label: ImageObjectDetectionLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
         return {'category_name': manifest.categories[label.category_id], 'bbox': label.label_data[1:]}

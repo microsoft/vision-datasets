@@ -1,5 +1,5 @@
 from ..common import DatasetTypes, GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleStrategyType, SingleTaskMerge, Spawn, Split, CocoDictGeneratorFactory, \
-    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, \
+    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
     ImageDataManifest, DatasetManifest
 from .manifest import ImageTextMatchingLabelManifest
 _DATA_TYPE = DatasetTypes.IMAGE_TEXT_MATCHING
@@ -20,7 +20,7 @@ SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
 
 
-@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
-class ImageTextMatchingStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+@StandAloneImageListGeneratorFactory.register(_DATA_TYPE)
+class ImageTextMatchingStandAloneImageListGenerator(GenerateStandAloneImageListBase):
     def _generate_label(self, label: ImageTextMatchingLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
         return {'text': label.text, 'match': label.match}

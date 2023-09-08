@@ -4,7 +4,7 @@ from ...data_manifest import GenerateCocoDictBase
 from .supported_operations_by_data_type import SupportedOperationsByDataType
 
 
-class StandAloneImageDictsGeneratorFactory:
+class StandAloneImageListGeneratorFactory:
     _mapping = {}
 
     @classmethod
@@ -16,7 +16,7 @@ class StandAloneImageDictsGeneratorFactory:
     @classmethod
     def register(cls, data_type: DatasetTypes):
         def decorator(klass):
-            return StandAloneImageDictsGeneratorFactory.direct_register(klass, data_type)
+            return StandAloneImageListGeneratorFactory.direct_register(klass, data_type)
         return decorator
 
     @classmethod

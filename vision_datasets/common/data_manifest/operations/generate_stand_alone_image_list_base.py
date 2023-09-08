@@ -8,9 +8,9 @@ from ..data_manifest import DatasetManifest, ImageDataManifest, ImageLabelManife
 from .operation import Operation
 
 
-class GenerateStandAloneImageDictsBase(Operation):
+class GenerateStandAloneImageListBase(Operation):
     """
-    Base class for generating an image oriented dictonary that is self-contained
+    Base class for generating an image oriented dictonary where each entry contains all information about the image including the image data, annotation, etc...
     """
 
     def __init__(self, flatten: bool) -> None:
