@@ -150,8 +150,8 @@ A grounding is composed of three parts:
             "question": "whats animal are in the image?",
             "answer": "cat and bird",
             "groundings": [
-                {"text": "a cat", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
-                {"text": "a bird", "text_span": [3, 4], "bbox": [15, 15, 30, 30]}
+                {"text": "a cat", "text_span": [0, 2], "bboxes": [[10, 10, 100, 100], [15, 15, 100, 100]]},
+                {"text": "a bird", "text_span": [3, 4], "bboxes": [[15, 15, 30, 30], [0, 10, 20, 20]]}
             ]
         },
         {
@@ -160,8 +160,8 @@ A grounding is composed of three parts:
             "question": "What is the title and auther of the book on the shelf?",
             "answer": "Tile is baking and auther is John",
             "groundings": [
-                {"text": "Title: Baking", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
-                {"text": "Author: John", "text_span": [3, 4], "bbox": [0, 0, 50, 50]}
+                {"text": "Title: Baking", "text_span": [0, 2], "bboxes": [[10, 10, 100, 100]]},
+                {"text": "Author: John", "text_span": [3, 4], "bboxes": [[0, 0, 50, 50], [15, 15, 25, 25]]}
             ]
         }
     ]

@@ -18,19 +18,19 @@ class LineFormat(Enum):
     TSV = 'tsv'
 
 
-def logging_prefix(dataset_name, version):
-    return f'Dataset convert to TSV {dataset_name}, version {version}: '
+def logging_prefix(dataset_name, version, format):
+    return f'Dataset {dataset_name} version {version}, convert to {format}:'
 
 
 def main():
-    parser = argparse.ArgumentParser('Convert a dataset to TSV(s)')
+    parser = argparse.ArgumentParser('Convert a dataset to TSV(s) or JONSL(s).')
     add_args_to_locate_dataset(parser)
     parser.add_argument('--format', '-fm', type=enum_type(LineFormat), default=LineFormat.JSONL, help='Format of output data.', choices=list(LineFormat), required=False)
-    parser.add_argument('--flatten', '-fl', action='store_true', help="If an image has multiple annotations, one image will be flattend in to multiple entries with image being deuplicated.")
+    parser.add_argument('--flatten', '-fl', action='store_true', help="If an image has multiple annotations, one image will be flattend in to multiple entries with image being duplicated.")
     parser.add_argument('--output_dir', '-o', type=pathlib.Path, required=False, default=pathlib.Path('./'), help='File(s) will be saved here.')
 
     args = parser.parse_args()
-    prefix = logging_prefix(args.name, args.version)
+    prefix = logging_prefix(args.name, args.version, args.format)
 
     data_reg_json, usages = get_or_generate_data_reg_json_and_usages(args)
 

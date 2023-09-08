@@ -10,11 +10,12 @@ class Grounding:
 
     @staticmethod
     def check_label(label_data, answer_len):
-        if not label_data or any(label_data.get(key) is None for key in ['id', 'text_span', 'text', 'bbox']):
+        if not label_data or any(label_data.get(key) is None for key in ['id', 'text_span', 'text', 'bboxes']):
             raise ValueError
 
-        if len(label_data['bbox']) != 4:
-            raise ValueError
+        for bbox in label_data['bboxes']:
+            if len(bbox) != 4:
+                raise ValueError
 
         if len(label_data['text_span']) != 2:
             raise ValueError
@@ -37,8 +38,8 @@ class Grounding:
         return self._label_data['text']
 
     @property
-    def bbox(self) -> List[Union[int, float]]:
-        return self._label_data['bbox']
+    def bboxes(self) -> List[List[Union[int, float]]]:
+        return self._label_data['bboxes']
 
 
 class VisualObjectGroundingLabelManifest(ImageLabelManifest):
@@ -46,7 +47,7 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
     {
         "question": "a question about the image",
         "answer": "generic caption or answer to the question",
-        "groundings": [{"text": "....", "text_span": [start, end], "bbox": [left, top, right, bottom]}, ...]
+        "groundings": [{"text": "....", "text_span": [start, end], "bboxes": [[left, top, right, bottom], ...]}, ...]
     }
     """
 
