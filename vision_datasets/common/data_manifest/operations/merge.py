@@ -2,6 +2,7 @@ import abc
 import copy
 import logging
 
+from ....common.utils import deep_merge
 from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest
 from .operation import Operation
 
@@ -60,7 +61,8 @@ class SingleTaskMerge(MergeStrategy):
                         label.category_id = category_name_to_idx[manifest.categories[label.category_id].name]
                 images.append(new_image)
 
-        return DatasetManifest(images, categories, copy.deepcopy(data_type))
+        additional_info = deep_merge([x.additional_info for x in args])
+        return DatasetManifest(images, categories, copy.deepcopy(data_type), additional_info)
 
     def check(self, *args: DatasetManifest):
         super().check(*args)

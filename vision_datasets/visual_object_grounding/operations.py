@@ -1,6 +1,7 @@
 from ..common import DatasetTypes, GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleStrategyType, SingleTaskMerge, Spawn, Split, CocoDictGeneratorFactory, \
-    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
-
+    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, \
+    ImageDataManifest, DatasetManifest
+from .manifest import VisualObjectGroundingLabelManifest
 _DATA_TYPE = DatasetTypes.VISUAL_OBJECT_GROUNDING
 
 
@@ -18,3 +19,9 @@ SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStra
 
 SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
+
+
+@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
+class Text2ImageRetrievalStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+    def _generate_label(self, label: VisualObjectGroundingLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
+        return {'question': label.question, 'answer': label.answer, 'groundings': label.label_data['groundings']}

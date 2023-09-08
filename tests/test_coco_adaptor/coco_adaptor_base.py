@@ -17,6 +17,14 @@ class BaseCocoAdaptor:
             ann['ann_field_1'] = 1
             ann['ann_field_2'] = 2
 
+        if 'categories' in coco_dict:
+            for cat in coco_dict['categories']:
+                cat['cat_field_1'] = 1
+                cat['cat_field_2'] = 2
+
+        coco_dict['dataset_field_1'] = 1
+        coco_dict['dataset_field_2'] = 2
+
         manifest = coco_dict_to_manifest(self.TASK, coco_dict)
         self.check(manifest, coco_dict)
         for img in manifest.images:
@@ -25,6 +33,14 @@ class BaseCocoAdaptor:
             for ann in img.labels:
                 assert ann.additional_info.get('ann_field_1') == 1
                 assert ann.additional_info.get('ann_field_2') == 2
+
+        if 'categories' in coco_dict:
+            for cat in manifest.categories:
+                assert cat.additional_info.get('cat_field_1') == 1
+                assert cat.additional_info.get('cat_field_2') == 2
+
+        assert manifest.additional_info.get('dataset_field_1') == 1
+        assert manifest.additional_info.get('dataset_field_2') == 2
 
     def check(self, manifest, coco_dict):
         assert len(manifest.images) == len(coco_dict['images'])

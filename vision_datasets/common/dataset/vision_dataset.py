@@ -194,7 +194,9 @@ class LocalFolderCacheDecorator(BaseDataset):
             image = ImageDataManifest(len(images) + 1, str(self._paths[idx].as_posix()), width, height, labels)
             images.append(image)
 
-        return DatasetManifest(images, self.categories, self._dataset.dataset_info.type)
+        manifest = getattr(self._dataset, "dataset_manifest", None)
+        additional_info = None if manifest is None else manifest.additional_info
+        return DatasetManifest(images, self.categories, self._dataset.dataset_info.type, additional_info)
 
     def close(self):
         self._dataset.close()

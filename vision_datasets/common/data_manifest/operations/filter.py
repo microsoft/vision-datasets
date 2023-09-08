@@ -25,7 +25,8 @@ class DatasetFilter(Operation):
         manifest = args[0]
         return DatasetManifest(copy.deepcopy([x for x in manifest.images if not self.image_filter.should_be_filtered(x, manifest)]),
                                copy.deepcopy(manifest.categories),
-                               copy.deepcopy(manifest.data_type))
+                               copy.deepcopy(manifest.data_type),
+                               copy.deepcopy(manifest.additional_info))
 
 
 class ImageNoAnnotationFilter(ImageFilter):

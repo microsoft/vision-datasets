@@ -1,5 +1,6 @@
 """
 This script converts a dataset from vision_datasets or COCO JSON into TSV or JSONL format.
+Each line is an image-oriented representation of an image and its annotations.
 """
 
 import argparse
@@ -24,8 +25,9 @@ def logging_prefix(dataset_name, version):
 def main():
     parser = argparse.ArgumentParser('Convert a dataset to TSV(s)')
     add_args_to_locate_dataset(parser)
-    parser.add_argument('--format', '-t', type=enum_type(LineFormat), default=LineFormat.JSONL, help='Format of output data.', choices=list(LineFormat), required=False)
-    parser.add_argument('--output_dir', '-o', type=pathlib.Path, required=False, default=pathlib.Path('./'), help='TSV file(s) will be saved here.')
+    parser.add_argument('--format', '-fm', type=enum_type(LineFormat), default=LineFormat.JSONL, help='Format of output data.', choices=list(LineFormat), required=False)
+    parser.add_argument('--flatten', '-fl', action='store_true', help="If an image has multiple annotations, one image will be flattend in to multiple entries with image being deuplicated.")
+    parser.add_argument('--output_dir', '-o', type=pathlib.Path, required=False, default=pathlib.Path('./'), help='File(s) will be saved here.')
 
     args = parser.parse_args()
     prefix = logging_prefix(args.name, args.version)
@@ -47,9 +49,9 @@ def main():
             logger.info(f'{prefix} No split for {usage} available.')
         else:
             if args.format == LineFormat.JSONL:
-                convert_to_jsonl(manifest, args.output_dir / f"{usage}.jsonl")
+                convert_to_jsonl(manifest, args.output_dir / f"{args.name}.{usage}.jsonl", args.flatten)
             else:
-                convert_to_tsv(manifest, args.output_dir / f"{usage}.tsv")
+                convert_to_tsv(manifest, args.output_dir / f"{args.name}.{usage}.tsv")
 
 
 if __name__ == '__main__':

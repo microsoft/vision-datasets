@@ -1,6 +1,7 @@
 import copy
 
 from ..common import DatasetTypes, DatasetManifest, MergeStrategy, ManifestMergeStrategyFactory
+from ..common.utils import deep_merge
 
 _DATA_TYPE = DatasetTypes.MULTITASK
 
@@ -17,7 +18,10 @@ class MultitaskMerge(MergeStrategy):
             for task_name, tasks in manifest.data_type.items():
                 data_tasks[task_name] = copy.deepcopy(tasks)
 
-        return DatasetManifest([y for x in args for y in x.images], args[0].categories, args[0].data_type)
+        addional_info = deep_merge([x.additional_info for x in args])
+        if not addional_info:
+            addional_info = None
+        return DatasetManifest([y for x in args for y in x.images], args[0].categories, args[0].data_type, addional_info)
 
     def check(self, *args: DatasetManifest):
         super().check(*args)

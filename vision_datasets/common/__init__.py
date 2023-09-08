@@ -3,13 +3,14 @@ from .data_manifest import BalancedInstanceWeightsGenerator, CategoryManifest, D
     ImageLabelWithCategoryManifest, ImageNoAnnotationFilter, ManifestMerger, ManifestSampler, MergeStrategy, Operation, RemoveCategories, RemoveCategoriesConfig, \
     SampleBaseConfig, SampleByFewShotConfig, SampleByNumSamples, SampleByNumSamplesConfig, SampleFewShot, SampleStrategy, SampleStrategyType, SingleTaskMerge, Spawn, \
     SpawnConfig, Split, SplitConfig, SplitWithCategories, WeightsGenerationConfig, \
-    CocoManifestWithoutCategoriesAdaptor, CocoManifestWithCategoriesAdaptor, CocoManifestAdaptorBase
+    CocoManifestWithoutCategoriesAdaptor, CocoManifestWithCategoriesAdaptor, CocoManifestAdaptorBase, GenerateStandAloneImageDictsBase
 from .dataset_info import BaseDatasetInfo, DatasetInfo, DatasetInfoFactory, MultiTaskDatasetInfo
 from .data_reader import DatasetDownloader, FileReader, PILImageLoader
 from .dataset import Dataset, VisionDataset, TorchDataset
 from .factory import CocoManifestAdaptorFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, DataManifestFactory, SampleStrategyFactory, BalancedInstanceWeightsFactory, SpawnFactory, \
-    SplitFactory, SupportedOperationsByDataType
+    SplitFactory, StandAloneImageDictsGeneratorFactory, SupportedOperationsByDataType
 from .dataset_management import DatasetHub, DatasetRegistry
+from .base64_utils import Base64Utils
 
 __all__ = [
     'Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat',
@@ -17,10 +18,10 @@ __all__ = [
     'BalancedInstanceWeightsGenerator', 'WeightsGenerationConfig', 'DatasetFilter', 'ImageFilter', 'ImageNoAnnotationFilter', 'GenerateCocoDictBase', 'ManifestMerger', 'MergeStrategy',
     'SingleTaskMerge', 'Operation', 'RemoveCategories', 'RemoveCategoriesConfig', 'ManifestSampler', 'SampleBaseConfig', 'SampleByFewShotConfig', 'SampleByNumSamples',
     'SampleByNumSamplesConfig', 'SampleFewShot', 'SampleStrategy', 'SampleStrategyType', 'Spawn', 'SpawnConfig', 'Split', 'SplitConfig', 'SplitWithCategories',
-    'CocoManifestWithoutCategoriesAdaptor', 'CocoManifestWithCategoriesAdaptor', 'CocoManifestAdaptorBase',
+    'CocoManifestWithoutCategoriesAdaptor', 'CocoManifestWithCategoriesAdaptor', 'CocoManifestAdaptorBase', 'GenerateStandAloneImageDictsBase',
     'DatasetInfo', 'BaseDatasetInfo', 'MultiTaskDatasetInfo', 'DatasetInfoFactory', 'DatasetDownloader', 'FileReader', 'PILImageLoader', 'Dataset',
     'VisionDataset', 'TorchDataset',
     'CocoManifestAdaptorFactory', 'CocoDictGeneratorFactory', 'ManifestMergeStrategyFactory', 'DataManifestFactory', 'SampleStrategyFactory', 'BalancedInstanceWeightsFactory', 'SpawnFactory',
-    'SplitFactory', 'SupportedOperationsByDataType',
-    'DatasetHub', 'DatasetRegistry'
+    'SplitFactory', 'StandAloneImageDictsGeneratorFactory', 'SupportedOperationsByDataType',
+    'DatasetHub', 'DatasetRegistry', 'Base64Utils'
 ]

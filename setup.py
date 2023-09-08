@@ -45,5 +45,6 @@ setuptools.setup(name='vision_datasets',
                                          'vision_check_dataset=vision_datasets.commands.check_dataset:main',
                                          'vision_convert_od_to_ic=vision_datasets.commands.converter_od_to_ic:main',
                                          'vision_convert_to_aml_coco=vision_datasets.commands.converter_to_aml_coco:main',
-                                         'vision_list_supported_operations=vision_datasets.commands.list_operations_by_data_type:main']
+                                         'vision_list_supported_operations=vision_datasets.commands.list_operations_by_data_type:main',
+                                         'vision_convert_to_line_oriented_format=vision_datasets.commands.converter_to_line_oriented_format:main']
                  })

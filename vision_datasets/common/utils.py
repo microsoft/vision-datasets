@@ -4,6 +4,22 @@ import os
 import pathlib
 
 
+def deep_merge(*dicts):
+    merged = {}
+
+    for d in dicts:
+        if not isinstance(d, dict):
+            continue
+
+        for key, value in d.items():
+            if key in merged and isinstance(merged[key], dict) and isinstance(value, dict):
+                merged[key] = deep_merge(merged[key], value)
+            else:
+                merged[key] = value
+
+    return merged
+
+
 def can_be_url(candidate: Union[str, pathlib.Path]):
     """
     necessary conditions for candidate to be a url (not sufficient)

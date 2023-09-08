@@ -1,5 +1,7 @@
 from ..common import DatasetTypes, GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleStrategyType, SingleTaskMerge, Spawn, Split, CocoDictGeneratorFactory, \
-    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
+    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, \
+    ImageDataManifest, DatasetManifest
+from .manifest import ImageCaptionLabelManifest
 
 _DATA_TYPE = DatasetTypes.IMAGE_CAPTION
 
@@ -18,3 +20,11 @@ SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStra
 SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 
 SplitFactory.direct_register(Split, _DATA_TYPE)
+
+StandAloneImageDictsGeneratorFactory.direct_register(GenerateStandAloneImageDictsBase, _DATA_TYPE)
+
+
+@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
+class ImageCaptionStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+    def _generate_label(self, label: ImageCaptionLabelManifest, image: ImageDataManifest, manifest: DatasetManifest):
+        return {'caption': label.caption}

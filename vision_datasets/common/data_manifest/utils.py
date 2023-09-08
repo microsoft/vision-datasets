@@ -21,5 +21,6 @@ def generate_multitask_dataset_manifest(manifest_by_task: Dict[str, DatasetManif
 
     categories_by_task = {k: manifest.categories for k, manifest in manifest_by_task.items()}
     dataset_types_by_task = {k: manifest.data_type for k, manifest in manifest_by_task.items()}
+    additional_info_by_task = {k: manifest.additional_info for k, manifest in manifest_by_task.items() if manifest.additional_info}
 
-    return DatasetManifest([v for v in images_by_id.values()], categories_by_task, dataset_types_by_task)
+    return DatasetManifest([v for v in images_by_id.values()], categories_by_task, dataset_types_by_task, addtional_info=additional_info_by_task)

@@ -1,5 +1,7 @@
 from ..common import CocoDictGeneratorFactory, DatasetTypes, GenerateCocoDictBase, ImageLabelManifest, ManifestMergeStrategyFactory, SampleByNumSamples, SampleStrategyFactory, \
-                     SampleStrategyType, SingleTaskMerge, Spawn, SpawnFactory, Split, SplitFactory
+    SampleStrategyType, SingleTaskMerge, Spawn, SpawnFactory, Split, SplitFactory, StandAloneImageDictsGeneratorFactory, GenerateStandAloneImageDictsBase, \
+    DatasetManifest, ImageDataManifest
+from .manifest import Text2ImageRetrievalLabelManifest
 
 _DATA_TYPE = DatasetTypes.TEXT_2_IMAGE_RETRIEVAL
 
@@ -17,3 +19,9 @@ SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStra
 
 SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
+
+
+@StandAloneImageDictsGeneratorFactory.register(_DATA_TYPE)
+class Text2ImageRetrievalStandAloneImageDictGenerator(GenerateStandAloneImageDictsBase):
+    def _generate_label(self, label: Text2ImageRetrievalLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
+        return {'query': label.query}

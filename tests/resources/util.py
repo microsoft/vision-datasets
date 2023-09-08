@@ -320,13 +320,13 @@ class VisualObjectGroundingTestCases:
                     "id": 1,
                     "question": "where are the apples",
                     "answer": "who knows",
-                    "grounding": [{"id": 1, "text": "left top corner", "text_span": [0, 1], "bbox": [0, 10, 10, 10]}]},
+                    "groundings": [{"id": 1, "text": "left top corner", "text_span": [0, 1], "bbox": [0, 10, 10, 10]}]},
                 {
                     "image_id": 2,
                     "id": 2,
                     "question": "where are the banana",
                     "answer": "check the grounding",
-                    "grounding": [{"id": 1, "text": "right bottom corner", "text_span": [0, 1], "bbox": [90, 90, 10, 10]}]
+                    "groundings": [{"id": 1, "text": "right bottom corner", "text_span": [0, 1], "bbox": [90, 90, 10, 10]}]
                 },
             ]
         },
@@ -340,7 +340,7 @@ class VisualObjectGroundingTestCases:
                     "id": 1,
                     "question": "Describe the image",
                     "answer": "many books",
-                    "grounding": [
+                    "groundings": [
                             {"id": 1, "text": "20 books", "text_span": [0, 1], "bbox": [0, 10, 10, 10]},
                             {"id": 2, "text": "10 books", "text_span": [2, 4], "bbox": [90, 90, 10, 10]}
                     ]
@@ -350,7 +350,7 @@ class VisualObjectGroundingTestCases:
                     "id": 2,
                     "question": "where is an banana",
                     "answer": "present in the image",
-                    "grounding": [
+                    "groundings": [
                         {"id": 1, "text": "mid of the image", "text_span": [0, 4], "bbox": [50, 50, 10, 10]}
                     ]
                 },
@@ -359,7 +359,7 @@ class VisualObjectGroundingTestCases:
                     "id": 3,
                     "question": "describe the top half of the image",
                     "answer": "ok",
-                    "grounding": [{"id": 1, "text": "Sun rise", "text_span": [0, 1], "bbox": [0, 0, 100, 50]}]
+                    "groundings": [{"id": 1, "text": "Sun rise", "text_span": [0, 1], "bbox": [0, 0, 100, 50]}]
                 },
             ]
         }

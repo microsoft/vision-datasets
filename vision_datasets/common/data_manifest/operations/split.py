@@ -31,19 +31,19 @@ class Split(Operation):
         manifest = args[0]
         first_cnt = int(self.config.ratio * len(manifest))
         if first_cnt == 0:
-            return DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
-                DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info)), \
+                DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info))
 
         if first_cnt == len(manifest):
-            return DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
-                DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type))
+            return DatasetManifest(deepcopy(manifest.images), deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info)), \
+                DatasetManifest([], deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info))
 
         rng = random.Random(self.config.random_seed)
         images = deepcopy(manifest.images)
         rng.shuffle(images)
 
-        return DatasetManifest(images[: first_cnt], deepcopy(manifest.categories), deepcopy(manifest.data_type)), \
-            DatasetManifest(images[first_cnt:], deepcopy(manifest.categories), deepcopy(manifest.data_type))
+        return DatasetManifest(images[: first_cnt], deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info)), \
+            DatasetManifest(images[first_cnt:], deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info))
 
 
 class SplitWithCategories(Operation):
@@ -60,19 +60,23 @@ class SplitWithCategories(Operation):
             return DatasetManifest(
                 [],
                 deepcopy(manifest.categories),
-                deepcopy(manifest.data_type)), DatasetManifest(
+                deepcopy(manifest.data_type),
+                deepcopy(manifest.additional_info)), DatasetManifest(
                 deepcopy(manifest.images),
                 deepcopy(manifest.categories),
-                deepcopy(manifest.data_type))
+                deepcopy(manifest.data_type),
+                deepcopy(manifest.additional_info))
 
         if int(len(manifest.images) * self.config.ratio) == len(manifest.images):
             return DatasetManifest(
                 deepcopy(manifest.images),
                 deepcopy(manifest.categories),
-                deepcopy(manifest.data_type)), DatasetManifest(
+                deepcopy(manifest.data_type),
+                deepcopy(manifest.additional_info)), DatasetManifest(
                 [],
                 deepcopy(manifest.categories),
-                deepcopy(manifest.data_type))
+                deepcopy(manifest.data_type),
+                deepcopy(manifest.additional_info))
 
         rng = random.Random(self.config.random_seed)
         images = deepcopy(manifest.images)
@@ -117,4 +121,5 @@ class SplitWithCategories(Operation):
                 first_imgs.append(image)
                 add_cnt(image.labels, n_first_imgs_by_class)
 
-        return DatasetManifest(first_imgs, deepcopy(manifest.categories), deepcopy(manifest.data_type)), DatasetManifest(second_imgs, deepcopy(manifest.categories), deepcopy(manifest.data_type))
+        return DatasetManifest(first_imgs, deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info)), \
+            DatasetManifest(second_imgs, deepcopy(manifest.categories), deepcopy(manifest.data_type), deepcopy(manifest.additional_info))

@@ -6,7 +6,7 @@ from .operation import Operation
 
 class GenerateCocoDictBase(Operation):
     """
-    Base class for generating a dictionary from DatasetManifest that can be serialized into a coco json
+    Base class for generating a COCO dictionary from DatasetManifest that can be serialized
     """
 
     def _generate_annotations(self, manifest: DatasetManifest):

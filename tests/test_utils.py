@@ -5,7 +5,7 @@ import unittest
 import numpy
 from PIL import Image, ImageChops
 
-from vision_datasets.commands.utils import Base64Utils
+from vision_datasets.common import Base64Utils
 
 
 class TestBase64Utils(unittest.TestCase):

@@ -9,7 +9,7 @@ class ImageObjectDetectionLabelManifest(ImageLabelWithCategoryManifest):
     """
 
     @property
-    def category_id(self):
+    def category_id(self) -> int:
         return self.label_data[0]
 
     @property
