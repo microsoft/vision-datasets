@@ -15,8 +15,8 @@ class VisualQuestionAnsweringLabelManifest(ImageLabelManifest):
 
     @property
     def question(self) -> str:
-        return self._label_data["question"]
+        return self.label_data["question"]
 
     @property
     def answer(self) -> str:
-        return self._label_data["answer"]
+        return self.label_data["answer"]
