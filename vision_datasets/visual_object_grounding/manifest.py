@@ -22,7 +22,7 @@ class Grounding:
 
         start = label_data['text_span'][0]
         end = label_data['text_span'][1]
-        if start < 0 or end < 0 or start >= end or start >= answer_len or end >= answer_len:
+        if start < 0 or end < 0 or start >= end or start >= answer_len or end > answer_len:
             raise ValueError
 
     @property
