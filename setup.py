@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
