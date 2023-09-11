@@ -46,7 +46,7 @@ class CocoManifestAdaptorBase(ABC):
                                                      img.get('height'), [], self._get_additional_info(img, {'id', 'file_name', 'width', 'height', 'zip_file'})) for img in coco_manifest['images']}
 
         images, categories = self.get_images_and_categories(images_by_id, coco_manifest)
-        return DatasetManifest(images, categories, self.data_type)
+        return DatasetManifest(images, categories, self.data_type, self._get_additional_info(coco_manifest, {'images', 'categories', 'annotations'}))
 
     @abstractmethod
     def get_images_and_categories(self, images_by_id, coco_manifest):

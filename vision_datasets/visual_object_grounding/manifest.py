@@ -10,11 +10,12 @@ class Grounding:
 
     @staticmethod
     def check_label(label_data, answer_len):
-        if not label_data or any(label_data.get(key) is None for key in ['id', 'text_span', 'text', 'bbox']):
+        if not label_data or any(label_data.get(key) is None for key in ['id', 'text_span', 'text', 'bboxes']):
             raise ValueError
 
-        if len(label_data['bbox']) != 4:
-            raise ValueError
+        for bbox in label_data['bboxes']:
+            if len(bbox) != 4:
+                raise ValueError
 
         if len(label_data['text_span']) != 2:
             raise ValueError
@@ -37,8 +38,8 @@ class Grounding:
         return self._label_data['text']
 
     @property
-    def bbox(self) -> List[Union[int, float]]:
-        return self._label_data['bbox']
+    def bboxes(self) -> List[List[Union[int, float]]]:
+        return self._label_data['bboxes']
 
 
 class VisualObjectGroundingLabelManifest(ImageLabelManifest):
@@ -46,7 +47,7 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
     {
         "question": "a question about the image",
         "answer": "generic caption or answer to the question",
-        "grounding": [{"text": "....", "text_span": [start, end], "bbox": [left, top, right, bottom]}, ...]
+        "groundings": [{"text": "....", "text_span": [start, end], "bboxes": [[left, top, right, bottom], ...]}, ...]
     }
     """
 
@@ -54,20 +55,20 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
         raise NotImplementedError
 
     def _check_label(self, label_data):
-        if not label_data or any(label_data.get(key, None) is None for key in ['question', 'answer', 'grounding']):
+        if not label_data or any(label_data.get(key, None) is None for key in ['question', 'answer', 'groundings']):
             raise ValueError(str(label_data.keys()))
 
-        for grounding in label_data["grounding"]:
+        for grounding in label_data["groundings"]:
             Grounding.check_label(grounding, len(label_data["answer"]))
 
     @property
     def question(self) -> str:
-        return self._label_data["question"]
+        return self.label_data["question"]
 
     @property
     def answer(self) -> str:
-        return self._label_data["answer"]
+        return self.label_data["answer"]
 
     @property
-    def grounding(self) -> List[Grounding]:
-        return [Grounding(x) for x in self._label_data["grounding"]]
+    def groundings(self) -> List[Grounding]:
+        return [Grounding(x) for x in self.label_data["groundings"]]

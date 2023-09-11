@@ -8,8 +8,21 @@ from ..constants import DatasetTypes
 logger = logging.getLogger(__name__)
 
 
-class ImageLabelManifest(abc.ABC):
-    def __init__(self, label_data=None, label_path: pathlib.Path = None, additional_info: Dict = None):
+class ManifestBase(abc.ABC):
+    def __init__(self, additional_info: Dict = {}):
+        self.additional_info = additional_info
+
+    def __eq__(self, other):
+        if not isinstance(other, ManifestBase):
+            return False
+
+        return self.additional_info == other.additional_info
+
+
+class ImageLabelManifest(ManifestBase):
+    def __init__(self, label_data=None, label_path: pathlib.Path = None, additional_info: Dict = {}):
+        super().__init__(additional_info)
+
         if not ((label_data is None) ^ (label_path is None)):
             raise ValueError('Must provide either label data or file path to label data, but not both of them.')
 
@@ -18,7 +31,6 @@ class ImageLabelManifest(abc.ABC):
 
         self._label_data = label_data
         self.label_path = label_path
-        self.additional_info = additional_info
 
     @property
     def label_data(self):
@@ -40,7 +52,10 @@ class ImageLabelManifest(abc.ABC):
         pass
 
     def __eq__(self, other):
-        if not isinstance(other, ImageLabelManifest) or self.additional_info != other.additional_info:
+        if not super().__eq__(other):
+            return False
+
+        if not isinstance(other, ImageLabelManifest):
             return False
 
         if self.label_path or other.label_path:
@@ -70,7 +85,7 @@ class ImageLabelWithCategoryManifest(ImageLabelManifest):
             raise ValueError
 
 
-class ImageDataManifest:
+class ImageDataManifest(ManifestBase):
     """
     Encapsulates the information and annotations of an image.
 
@@ -83,7 +98,7 @@ class ImageDataManifest:
                  width: int,
                  height: int,
                  labels: Union[List[ImageLabelManifest], Dict[str, List[ImageLabelManifest]]],
-                 additional_info: Dict = None):
+                 additional_info: Dict = {}):
         """
         Args:
             id (int or str): image id
@@ -93,20 +108,23 @@ class ImageDataManifest:
             labels (list or dict): labels for the image
             additional_info (dict): additional info about this image
         """
+        super().__init__(additional_info)
 
         self.id = id
         self.img_path = img_path
         self.width = width
         self.height = height
         self.labels = labels
-        self.additional_info = additional_info
 
     def __eq__(self, other) -> bool:
+        if not super().__eq__(other):
+            return False
+
         if not isinstance(other, ImageDataManifest):
             return False
 
         return self.id == other.id and self.img_path == other.img_path and self.width == other.width \
-            and self.height == other.height and self.labels == other.labels and self.additional_info == other.additional_info
+            and self.height == other.height and self.labels == other.labels
 
     def is_negative(self) -> bool:
         if not self.labels:
@@ -118,31 +136,38 @@ class ImageDataManifest:
         return not any(labels for labels in self.labels.values())
 
 
-class CategoryManifest:
-    def __init__(self, id, name: str, super_category: str = None, addtional_info=None):
+class CategoryManifest(ManifestBase):
+    def __init__(self, id, name: str, super_category: str = None, addtional_info={}):
+        super().__init__(addtional_info)
+
         self.id = id
         self.name = name
         self.super_category = super_category
-        self.additional_info = addtional_info
 
     def __eq__(self, other) -> bool:
-        return self.id == other.id and self.name == other.name and self.super_category == other.super_category and self.additional_info == other.additional_info
+        if not super().__eq__(other):
+            return False
+
+        if not isinstance(other, CategoryManifest):
+            return False
+
+        return self.id == other.id and self.name == other.name and self.super_category == other.super_category
 
 
-class DatasetManifest:
+class DatasetManifest(ManifestBase):
     """
     Encapsulates information about a dataset including images, categories (if applicable), and annotations. Information about each image is encapsulated in ImageDataManifest.
     """
 
-    def __init__(self, images: List[ImageDataManifest], categories: Union[List[CategoryManifest], Dict[str, List[CategoryManifest]]], data_type: Union[str, dict]):
+    def __init__(self, images: List[ImageDataManifest], categories: Union[List[CategoryManifest], Dict[str, List[CategoryManifest]]], data_type: Union[str, dict], addtional_info={}):
         """
 
         Args:
             images (list): image manifest
             categories (list or dict): labels or labels by task name
             data_type (str or dict) : data type, or data type by task name
+            additional_info (dict): additional info about this dataset
         """
-
         if not data_type or data_type == DatasetTypes.MULTITASK:
             raise ValueError('For multitask, data_type should be a dict mapping task name to concrete data type.')
 
@@ -151,6 +176,8 @@ class DatasetManifest:
                 raise ValueError('categories being a dict indicating this is a multitask dataset, however the data_type is not a dict.')
             if categories.keys() != data_type.keys():
                 raise ValueError(f'mismatched task names in categories and task_type: {categories.keys()} vs {data_type.keys()}')
+
+        super().__init__(addtional_info)
 
         self.images = images
         self.categories = categories

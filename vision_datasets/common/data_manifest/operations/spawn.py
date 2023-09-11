@@ -55,7 +55,7 @@ class Spawn(Operation):
             for image, n_copies in zip(manifest.images, n_copies_per_sample):
                 spawned_images += [copy.deepcopy(image) for _ in range(n_copies)]
 
-            sampled_manifest = DatasetManifest(spawned_images, manifest.categories, manifest.data_type)
+            sampled_manifest = DatasetManifest(spawned_images, manifest.categories, manifest.data_type, manifest.additional_info)
         else:
             cfg = SampleByNumSamplesConfig(cfg.random_seed, True, cfg.target_n_samples - len(manifest))
             sampled_manifest = SampleByNumSamples(cfg).sample(manifest)

@@ -1,5 +1,7 @@
 from ..common import DatasetTypes, GenerateCocoDictBase, ImageLabelManifest, SampleByNumSamples, SampleStrategyType, SingleTaskMerge, Spawn, Split, CocoDictGeneratorFactory, \
-    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory
+    ManifestMergeStrategyFactory, SampleStrategyFactory, SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
+    ImageDataManifest, DatasetManifest
+from .manifest import ImageRegressionLabelManifest
 
 _DATA_TYPE = DatasetTypes.IMAGE_REGRESSION
 
@@ -16,3 +18,9 @@ SampleStrategyFactory.direct_register(SampleByNumSamples, _DATA_TYPE, SampleStra
 
 SpawnFactory.direct_register(Spawn, _DATA_TYPE)
 SplitFactory.direct_register(Split, _DATA_TYPE)
+
+
+@StandAloneImageListGeneratorFactory.register(_DATA_TYPE)
+class ImageRegressionStandAloneImageListGenerator(GenerateStandAloneImageListBase):
+    def _generate_label(self, label: ImageRegressionLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
+        return {'target': label.target}

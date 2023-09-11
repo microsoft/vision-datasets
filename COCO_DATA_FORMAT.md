@@ -73,7 +73,7 @@ Here is one example of the json file for image caption task.
 
 ## Image text matching
 
-Here is one example of the json file for image text matching task. `match: 1` indicates image and text match.
+Here is one example of the json file for image text matching task. `match` is a float between [0, 1], where 0 means not match at all, 1 means perfect match
 
 ```json
 {
@@ -149,9 +149,9 @@ A grounding is composed of three parts:
             "id": 1,
             "question": "whats animal are in the image?",
             "answer": "cat and bird",
-            "grounding": [
-                {"text": "a cat", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
-                {"text": "a bird", "text_span": [3, 4], "bbox": [15, 15, 30, 30]}
+            "groundings": [
+                {"text": "a cat", "text_span": [0, 2], "bboxes": [[10, 10, 100, 100], [15, 15, 100, 100]]},
+                {"text": "a bird", "text_span": [3, 4], "bboxes": [[15, 15, 30, 30], [0, 10, 20, 20]]}
             ]
         },
         {
@@ -159,9 +159,9 @@ A grounding is composed of three parts:
             "id": 2,
             "question": "What is the title and auther of the book on the shelf?",
             "answer": "Tile is baking and auther is John",
-            "grounding": [
-                {"text": "Title: Baking", "text_span": [0, 2], "bbox": [10, 10, 100, 100]},
-                {"text": "Author: John", "text_span": [3, 4], "bbox": [0, 0, 50, 50]}
+            "groundings": [
+                {"text": "Title: Baking", "text_span": [0, 2], "bboxes": [[10, 10, 100, 100]]},
+                {"text": "Author: John", "text_span": [3, 4], "bboxes": [[0, 0, 50, 50], [15, 15, 25, 25]]}
             ]
         }
     ]

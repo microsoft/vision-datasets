@@ -78,7 +78,7 @@ class SampleByNumSamples(SampleStrategy):
         sampled_indices = rng.choice(len(manifest.images), size=self.config.n_samples, replace=self.config.with_replacement, p=normalized_weights)
         sampled_images = [manifest.images[i] for i in sampled_indices]
 
-        return DatasetManifest(copy.deepcopy(sampled_images), copy.deepcopy(manifest.categories), copy.deepcopy(manifest.data_type))
+        return DatasetManifest(copy.deepcopy(sampled_images), copy.deepcopy(manifest.categories), copy.deepcopy(manifest.data_type), copy.deepcopy(manifest.additional_info))
 
 
 class SampleFewShot(SampleStrategy):
@@ -126,4 +126,4 @@ class SampleFewShot(SampleStrategy):
 
         sampled_images = [copy.deepcopy(x) for x in sampled_images]
 
-        return DatasetManifest(sampled_images, copy.deepcopy(manifest.categories), copy.deepcopy(manifest.data_type))
+        return DatasetManifest(sampled_images, copy.deepcopy(manifest.categories), copy.deepcopy(manifest.data_type), copy.deepcopy(manifest.additional_info))
