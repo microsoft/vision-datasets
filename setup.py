@@ -39,7 +39,7 @@ setuptools.setup(name='vision_datasets',
                      'Programming Language :: Python :: 3.10',
                  ],
                  extras_require={
-                     'torch': ['torch>=1.6.0', 'torchvision>=0.7.0'],
+                     'torch': ['torch>=1.6.0'],
                  },
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download_dataset:main',
