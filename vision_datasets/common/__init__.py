@@ -6,7 +6,7 @@ from .data_manifest import BalancedInstanceWeightsGenerator, CategoryManifest, D
     CocoManifestWithoutCategoriesAdaptor, CocoManifestWithCategoriesAdaptor, CocoManifestAdaptorBase, GenerateStandAloneImageListBase
 from .dataset_info import BaseDatasetInfo, DatasetInfo, DatasetInfoFactory, MultiTaskDatasetInfo
 from .data_reader import DatasetDownloader, FileReader, PILImageLoader
-from .dataset import Dataset, VisionDataset, TorchDataset
+from .dataset import VisionDataset
 from .factory import CocoManifestAdaptorFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, DataManifestFactory, SampleStrategyFactory, BalancedInstanceWeightsFactory, SpawnFactory, \
     SplitFactory, StandAloneImageListGeneratorFactory, SupportedOperationsByDataType
 from .dataset_management import DatasetHub, DatasetRegistry
@@ -19,8 +19,8 @@ __all__ = [
     'SingleTaskMerge', 'Operation', 'RemoveCategories', 'RemoveCategoriesConfig', 'ManifestSampler', 'SampleBaseConfig', 'SampleByFewShotConfig', 'SampleByNumSamples',
     'SampleByNumSamplesConfig', 'SampleFewShot', 'SampleStrategy', 'SampleStrategyType', 'Spawn', 'SpawnConfig', 'Split', 'SplitConfig', 'SplitWithCategories',
     'CocoManifestWithoutCategoriesAdaptor', 'CocoManifestWithCategoriesAdaptor', 'CocoManifestAdaptorBase', 'GenerateStandAloneImageListBase',
-    'DatasetInfo', 'BaseDatasetInfo', 'MultiTaskDatasetInfo', 'DatasetInfoFactory', 'DatasetDownloader', 'FileReader', 'PILImageLoader', 'Dataset',
-    'VisionDataset', 'TorchDataset',
+    'DatasetInfo', 'BaseDatasetInfo', 'MultiTaskDatasetInfo', 'DatasetInfoFactory', 'DatasetDownloader', 'FileReader', 'PILImageLoader',
+    'VisionDataset',
     'CocoManifestAdaptorFactory', 'CocoDictGeneratorFactory', 'ManifestMergeStrategyFactory', 'DataManifestFactory', 'SampleStrategyFactory', 'BalancedInstanceWeightsFactory', 'SpawnFactory',
     'SplitFactory', 'StandAloneImageListGeneratorFactory', 'SupportedOperationsByDataType',
     'DatasetHub', 'DatasetRegistry', 'Base64Utils'

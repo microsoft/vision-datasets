@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '1.0.6'
+VERSION = '1.0.7'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -28,7 +28,6 @@ setuptools.setup(name='vision_datasets',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
                      'tqdm',
-                     'torch',
                      'matplotlib'
                  ],
                  classifiers=[
@@ -39,7 +38,9 @@ setuptools.setup(name='vision_datasets',
                      'Programming Language :: Python :: 3.9',
                      'Programming Language :: Python :: 3.10',
                  ],
-                 extras_require={'run': ['torch>=1.6.0', 'torchvision>=0.7.0']},
+                 extras_require={
+                     'torch': ['torch>=1.6.0'],
+                 },
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download_dataset:main',
                                          'vision_check_dataset=vision_datasets.commands.check_dataset:main',
