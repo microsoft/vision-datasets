@@ -1,7 +1,7 @@
 import logging
 
 from .dataset import Dataset
-from .vision_dataset import VisionDataset
+from ..common.dataset.vision_dataset import VisionDataset
 
 logger = logging.getLogger(__name__)
 

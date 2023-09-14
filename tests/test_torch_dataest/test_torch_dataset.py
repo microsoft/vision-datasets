@@ -7,7 +7,8 @@ import tempfile
 import pytest
 from PIL import Image
 
-from vision_datasets.common import DatasetInfo, DatasetTypes, TorchDataset, VisionDataset
+from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
+from vision_datasets.torch import TorchDataset
 
 from ..resources.util import coco_database, coco_dict_to_manifest
 
