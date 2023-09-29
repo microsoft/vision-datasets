@@ -27,8 +27,7 @@ setuptools.setup(name='vision_datasets',
                      'Pillow>=6.2.2',
                      'requests>=2.23.0',
                      'tenacity>=6.2.0',
-                     'tqdm',
-                     'matplotlib'
+                     'tqdm'
                  ],
                  classifiers=[
                      'Development Status :: 4 - Beta',
@@ -40,6 +39,7 @@ setuptools.setup(name='vision_datasets',
                  ],
                  extras_require={
                      'torch': ['torch>=1.6.0'],
+                     'plot': ['matplotlib'],
                  },
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download_dataset:main',
