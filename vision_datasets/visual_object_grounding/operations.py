@@ -24,4 +24,4 @@ SplitFactory.direct_register(Split, _DATA_TYPE)
 @StandAloneImageListGeneratorFactory.register(_DATA_TYPE)
 class Text2ImageRetrievalStandAloneImageListGenerator(GenerateStandAloneImageListBase):
     def _generate_label(self, label: VisualObjectGroundingLabelManifest, image: ImageDataManifest, manifest: DatasetManifest) -> dict:
-        return {'question': label.question, 'answer': label.answer, 'groundings': label.label_data['groundings']}
+        return {'question': label.question, 'answer': label.answer, 'grounding_metadata': {'groundings': label.label_data['groundings'], 'gt_answer': label.answer, 'size': [image.width, image.height]}}
