@@ -16,7 +16,12 @@ class PILImageLoader:
         image = Image.open(f)
         img_format = image.format
 
-        exif = image.getexif()
+        try:
+            exif = image.getexif()
+        except Exception as e:
+            logger.warning(f'Failed to get EXIF from an image: {e}')
+            exif = None
+
         orientation = exif.get(ORIENTATION_EXIF_TAG) if exif else None
         if orientation:
             # orientation is 1 based, shift to zero based and flip/transpose based on 0-based values
