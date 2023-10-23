@@ -1,5 +1,6 @@
 import argparse
 import io
+import importlib
 import json
 import locale
 import logging
@@ -195,3 +196,11 @@ def write_to_json_file_utf8(dict, filepath: Union[str, pathlib.Path]):
     assert filepath
 
     pathlib.Path(filepath).write_text(json.dumps(dict, indent=2, ensure_ascii=False), encoding='utf-8')
+
+
+def is_module_available(module_name):
+    try:
+        importlib.import_module(module_name)
+        return True
+    except ModuleNotFoundError:
+        return False

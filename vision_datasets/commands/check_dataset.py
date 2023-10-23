@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from vision_datasets.common import DatasetHub, DatasetTypes, VisionDataset
 
-from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger
+from .utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages, set_up_cmd_logger, is_module_available
 
 logger = set_up_cmd_logger(__name__)
 
@@ -98,12 +98,14 @@ def classification_detection_check(dataset: VisionDataset):
     c_ids_with_zero_images = [k for k, v in n_imgs_by_class.items() if v == 0]
     logger.warning(f'Class ids with zero images: {c_ids_with_zero_images}')
 
-    import matplotlib.pyplot as plt
+    if is_module_available('matplotlib'):
+        import matplotlib.pyplot as plt
 
-    plt.hist(list(n_imgs_by_class.values()), density=False, bins=len(set(n_imgs_by_class.values())))
-    plt.ylabel('n classes')
-    plt.xlabel('n images per class')
-    plt.show()
+        plt.hist(list(n_imgs_by_class.values()), density=False, bins=len(set(n_imgs_by_class.values())))
+        plt.ylabel('n classes')
+        plt.xlabel('n images per class')
+        plt.show()
+
     logger.info(str(stats))
 
     return errors

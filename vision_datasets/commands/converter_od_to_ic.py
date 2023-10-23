@@ -20,7 +20,6 @@ def create_arg_parser():
     parser = argparse.ArgumentParser(description='Convert detection dataset to classification dataset.')
     add_args_to_locate_dataset(parser)
     parser.add_argument('-o', '--output_folder', type=pathlib.Path, required=True, help='target folder of the converted classification dataset')
-
     parser.add_argument('-zb', '--zoom_ratio_bounds', type=str, required=False,
                         help='lower and bound of the ratio that box height and width can expand (>1) or shrink (0-1), during cropping, e.g, 0.8/1.2')
     parser.add_argument('-sb', '--shift_relative_bounds', type=str, required=False,
