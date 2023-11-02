@@ -1,7 +1,7 @@
 import setuptools
 from os import path
 
-VERSION = '1.0.9'
+VERSION = '1.0.10'
 
 # Get the long description from the README file
 here = path.abspath(path.dirname(__file__))
@@ -44,6 +44,7 @@ setuptools.setup(name='vision_datasets',
                  entry_points={
                      'console_scripts': ['vision_download=vision_datasets.commands.download_dataset:main',
                                          'vision_check_dataset=vision_datasets.commands.check_dataset:main',
+                                         'vision_transform_images=vision_datasets.commands.transform_images:main',
                                          'vision_convert_od_to_ic=vision_datasets.commands.converter_od_to_ic:main',
                                          'vision_convert_to_aml_coco=vision_datasets.commands.converter_to_aml_coco:main',
                                          'vision_list_supported_operations=vision_datasets.commands.list_operations_by_data_type:main',

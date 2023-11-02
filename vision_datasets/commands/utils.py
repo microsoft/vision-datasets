@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import io
 import json
 import locale
@@ -11,7 +12,7 @@ from typing import Union
 from tqdm import tqdm
 
 from vision_datasets import DatasetManifest, DatasetTypes, Usages
-from vision_datasets.common import StandAloneImageListGeneratorFactory, Base64Utils
+from vision_datasets.common import Base64Utils, StandAloneImageListGeneratorFactory
 
 
 def set_up_cmd_logger(name):
@@ -83,19 +84,21 @@ def get_or_generate_data_reg_json_and_usages(args):
     return data_reg_json, usages
 
 
-def zip_folder(folder_name):
-    logger.info(f'zipping {folder_name}.')
-
+def zip_folder(folder_name, direct=False):
     zip_file = zipfile.ZipFile(f'{folder_name}.zip', 'w', zipfile.ZIP_STORED)
     i = 0
-    for root, dirs, files in os.walk(folder_name):
+    for root, dirs, files in tqdm(os.walk(folder_name), desc=f'Zipping {folder_name}...'):
         for file in files:
-            if i % 5000 == 0:
-                logger.info(f'zipped {i} images')
+            if i and i % 1000 == 0:
+                logger.info(f'Zipped {i} images..')
 
-            zip_file.write(os.path.join(root, file))
+            if direct:
+                zip_file.write(os.path.join(root, file), pathlib.Path(pathlib.Path(root).name) / file)
+            else:
+                zip_file.write(os.path.join(root, file))
             i += 1
 
+    logger.info(f'Zipped {i} images in total.')
     zip_file.close()
 
 
@@ -195,3 +198,11 @@ def write_to_json_file_utf8(dict, filepath: Union[str, pathlib.Path]):
     assert filepath
 
     pathlib.Path(filepath).write_text(json.dumps(dict, indent=2, ensure_ascii=False), encoding='utf-8')
+
+
+def is_module_available(module_name):
+    try:
+        importlib.import_module(module_name)
+        return True
+    except ModuleNotFoundError:
+        return False

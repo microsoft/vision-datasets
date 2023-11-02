@@ -28,7 +28,7 @@ def create_arg_parser():
     parser.add_argument('-l', '--labelmap', type=pathlib.Path, default=None)
     parser.add_argument('-f', '--format', type=str, default=TSV_FORMAT_LTRB, choices=[TSV_FORMAT_LTRB, TSV_FORMAT_LTWH_NORM])
     parser.add_argument('-d', '--difficulty', type=bool, default=False, help='Include difficulty boxes or not.')
-    parser.add_argument('-z', '--zip', type=bool, default=False, help='Zip the image and label folders or not.')
+    parser.add_argument('--zip', '-z', action='store_true', default=False, help='Zip the image and label folders or not.')
     parser.add_argument('-o', '--output_folder', type=pathlib.Path, required=True, help='Output folder for images.')
 
     return parser
