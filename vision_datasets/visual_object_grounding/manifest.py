@@ -3,8 +3,8 @@ from ..common import ImageLabelManifest
 
 
 class Grounding:
-    def __init__(self, label_data: dict):
-        self.check_label(label_data)
+    def __init__(self, label_data: dict, answer_len: int):
+        self.check_label(label_data, answer_len)
 
         self._label_data = label_data
 
@@ -71,4 +71,4 @@ class VisualObjectGroundingLabelManifest(ImageLabelManifest):
 
     @property
     def groundings(self) -> List[Grounding]:
-        return [Grounding(x) for x in self.label_data["groundings"]]
+        return [Grounding(x, len(self.label_data["answer"])) for x in self.label_data["groundings"]]
