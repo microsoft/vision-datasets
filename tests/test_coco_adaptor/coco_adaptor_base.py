@@ -6,6 +6,7 @@ class BaseCocoAdaptor:
     def test_create_data_manifest(self, coco_dict):
         manifest = coco_dict_to_manifest(self.TASK, coco_dict)
         self.check(manifest, coco_dict)
+        return manifest
 
     def test_create_data_manifest_with_additional_info(self, coco_dict):
         coco_dict = copy.deepcopy(coco_dict)
