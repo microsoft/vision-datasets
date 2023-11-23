@@ -39,6 +39,11 @@ class Grounding:
 
     @property
     def bboxes(self) -> List[List[Union[int, float]]]:
+        """ returns a list of bounding boxes in the format of [[left, top, right, bottom], ...]
+
+        Returns:
+            List[List[Union[int, float]]]: list of boxes in the format of [[left, top, right, bottom], ...]
+        """
         return self._label_data['bboxes']
 
 

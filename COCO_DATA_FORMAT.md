@@ -132,7 +132,7 @@ VQA represents the problem where one asks a question about an image and a ground
 Visual Object Grounding is a problem where a text query/question about an image is provided, and an answer/caption about the image along with the most relevant grounding(s) are returned.
 
 A grounding is composed of three parts:
-- `bbox`: bounding box around the region of interest, same with object detection task
+- `bbox`: bounding box around the region of interest, same with object detection task. Similarly, you can specify `ltrb` or `ltwh` (default) in the Coco json. Regardlessly, the label manifest will store the bbox in [left, top, right, bottom] format like object detection.
 - `text`: description about the region
 - `text_span`: two ints (start-inclusive, end-exclusive), indicating the section of text that the region is relevant to in the answer/caption
 
