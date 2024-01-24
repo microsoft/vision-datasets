@@ -31,7 +31,7 @@ class TestMultiClassClassification(BaseCocoAdaptor):
                 {"id": 2, "name": "dog"}
             ]
         }
-        with pytest.raises(ValueError, match='image with id 1 has unexpected number of annotations 1 for DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS dataset.'):
+        with pytest.raises(ValueError, match='image with id 1 will possess unexpected number of annotations 2 for DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS dataset.'):
             coco_dict_to_manifest(self.TASK, coco_dict)
 
     def test_supercategory_working(self):
