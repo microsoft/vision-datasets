@@ -28,5 +28,5 @@ class TestImageRegression(BaseCocoAdaptor):
             ]
         }
 
-        with pytest.raises(ValueError, match='image with id 1 will possess unexpected number of annotations 1 for DatasetTypes.IMAGE_REGRESSION dataset.'):
+        with pytest.raises(ValueError, match='image with id 1 will possess unexpected number of annotations 2 for DatasetTypes.IMAGE_REGRESSION dataset.'):
             coco_dict_to_manifest(self.TASK, coco_dict)
