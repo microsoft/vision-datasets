@@ -32,7 +32,9 @@ class PILImageLoader:
                 image = image.transpose(Image.FLIP_TOP_BOTTOM)
             if orientation == 1 or orientation == 2 or orientation == 5 or orientation == 6:
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        image = image.convert('RGB')
+        # not supported by the convert function
+        if image.mode != "I" and image.mode != "F":
+            image = image.convert('RGB')
         image.format = img_format
         return image
 
