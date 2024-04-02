@@ -5,8 +5,8 @@ from urllib.parse import urlparse, urlunparse
 
 from tqdm import tqdm
 
-from vision_datasets.commands.utils import FileReader, PILImageLoader, add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages
-from vision_datasets.common import CocoDictGeneratorFactory, DatasetHub, DatasetTypes
+from vision_datasets.commands.utils import add_args_to_locate_dataset, get_or_generate_data_reg_json_and_usages
+from vision_datasets.common import FileReader, PILImageLoader, CocoDictGeneratorFactory, DatasetHub, DatasetTypes
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
