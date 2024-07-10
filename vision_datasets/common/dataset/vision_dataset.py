@@ -10,7 +10,7 @@ from tqdm import tqdm
 from ..constants import DatasetTypes
 from ..data_reader import FileReader, PILImageLoader
 from ..dataset_info import BaseDatasetInfo
-from ..data_manifest import DatasetManifest, ImageDataManifest
+from ..data_manifest import DatasetManifest, ImageDataManifest, AnnotationWiseDatasetManifest, AnnotationDataManifest
 from .base_dataset import BaseDataset
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,9 @@ class VisionDataset(BaseDataset):
         return self.dataset_manifest.categories
 
     def get_targets(self, index):
+        if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
+            return self.dataset_manifest.annotations[index].labels
+
         image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
         targets = image_manifest.labels
         w, h = image_manifest.width, image_manifest.height
@@ -62,15 +65,21 @@ class VisionDataset(BaseDataset):
         return targets
 
     def __len__(self):
-        return len(self.dataset_manifest.images)
+        return len(self.dataset_manifest.images) if isinstance(self.dataset_manifest, DatasetManifest) else len(self.dataset_manifest.annotations)
 
     def _get_single_item(self, index):
-        image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
-        image = self._load_image(image_manifest.img_path)
-        target = image_manifest.labels
-        if self.coordinates == 'relative':
-            w, h = image.size
-            target = VisionDataset._convert_box_to_relative_if_od(image_manifest.labels, w, h, None, self.dataset_info)
+        if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
+            annotation_manifest: AnnotationDataManifest = self.dataset_manifest.annotations[index]
+            image_manifests = [annotation_manifest.images[id] for id in annotation_manifest.image_ids]
+            image = [self._load_image(image_manifest.img_path) for image_manifest in image_manifests]
+            target = annotation_manifest.labels
+        else:
+            image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
+            image = self._load_image(image_manifest.img_path)
+            target = image_manifest.labels
+            if self.coordinates == 'relative':
+                w, h = image.size
+                target = VisionDataset._convert_box_to_relative_if_od(image_manifest.labels, w, h, None, self.dataset_info)
 
         return image, target, str(index)
 

@@ -14,6 +14,7 @@ class DatasetTypes(Enum):
     TEXT_2_IMAGE_RETRIEVAL = 9
     VISUAL_QUESTION_ANSWERING = 10
     VISUAL_OBJECT_GROUNDING = 11
+    KV_PAIR = 12
 
 
 class Usages(Enum):

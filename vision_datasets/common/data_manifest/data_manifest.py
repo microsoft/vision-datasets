@@ -199,3 +199,81 @@ class DatasetManifest(ManifestBase):
 
     def __len__(self):
         return len(self.images)
+
+
+class AnnotationDataManifest(ManifestBase):
+    """
+    Encapsulates information of an annotation.
+    """
+
+    def __init__(self,
+                 id: int,
+                 img_ids: List[int],
+                 labels: List[ImageLabelManifest],
+                 additional_info: Dict = {}):
+        """
+        Args:
+            id (int): annotation id
+            img_ids: image ids
+            labels (list): labels
+            additional_info (dict): additional info about this annotation
+        """
+        super().__init__(additional_info)
+
+        self.id = id
+        self.img_ids = img_ids
+        self.labels = labels
+        self.additional_info = additional_info
+
+    def __eq__(self, other) -> bool:
+        if not super().__eq__(other):
+            return False
+
+        if not isinstance(other, AnnotationDataManifest):
+            return False
+
+        return self.id == other.id and self.img_ids == other.img_ids and self.labels == other.labels \
+            and self.additional_info == other.additional_info
+
+    def is_negative(self) -> bool:
+        if not self.labels:
+            return True
+
+        return False
+
+
+class AnnotationWiseDatasetManifest(ManifestBase):
+    """
+    Annotation-wise manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in AnnotationDataManifest, 
+    including field 'img_ids' to capture indices in images.
+    """
+
+    def __init__(self, images: List[ImageDataManifest], annotations: List[AnnotationDataManifest], data_type: str, addtional_info={}):
+        """
+
+        Args:
+            images (list): image manifest
+            annotations (list): annotations
+            data_type (str or dict) : data type
+            additional_info (dict): additional info about this dataset
+        """
+        if isinstance(data_type, dict):
+            raise ValueError("composition type is not supported!")
+        for ann in annotations:
+            if not ann.is_negative() and any([img_id < 0 or img_id > len(images) for img_id in ann.img_ids]):
+                raise ValueError(f"image ids of annotation are out of range, expect 0 to {len(images)-1}, got {ann.img_ids}!")
+        super().__init__(addtional_info)
+
+        self.images = images
+        self.annotations = annotations
+        self.data_type = data_type
+        self.categories = None
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, AnnotationWiseDatasetManifest):
+            return False
+
+        return self.images == other.images and self.annotations == other.annotations and self.data_type == other.data_type
+
+    def __len__(self):
+        return len(self.annotations)
