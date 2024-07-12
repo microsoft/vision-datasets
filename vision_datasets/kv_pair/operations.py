@@ -1,0 +1,25 @@
+from ..common import DatasetTypes, BalancedInstanceWeightsGenerator, GenerateCocoDictFromAnnotationWiseManifest, SampleByNumSamples, SampleFewShot, SampleStrategyType, \
+    AnnotationWiseSingleTaskMerge, Spawn, Split, BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, \
+    SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
+    ImageDataManifest, AnnotationDataManifest, AnnotationWiseDatasetManifest
+from .manifest import ImageObjectDetectionLabelManifest
+
+_DATA_TYPE = DatasetTypes.KV_PAIR
+
+
+@CocoDictGeneratorFactory.register(_DATA_TYPE)
+class KvPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
+    def process_labels(self, coco_ann, label: AnnotationDataManifest):
+        coco_ann['key_value_pairs'] = label.kv_pair
+        coco_ann['text_input'] = label.text_input
+
+    def _generate_images(self, manifest: AnnotationWiseDatasetManifest):
+        images = super()._generate_images(manifest)
+        # add metadata field if exists
+        for img, img_manifest in zip(images, manifest.images):
+            if img_manifest.additional_info is not None and 'metadata' in img_manifest.additional_info:
+                img['metadata'] = img_manifest.additional_info['metadata']
+        return images
+
+
+ManifestMergeStrategyFactory.direct_register(AnnotationWiseSingleTaskMerge, _DATA_TYPE)

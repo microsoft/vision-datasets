@@ -83,3 +83,18 @@ class MultiTaskDatasetInfo(BaseDatasetInfo):
     @property
     def task_names(self):
         return list(self.sub_task_infos.keys())
+
+
+class KVPairDatasetInfo(DatasetInfo):
+    def __init__(self, dataset_info_dict):
+        data_type = _data_type_to_enum(dataset_info_dict.get('type'))
+        if data_type != DatasetTypes.KV_PAIR:
+            raise ValueError
+        if 'schema' not in dataset_info_dict:
+            raise ValueError('schema must be provided for KV_PAIR dataset!')
+        super(DatasetInfo, self).__init__(dataset_info_dict)
+        self.schema = dataset_info_dict['schema']
+    
+    @property
+    def schema(self):
+        return self.schema

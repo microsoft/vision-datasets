@@ -1,9 +1,10 @@
 import abc
 import copy
 import logging
+import typing
 
 from ....common.utils import deep_merge
-from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest
+from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest, AnnotationWiseDatasetManifest
 from .operation import Operation
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ class SingleTaskMerge(MergeStrategy):
         additional_info = deep_merge([x.additional_info for x in args])
         return DatasetManifest(images, categories, copy.deepcopy(data_type), additional_info)
 
-    def check(self, *args: DatasetManifest):
+    def check(self, *args: typing.Union[DatasetManifest, AnnotationWiseDatasetManifest]):
         super().check(*args)
 
         if any([x.is_multitask for x in args]):
@@ -81,3 +82,30 @@ class SingleTaskMerge(MergeStrategy):
         categories = [CategoryManifest(i, x) for i, x in enumerate(category_name_to_idx.keys())]
 
         return categories, category_name_to_idx
+
+
+class AnnotationWiseSingleTaskMerge(MergeStrategy):
+    """
+    Merge for single task data type with AnnotationWiseDatasetManifest.
+    """
+
+    def merge(self, *args: AnnotationWiseDatasetManifest):
+        data_type = args[0].data_type
+        images = []
+        annotations = []
+        for manifest in args:
+            old_to_new_img_ids = {}
+            for image in manifest.images:
+                new_image = copy.deepcopy(image)
+                new_image.id = len(images)
+                old_to_new_img_ids[image.id] = new_image.id
+                images.append(new_image)
+
+            for annotation in manifest.annotations:
+                new_annotation = copy.deepcopy(annotation)
+                new_annotation.id = len(annotations)
+                new_annotation.img_ids = [old_to_new_img_ids[x] for x in new_annotation.img_ids]
+                annotations.append(new_annotation)
+
+        additional_info = deep_merge([x.additional_info for x in args])
+        return AnnotationWiseDatasetManifest(images, annotations, copy.deepcopy(data_type), additional_info)

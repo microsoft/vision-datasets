@@ -1,6 +1,6 @@
 import abc
 
-from ..data_manifest import DatasetManifest
+from ..data_manifest import DatasetManifest, AnnotationWiseDatasetManifest
 from .operation import Operation
 
 
@@ -66,3 +66,23 @@ class GenerateCocoDictBase(Operation):
 
         for key in to_del:
             del dict_val[key]
+
+
+class GenerateCocoDictFromAnnotationWiseManifest(GenerateCocoDictBase):
+    """
+    Base class for generating a COCO dictionary from AnnotationWiseDatasetManifest that can be serialized
+    """
+
+    def _generate_annotations(self, manifest: AnnotationWiseDatasetManifest):
+        annotations = []
+        for ann in manifest.annotations:
+            for label in ann.labels:
+                coco_ann = {
+                    'id': len(annotations) + 1,
+                    'image_id': [img_id + 1 for img_id in ann.img_ids],
+                }
+
+                self.process_labels(coco_ann, label)
+                annotations.append(coco_ann)
+
+        return annotations

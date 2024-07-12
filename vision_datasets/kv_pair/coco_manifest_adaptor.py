@@ -1,6 +1,7 @@
 from ..common import DatasetTypes, CocoManifestAdaptorFactory, CocoManifestWithMultiImageAnnotationAdaptor, AnnotationDataManifest
 from .manifest import KVPairAnnotationManifest
 
+
 @CocoManifestAdaptorFactory.register(DatasetTypes.KV_PAIR)
 class KVPairCocoManifestAdaptor(CocoManifestWithMultiImageAnnotationAdaptor):
     def __init__(self) -> None:
