@@ -8,7 +8,7 @@ _DATA_TYPE = DatasetTypes.KV_PAIR
 
 
 @CocoDictGeneratorFactory.register(_DATA_TYPE)
-class KvPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
+class KVPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
     def process_labels(self, coco_ann, label: AnnotationDataManifest):
         coco_ann['key_value_pairs'] = label.kv_pair
         coco_ann['text_input'] = label.text_input
@@ -23,3 +23,5 @@ class KvPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
 
 
 ManifestMergeStrategyFactory.direct_register(AnnotationWiseSingleTaskMerge, _DATA_TYPE)
+
+# TODO: add other operations such as sample, split

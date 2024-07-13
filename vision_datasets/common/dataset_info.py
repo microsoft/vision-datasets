@@ -1,4 +1,7 @@
+import logging
 from .constants import AnnotationFormats, DatasetTypes, Usages
+
+logger = logging.getLogger(__name__)
 
 
 def _data_type_to_enum(val: str):
@@ -23,6 +26,8 @@ class DatasetInfoFactory:
         data_type = _data_type_to_enum(dataset_info_dict.get('type'))
         if data_type == DatasetTypes.MULTITASK:
             return MultiTaskDatasetInfo(dataset_info_dict)
+        if data_type == DatasetTypes.KV_PAIR:
+            return KVPairDatasetInfo(data_type)
         return DatasetInfo(dataset_info_dict)
 
 
@@ -91,10 +96,16 @@ class KVPairDatasetInfo(DatasetInfo):
         if data_type != DatasetTypes.KV_PAIR:
             raise ValueError
         if 'schema' not in dataset_info_dict:
-            raise ValueError('schema must be provided for KV_PAIR dataset!')
+            raise ValueError('schema must be provided for kv_pair dataset!')
+        self._check_schema(dataset_info_dict['schema'])
+        
         super(DatasetInfo, self).__init__(dataset_info_dict)
         self.schema = dataset_info_dict['schema']
-    
-    @property
-    def schema(self):
-        return self.schema
+
+    def _check_schema(self, schema: dict) -> bool:
+        for name in ['name', 'fieldSchema']:
+            if name not in schema:
+                raise ValueError(f'{name} is required in schema!')
+        if 'description' not in schema:
+            logger.warning('description is not provided in schema!')
+        # TODO: add more checking when definition is finalized
