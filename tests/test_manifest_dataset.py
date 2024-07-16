@@ -9,8 +9,10 @@ import numpy as np
 from PIL import Image
 
 from tests.test_fixtures import DetectionTestFixtures
-from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfo, Usages, VisionDataset
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfo, DatasetTypes, Usages, VisionDataset
 from vision_datasets.common.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
+
+from .resources.util import coco_database
 
 
 class TestVisionDataset(unittest.TestCase):
@@ -136,3 +138,91 @@ class TestCocoVisionDataset(unittest.TestCase):
             self.assertEqual(list(image1.getdata()), list(images[1].getdata()))
             self.assertTrue(np.array_equal(target0[0].label_data, np.asarray(images[2]), equal_nan=True))
             self.assertTrue(np.array_equal(target1[0].label_data, np.asarray(images[3]), equal_nan=True))
+
+
+class TestCocoKVPairDataset(unittest.TestCase):
+    DATASET_INFO_DICT = {
+        "name": "dummy",
+        "version": 1,
+        "type": "kv_pair",
+        "description": "A dummy test dataset",
+        "format": "coco",
+        "root_folder": "dummy",
+        "test": {
+            "index_path": "test.json",
+            "files_for_local_usage": [
+                "test.zip",
+            ],
+            "num_images": 2
+        },
+        "schema": {
+            "name": "Retail Fraud Detection Schema",
+            "description": "Schema for detecting retail fraud by comparing product images",
+            "fieldSchema": {
+                "productMatch": {
+                    "type": "boolean",
+                    "description": "Does the product match between the two images",
+                    "item": None,
+                    "properties": None
+                },
+                "rationale": {
+                    "type": "string",
+                    "description": "Reason for the 'Product Match' decision",
+                    "item": None,
+                    "properties": None
+                },
+                "hasDamage": {
+                    "type": "boolean",
+                    "description": "Is image 2 damaged based on comparison",
+                    "item": None,
+                    "properties": None
+                },
+                "damageDetails": {
+                    "type": "string",
+                    "description": "Describe the damage if any in detail",
+                    "item": None,
+                    "properties": None
+                }
+            }
+        }
+    }
+
+    kv_pair_coco = coco_database[DatasetTypes.KV_PAIR][1]
+
+    @staticmethod
+    def _create_kv_pair_dataset(tempdir):
+        dataset_dict = copy.deepcopy(TestCocoKVPairDataset.DATASET_INFO_DICT)
+        dataset_dict['root_folder'] = tempdir
+        images = [Image.new('RGB', (100, 100)), Image.new('RGB', (50, 50))]
+        images[0].save(pathlib.Path(tempdir) / '0.jpg')
+        images[1].save(pathlib.Path(tempdir) / '1.jpg')
+
+        with zipfile.ZipFile(pathlib.Path(tempdir) / 'test.zip', 'w') as zf:
+            zf.write(pathlib.Path(tempdir) / '0.jpg', '0.jpg')
+            zf.write(pathlib.Path(tempdir) / '1.jpg', '1.jpg')
+
+        with open(pathlib.Path(tempdir) / 'test.json', 'w') as f:
+            json.dump(TestCocoKVPairDataset.kv_pair_coco, f)
+        
+        schema = TestCocoKVPairDataset.DATASET_INFO_DICT['schema']
+        dataset_info = DatasetInfo(dataset_dict)
+        dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type, schema=schema).create_dataset_manifest(dataset_info.index_files[Usages.TEST], dataset_info.root_folder)
+        print(type(dataset_manifest))
+        dataset = VisionDataset(dataset_info, dataset_manifest)
+        return dataset, images
+
+    def test_kv_pair_dataset(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            dataset, images = self._create_kv_pair_dataset(tempdir)            
+            self.assertEqual(len(dataset), 2)
+            images_0, target0, _ = dataset[0]
+            self.assertEqual(list(images_0[0].getdata()), list(images[0].getdata()))
+            self.assertEqual(list(images_0[1].getdata()), list(images[1].getdata()))
+            self.assertEqual(target0.key_value_pairs, self.kv_pair_coco['annotations'][0]['key_value_pairs'])
+            self.assertEqual(target0.text_input, None)
+            
+            images_1, target1, _ = dataset[1]
+            self.assertEqual(list(images_1[0].getdata()), list(images[1].getdata()))
+            self.assertEqual(list(images_1[1].getdata()), list(images[0].getdata()))
+            self.assertEqual(target1.key_value_pairs, self.kv_pair_coco['annotations'][1]['key_value_pairs'])
+            self.assertEqual(target1.text_input, {"note": "reversed image order."})

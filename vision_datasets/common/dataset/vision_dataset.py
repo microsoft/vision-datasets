@@ -70,9 +70,9 @@ class VisionDataset(BaseDataset):
     def _get_single_item(self, index):
         if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
             annotation_manifest: AnnotationDataManifest = self.dataset_manifest.annotations[index]
-            image_manifests = [annotation_manifest.images[id] for id in annotation_manifest.image_ids]
+            image_manifests = [self.dataset_manifest.images[id] for id in annotation_manifest.img_ids]
             image = [self._load_image(image_manifest.img_path) for image_manifest in image_manifests]
-            target = annotation_manifest.labels
+            target = annotation_manifest.label
         else:
             image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
             image = self._load_image(image_manifest.img_path)

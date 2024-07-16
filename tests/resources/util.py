@@ -374,8 +374,8 @@ class KVPairTestCases:
                     "id": 1,
                     "width": 224,
                     "height": 224,
-                    "file_name": "train_images/1.jpg",
-                    "zip_file": "train_images.zip"
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip"
                 }
             ],
             "annotations": [
@@ -401,10 +401,10 @@ class KVPairTestCases:
             "images": [
                 {
                     "id": 1,
-                    "width": 224,
-                    "height": 224,
-                    "file_name": "train_images/1.jpg",
-                    "zip_file": "train_images.zip",
+                    "width": 100,
+                    "height": 100,
+                    "file_name": "0.jpg",
+                    "zip_file": "test.zip",
                     "metadata": {
                         "catalog": True,
                         "description": "iphone 12"
@@ -412,10 +412,10 @@ class KVPairTestCases:
                 },
                 {
                     "id": 2,
-                    "width": 224,
-                    "height": 224,
-                    "file_name": "train_images/2.jpg",
-                    "zip_file": "train_images.zip",
+                    "width": 50,
+                    "height": 50,
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip",
                     "metadata": {
                         "catalog": False,
                         "description": "user 1xxx's review."
@@ -436,6 +436,9 @@ class KVPairTestCases:
                 {
                     "id": 1,
                     "image_id": [2, 1],
+                    "text_input": {
+                        "note": "reversed image order."
+                    },
                     "key_value_pairs": {
                         "productMatch": False,
                         "rationale": "",
