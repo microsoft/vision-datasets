@@ -364,6 +364,88 @@ class VisualObjectGroundingTestCases:
             ]
         }
     ]
+    
+
+class KVPairTestCases:
+    manifest_dicts = [
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "train_images/1.jpg",
+                    "zip_file": "train_images.zip"
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_id": [1],
+                    "text_input": {
+                        "query": "Complete the order" 
+                    },
+                    "key_value_pairs": {
+                        "UIElementBox": {
+                            "x": 10,
+                            "y": 10,
+                            "width": 20,
+                            "height": 30
+                        },
+                        "action": "click"
+                    }
+                }
+            ]
+        },
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "train_images/1.jpg",
+                    "zip_file": "train_images.zip",
+                    "metadata": {
+                        "catalog": True,
+                        "description": "iphone 12"
+                    }
+                },
+                {
+                    "id": 2,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "train_images/2.jpg",
+                    "zip_file": "train_images.zip",
+                    "metadata": {
+                        "catalog": False,
+                        "description": "user 1xxx's review."
+                    }
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_id": [1, 2],
+                    "key_value_pairs": {
+                        "productMatch": False,
+                        "rationale": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves.",
+                        "hasDamage": True,
+                        "damageDetails": "Scratch on the outside"
+                    }
+                },
+                {
+                    "id": 1,
+                    "image_id": [2, 1],
+                    "key_value_pairs": {
+                        "productMatch": False,
+                        "rationale": "",
+                        "hasDamage": True,
+                        "damageDetails": "Scratch on the outside"
+                    }
+                }
+            ]
+        }
+    ]
 
 
 # Database for valid coco dicts per task
@@ -378,6 +460,7 @@ coco_database = {
     DatasetTypes.TEXT_2_IMAGE_RETRIEVAL: Text2ImageRetrievalTestCases.manifest_dicts,
     DatasetTypes.VISUAL_QUESTION_ANSWERING: VisualQuestionAnsweringTestCases.manifest_dicts,
     DatasetTypes.VISUAL_OBJECT_GROUNDING: VisualObjectGroundingTestCases.manifest_dicts,
+    DatasetTypes.KV_PAIR: KVPairTestCases.manifest_dicts
 }
 
 

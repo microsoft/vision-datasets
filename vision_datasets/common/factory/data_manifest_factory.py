@@ -19,7 +19,7 @@ class DataManifestFactory:
                 adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.MULTITASK, data_type_by_task)
                 return adaptor.create_dataset_manifest(coco_file_by_task, container_sas_or_root_dir)
             if dataset_info.type == DatasetTypes.KV_PAIR:
-                adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KV_PAIR, schema=dataset_info.schema)
+                adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KV_PAIR, dataset_info.schema)
             else:
                 adaptor = CocoManifestAdaptorFactory.create(dataset_info.type)
             return adaptor.create_dataset_manifest(dataset_info.index_files.get(usage), container_sas_or_root_dir)

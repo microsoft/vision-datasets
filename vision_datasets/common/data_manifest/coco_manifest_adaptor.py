@@ -3,6 +3,7 @@ import logging
 import pathlib
 from abc import ABC, abstractmethod
 from typing import Union
+# from collections import defaultdict
 
 from ..data_reader import FileReader
 from ..utils import can_be_url, construct_full_url_or_path_func
@@ -126,20 +127,35 @@ class CocoManifestWithoutCategoriesAdaptor(CocoManifestAdaptorBase):
 
 class CocoManifestWithMultiImageAnnotationAdaptor(CocoManifestAdaptorBase):
     """
-    Adaptor for generating multi-image annotation manifest froma adapted coco format
+    Adaptor for generating multi-image annotation manifest froma adapted coco format.
     """
+    
+    def get_images_and_categories(self, images_by_id, coco_manifest):
+        NotImplementedError("This method should not be called for multi-image annotation datasets")
     
     def get_images_and_annotations(self, images_by_id, coco_manifest):
         images = [x for x in images_by_id.values()]
         images.sort(key=lambda x: x.id)
         img_id_to_pos = {x.id: i for i, x in enumerate(images)}
-        
         annotations = []
+        
+        # anns_by_img_ids = defaultdict(list)
+        # for coco_ann in coco_manifest['annotations']:
+        #     anns_by_img_ids[coco_ann['image_id']].append(coco_ann)
+            
+        # for id, (img_ids, anns) in enumerate(anns_by_img_ids.items()):
+        #     img_positions = [img_id_to_pos[img_id] for img_id in img_ids]
+        #     ann_manifest = AnnotationDataManifest(id, img_positions, [], {})
+        #     for ann in anns:
+        #         self.process_label(ann_manifest, ann, coco_manifest)
+        #     annotations.append(ann_manifest)   
+        
         for ann in coco_manifest['annotations']:
-            img_positions = [img_id_to_pos[id] for id in ann['image_ids']]
-            ann_manifest = AnnotationDataManifest(ann['id'], img_positions, [], self._get_additional_info(ann, {'id', 'image_ids'}))
+            img_ids = ann['image_id']
+            img_positions = [img_id_to_pos[img_id] for img_id in img_ids]
+            ann_manifest = AnnotationDataManifest(ann['id'], img_positions, label=None)
             self.process_label(ann_manifest, ann, coco_manifest)
-            annotations.append(ann_manifest)                               
+            annotations.append(ann_manifest)           
         return images, annotations
 
     def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):

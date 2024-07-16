@@ -203,15 +203,16 @@ class DatasetManifest(ManifestBase):
 
 class AnnotationDataManifest(ManifestBase):
     """
-    Encapsulates information of an annotation.
+    Encapsulates information of an annotation. The annotation can be associated with a single image, or multi-image jointly. 
     """
 
     def __init__(self,
                  id: int,
                  img_ids: List[int],
-                 labels: List[ImageLabelManifest],
+                 label: ImageLabelManifest,
                  additional_info: Dict = {}):
         """
+        Annotation manifest organized by img_ids, each set of images can have multiple labels. 
         Args:
             id (int): annotation id
             img_ids: image ids
@@ -222,7 +223,7 @@ class AnnotationDataManifest(ManifestBase):
 
         self.id = id
         self.img_ids = img_ids
-        self.labels = labels
+        self.label = label
         self.additional_info = additional_info
 
     def __eq__(self, other) -> bool:
@@ -232,11 +233,11 @@ class AnnotationDataManifest(ManifestBase):
         if not isinstance(other, AnnotationDataManifest):
             return False
 
-        return self.id == other.id and self.img_ids == other.img_ids and self.labels == other.labels \
+        return self.id == other.id and self.img_ids == other.img_ids and self.label == other.label \
             and self.additional_info == other.additional_info
 
     def is_negative(self) -> bool:
-        if not self.labels:
+        if self.label is not None:
             return True
 
         return False

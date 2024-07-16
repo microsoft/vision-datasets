@@ -1,4 +1,5 @@
 import copy
+from vision_datasets.common import DatasetManifest, AnnotationWiseDatasetManifest
 from ..resources.util import coco_dict_to_manifest
 
 
@@ -35,6 +36,11 @@ class BaseCocoAdaptor:
                 assert ann.additional_info.get('ann_field_1') == 1
                 assert ann.additional_info.get('ann_field_2') == 2
 
+        if isinstance(manifest, AnnotationWiseDatasetManifest):
+            for ann in manifest.annotations:
+                assert ann.label.additional_info.get('ann_field_1') == 1
+                assert ann.label.additional_info.get('ann_field_2') == 2
+
         if 'categories' in coco_dict:
             for cat in manifest.categories:
                 assert cat.additional_info.get('cat_field_1') == 1
@@ -48,4 +54,17 @@ class BaseCocoAdaptor:
         categories = coco_dict.get('categories')
         if categories:
             assert manifest.categories and len(manifest.categories) == len(categories)
-        assert sum([len(img.labels) for img in manifest.images]) == len(coco_dict['annotations'])
+        if isinstance(manifest, DatasetManifest):
+            assert sum([len(img.labels) for img in manifest.images]) == len(coco_dict['annotations'])
+        elif isinstance(manifest, AnnotationWiseDatasetManifest):
+            assert manifest.categories is None
+            assert len(manifest.annotations) == len(coco_dict['annotations'])
+            img_id_set = set(range(len(manifest.images)))
+            img_id_coco_to_manifest = {im['id']: id for id, im in enumerate(coco_dict['images'])}
+            for id, ann in enumerate(manifest.annotations):
+                assert all([img_id in img_id_set for img_id in ann.img_ids])
+                assert ann.id == coco_dict['annotations'][id]['id']
+                coco_img_ids = coco_dict['annotations'][id]['image_id']
+                assert ann.img_ids == [img_id_coco_to_manifest[coco_img_id] for coco_img_id in coco_img_ids]
+        else:
+            raise ValueError(f"Unknown manifest type: {type(manifest)}")

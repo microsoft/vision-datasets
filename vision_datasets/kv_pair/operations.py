@@ -1,15 +1,15 @@
-from ..common import DatasetTypes, BalancedInstanceWeightsGenerator, GenerateCocoDictFromAnnotationWiseManifest, SampleByNumSamples, SampleFewShot, SampleStrategyType, \
-    AnnotationWiseSingleTaskMerge, Spawn, Split, BalancedInstanceWeightsFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, SampleStrategyFactory, \
+from ..common import DatasetTypes, GenerateCocoDictFromAnnotationWiseManifest, \
+    AnnotationWiseSingleTaskMerge, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, \
     SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
-    ImageDataManifest, AnnotationDataManifest, AnnotationWiseDatasetManifest
-from .manifest import ImageObjectDetectionLabelManifest
+    AnnotationWiseDatasetManifest
+from .manifest import KVPairLabelManifest
 
 _DATA_TYPE = DatasetTypes.KV_PAIR
 
 
 @CocoDictGeneratorFactory.register(_DATA_TYPE)
 class KVPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
-    def process_labels(self, coco_ann, label: AnnotationDataManifest):
+    def process_labels(self, coco_ann, label: KVPairLabelManifest):
         coco_ann['key_value_pairs'] = label.kv_pair
         coco_ann['text_input'] = label.text_input
 
