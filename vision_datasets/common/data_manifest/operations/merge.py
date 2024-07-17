@@ -104,7 +104,7 @@ class AnnotationWiseSingleTaskMerge(MergeStrategy):
             for annotation in manifest.annotations:
                 new_annotation = copy.deepcopy(annotation)
                 new_annotation.id = len(annotations)
-                new_annotation.img_ids = [old_to_new_img_ids[x] for x in new_annotation.img_ids]
+                new_annotation.img_ids = [old_to_new_img_ids[manifest.images[x].id] for x in annotation.img_ids]
                 annotations.append(new_annotation)
 
         additional_info = deep_merge([x.additional_info for x in args])

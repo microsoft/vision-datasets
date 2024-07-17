@@ -75,14 +75,13 @@ class GenerateCocoDictFromAnnotationWiseManifest(GenerateCocoDictBase):
 
     def _generate_annotations(self, manifest: AnnotationWiseDatasetManifest):
         annotations = []
-        for ann in manifest.annotations:
-            for label in ann.labels:
-                coco_ann = {
-                    'id': len(annotations) + 1,
-                    'image_id': [img_id + 1 for img_id in ann.img_ids],
-                }
+        for id, ann in enumerate(manifest.annotations, 1):
+            coco_ann = {
+                'id': id,
+                'image_id': [img_id + 1 for img_id in ann.img_ids],
+            }
 
-                self.process_labels(coco_ann, label)
-                annotations.append(coco_ann)
+            self.process_labels(coco_ann, ann.label)
+            annotations.append(coco_ann)
 
         return annotations

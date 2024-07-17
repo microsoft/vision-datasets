@@ -1,3 +1,4 @@
+import copy
 import json
 import pathlib
 import tempfile
@@ -50,7 +51,7 @@ class TestKVPair(BaseCocoAdaptor):
                 }
             }
         }
-        coco_dict = coco_database[TestKVPair.TASK][1]
+        coco_dict = copy.deepcopy(coco_database[TestKVPair.TASK][1])
         return schema, coco_dict
     
     def test_create_data_manifest_example(self):

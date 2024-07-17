@@ -1,6 +1,5 @@
 from ..common import DatasetTypes, GenerateCocoDictFromAnnotationWiseManifest, \
     AnnotationWiseSingleTaskMerge, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, \
-    SpawnFactory, SplitFactory, StandAloneImageListGeneratorFactory, GenerateStandAloneImageListBase, \
     AnnotationWiseDatasetManifest
 from .manifest import KVPairLabelManifest
 
@@ -10,8 +9,8 @@ _DATA_TYPE = DatasetTypes.KV_PAIR
 @CocoDictGeneratorFactory.register(_DATA_TYPE)
 class KVPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
     def process_labels(self, coco_ann, label: KVPairLabelManifest):
-        coco_ann['key_value_pairs'] = label.kv_pair
-        coco_ann['text_input'] = label.text_input
+        coco_ann[KVPairLabelManifest.KV_PAIR_KEY] = label.key_value_pairs
+        coco_ann[KVPairLabelManifest.INPUT_KEY] = label.text_input
 
     def _generate_images(self, manifest: AnnotationWiseDatasetManifest):
         images = super()._generate_images(manifest)
