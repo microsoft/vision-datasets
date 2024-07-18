@@ -51,7 +51,7 @@ class VisionDataset(BaseDataset):
 
     def get_targets(self, index):
         if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
-            return self.dataset_manifest.annotations[index].labels
+            return self.dataset_manifest.annotations[index].label
 
         image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
         targets = image_manifest.labels
