@@ -139,17 +139,6 @@ class CocoManifestWithMultiImageAnnotationAdaptor(CocoManifestAdaptorBase):
         img_id_to_pos = {x.id: i for i, x in enumerate(images)}
         annotations = []
         
-        # anns_by_img_ids = defaultdict(list)
-        # for coco_ann in coco_manifest['annotations']:
-        #     anns_by_img_ids[coco_ann['image_id']].append(coco_ann)
-            
-        # for id, (img_ids, anns) in enumerate(anns_by_img_ids.items()):
-        #     img_positions = [img_id_to_pos[img_id] for img_id in img_ids]
-        #     ann_manifest = AnnotationDataManifest(id, img_positions, [], {})
-        #     for ann in anns:
-        #         self.process_label(ann_manifest, ann, coco_manifest)
-        #     annotations.append(ann_manifest)   
-        
         for ann in coco_manifest['annotations']:
             img_ids = ann['image_id']
             img_positions = [img_id_to_pos[img_id] for img_id in img_ids]

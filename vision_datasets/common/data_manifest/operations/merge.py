@@ -90,6 +90,7 @@ class AnnotationWiseSingleTaskMerge(MergeStrategy):
     """
 
     def merge(self, *args: AnnotationWiseDatasetManifest):
+        print(args[0])
         data_type = args[0].data_type
         images = []
         annotations = []

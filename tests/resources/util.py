@@ -7,11 +7,13 @@ from vision_datasets.common import CocoManifestAdaptorFactory, DatasetTypes
 TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]
 
 
-def coco_dict_to_manifest(task, coco_dict):
+def coco_dict_to_manifest(task, coco_dict, schema: dict = None):
     if task == DatasetTypes.MULTITASK:
         return coco_dict_to_manifest_multitask(coco_dict[0], coco_dict[1])
-
-    adaptor = CocoManifestAdaptorFactory.create(task)
+    if task == DatasetTypes.KV_PAIR:
+        adaptor = CocoManifestAdaptorFactory.create(task, schema=schema)
+    else:
+        adaptor = CocoManifestAdaptorFactory.create(task)
     with tempfile.TemporaryDirectory() as temp_dir:
         dm1_path = pathlib.Path(temp_dir) / 'coco.json'
         dm1_path.write_text(json.dumps(coco_dict))
@@ -367,6 +369,74 @@ class VisualObjectGroundingTestCases:
     
 
 class KVPairTestCases:
+    schema_dicts = [
+        {
+            "name": "UI automation Schema",
+            "description": "Find UI elements and actions by natural language query from given image.",
+            "fieldSchema": {
+                "UIElementBbox": {
+                    "type": "boundingBox",
+                    "description": "bounding box coordinates of ui element."
+                },
+                "action": {
+                    "type": "string",
+                    "description": "type of action to take on ui element",
+                    "enum": [
+                        "click", "select", "type"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Retail Fraud Detection Schema",
+            "description": "Schema for detecting retail fraud by comparing product images",
+            "fieldSchema": {
+                "productMatch": {
+                    "type": "boolean",
+                    "description": "Does the product match between the two images"
+                },
+                "rationale": {
+                    "type": "string",
+                    "description": "Reason for the 'Product Match' decision"
+                },
+                "hasDamage": {
+                    "type": "boolean",
+                    "description": "Is image 2 damaged based on comparison"
+                },
+                "damageDetails": {
+                    "type": "string",
+                    "description": "Describe the damage if any in detail"
+                }
+            }
+        },
+        {
+            "name": "Defect detection - screws",
+            "description": "Extract defect location and type from an image of metal screws on an assembly line",
+            "fieldSchema": {
+                "defects": {
+                    "type": "array",
+                    "description": "The defect types with bounding boxes detected in the image",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "defectType": {
+                                "type": "string",
+                                "description": "The type of defect detected",
+                                "enum": [
+                                    "scratch", "dent", "discoloration", "crack"
+                                ]
+                            },
+                            "defectLocation": {
+                                "type": "boundingBox",
+                                "description": "Bounding box indicating the location of the defect"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+
     manifest_dicts = [
         {
             "images": [
@@ -386,12 +456,7 @@ class KVPairTestCases:
                         "query": "Complete the order" 
                     },
                     "key_value_pairs": {
-                        "UIElementBox": {
-                            "x": 10,
-                            "y": 10,
-                            "width": 20,
-                            "height": 30
-                        },
+                        "UIElementBbox": [50, 50, 10, 10],
                         "action": "click"
                     }
                 }
@@ -447,6 +512,35 @@ class KVPairTestCases:
                     }
                 }
             ]
+        },
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip"
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_id": [1],
+                    "key_value_pairs": {
+                        "defects": [
+                            {
+                                "defectType": "scratch",
+                                "defectLocation": [30, 30, 20, 20],
+                            },
+                            {
+                                "defectType": "dent",
+                                "defectLocation": [80, 80, 10, 10],
+                            }
+                        ]
+                    }
+                }
+            ]
         }
     ]
 
@@ -466,9 +560,14 @@ coco_database = {
     DatasetTypes.KV_PAIR: KVPairTestCases.manifest_dicts
 }
 
+schema_database = {
+    DatasetTypes.KV_PAIR: KVPairTestCases.schema_dicts
+}
+
 
 def two_tasks_test_cases(coco_database):
     tasks = list(coco_database.keys())
+    tasks = [t for t in tasks if t != DatasetTypes.KV_PAIR]
     two_tasks = list(itertools.product(tasks, tasks))
     coco_dicts = [list(itertools.product(coco_database[task1], coco_database[task2])) for task1, task2 in two_tasks]
     assert len(two_tasks) == len(coco_dicts)

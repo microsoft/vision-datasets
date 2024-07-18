@@ -1,56 +1,27 @@
 import copy
 import json
-import pathlib
 import tempfile
+import pathlib
 import pytest
 
-from vision_datasets.common import DatasetTypes, CocoManifestAdaptorFactory, KVPairDatasetInfo
+from vision_datasets.common import DatasetTypes, CocoManifestAdaptorFactory
 from .coco_adaptor_base import BaseCocoAdaptor
-from ..resources.util import coco_database
+from ..resources.util import coco_database, schema_database
 
 
 class TestKVPair(BaseCocoAdaptor):
     TASK = DatasetTypes.KV_PAIR
 
-    @pytest.mark.parametrize("coco_dict", coco_database[TASK])
-    def test_create_data_manifest(self, coco_dict):
-        super().test_create_data_manifest(coco_dict)
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
+    def test_create_data_manifest(self, coco_dict, schema):
+        super().test_create_data_manifest(coco_dict, schema)
                 
-    @pytest.mark.parametrize("coco_dict", coco_database[TASK])
-    def test_create_data_manifest_with_additional_info(self, coco_dict):
-        super().test_create_data_manifest_with_additional_info(coco_dict)
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
+    def test_create_data_manifest_with_additional_info(self, coco_dict, schema):
+        super().test_create_data_manifest_with_additional_info(coco_dict, schema)
     
     def prepare_schema_and_coco_dict(self):
-        schema = {
-            "name": "Retail Fraud Detection Schema",
-            "description": "Schema for detecting retail fraud by comparing product images",
-            "fieldSchema": {
-                "productMatch": {
-                    "type": "boolean",
-                    "description": "Does the product match between the two images",
-                    "item": None,
-                    "properties": None
-                },
-                "rationale": {
-                    "type": "string",
-                    "description": "Reason for the 'Product Match' decision",
-                    "item": None,
-                    "properties": None
-                },
-                "hasDamage": {
-                    "type": "boolean",
-                    "description": "Is image 2 damaged based on comparison",
-                    "item": None,
-                    "properties": None
-                },
-                "damageDetails": {
-                    "type": "string",
-                    "description": "Describe the damage if any in detail",
-                    "item": None,
-                    "properties": None
-                }
-            }
-        }
+        schema = copy.deepcopy(schema_database[TestKVPair.TASK][1])
         coco_dict = copy.deepcopy(coco_database[TestKVPair.TASK][1])
         return schema, coco_dict
     

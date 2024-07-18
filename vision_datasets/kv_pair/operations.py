@@ -1,7 +1,7 @@
 from ..common import DatasetTypes, GenerateCocoDictFromAnnotationWiseManifest, \
-    AnnotationWiseSingleTaskMerge, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, \
-    AnnotationWiseDatasetManifest
-from .manifest import KVPairLabelManifest
+    AnnotationWiseSingleTaskMerge, CocoDictGeneratorFactory, ManifestMergeStrategyFactory
+    
+from .manifest import KVPairLabelManifest, KVPairDatasetManifest
 
 _DATA_TYPE = DatasetTypes.KV_PAIR
 
@@ -12,7 +12,7 @@ class KVPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
         coco_ann[KVPairLabelManifest.KV_PAIR_KEY] = label.key_value_pairs
         coco_ann[KVPairLabelManifest.INPUT_KEY] = label.text_input
 
-    def _generate_images(self, manifest: AnnotationWiseDatasetManifest):
+    def _generate_images(self, manifest: KVPairDatasetManifest):
         images = super()._generate_images(manifest)
         # add metadata field if exists
         for img, img_manifest in zip(images, manifest.images):
@@ -21,6 +21,11 @@ class KVPairCocoDictGenerator(GenerateCocoDictFromAnnotationWiseManifest):
         return images
 
 
-ManifestMergeStrategyFactory.direct_register(AnnotationWiseSingleTaskMerge, _DATA_TYPE)
-
-# TODO: add other operations such as sample, split
+@ManifestMergeStrategyFactory.register(_DATA_TYPE)
+class KVPairDatasetMerge(AnnotationWiseSingleTaskMerge):
+    def merge(self, *args: KVPairDatasetManifest):
+        schema = args[0].schema
+        for manifest in args[1:]:
+            if manifest.schema != schema:
+                raise ValueError('Schema mismatch')
+        return super().merge(*args)

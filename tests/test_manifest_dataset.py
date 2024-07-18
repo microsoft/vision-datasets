@@ -12,7 +12,7 @@ from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfo, DatasetTypes, Usages, VisionDataset
 from vision_datasets.common.data_manifest.iris_data_manifest_adaptor import IrisManifestAdaptor
 
-from .resources.util import coco_database
+from .resources.util import coco_database, schema_database
 
 
 class TestVisionDataset(unittest.TestCase):
@@ -141,6 +141,9 @@ class TestCocoVisionDataset(unittest.TestCase):
 
 
 class TestCocoKVPairDataset(unittest.TestCase):
+    kv_pair_coco = coco_database[DatasetTypes.KV_PAIR][1]
+    schema = schema_database[DatasetTypes.KV_PAIR][1]
+    
     DATASET_INFO_DICT = {
         "name": "dummy",
         "version": 1,
@@ -155,39 +158,8 @@ class TestCocoKVPairDataset(unittest.TestCase):
             ],
             "num_images": 2
         },
-        "schema": {
-            "name": "Retail Fraud Detection Schema",
-            "description": "Schema for detecting retail fraud by comparing product images",
-            "fieldSchema": {
-                "productMatch": {
-                    "type": "boolean",
-                    "description": "Does the product match between the two images",
-                    "item": None,
-                    "properties": None
-                },
-                "rationale": {
-                    "type": "string",
-                    "description": "Reason for the 'Product Match' decision",
-                    "item": None,
-                    "properties": None
-                },
-                "hasDamage": {
-                    "type": "boolean",
-                    "description": "Is image 2 damaged based on comparison",
-                    "item": None,
-                    "properties": None
-                },
-                "damageDetails": {
-                    "type": "string",
-                    "description": "Describe the damage if any in detail",
-                    "item": None,
-                    "properties": None
-                }
-            }
-        }
+        "schema": schema
     }
-
-    kv_pair_coco = coco_database[DatasetTypes.KV_PAIR][1]
 
     @staticmethod
     def _create_kv_pair_dataset(tempdir):
@@ -207,7 +179,6 @@ class TestCocoKVPairDataset(unittest.TestCase):
         schema = TestCocoKVPairDataset.DATASET_INFO_DICT['schema']
         dataset_info = DatasetInfo(dataset_dict)
         dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type, schema=schema).create_dataset_manifest(dataset_info.index_files[Usages.TEST], dataset_info.root_folder)
-        print(type(dataset_manifest))
         dataset = VisionDataset(dataset_info, dataset_manifest)
         return dataset, images
 

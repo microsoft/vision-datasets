@@ -10,7 +10,7 @@ from PIL import Image
 from vision_datasets import DatasetInfo, DatasetTypes, VisionDataset
 from vision_datasets.torch import TorchDataset
 
-from ..resources.util import coco_database, coco_dict_to_manifest
+from ..resources.util import coco_database, coco_dict_to_manifest, schema_database
 
 
 class FakeDataset:
@@ -23,7 +23,7 @@ def _one_arg_method(x):
 
 class TestTorchDataset:
     @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DatasetTypes
-                                                       if data_type != DatasetTypes.MULTITASK])
+                                                       if data_type not in [DatasetTypes.MULTITASK, DatasetTypes.KV_PAIR]])
     def test_create_torch_dataset(self, data_type, coco_dicts):
         coco_dict = coco_dicts[0]
         manifest = coco_dict_to_manifest(data_type, coco_dict)
@@ -52,6 +52,35 @@ class TestTorchDataset:
 
             td[0:-1]
 
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KV_PAIR], schema_database[DatasetTypes.KV_PAIR]))
+    def test_create_torch_dataset(self, coco_dict, schema):
+        manifest = coco_dict_to_manifest(DatasetTypes.KV_PAIR, coco_dict, schema)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            tdir = pathlib.Path(temp_dir)
+            (tdir / 'test.json').write_text(json.dumps(coco_dict))
+
+            dataset_info = DatasetInfo({
+                'name': 'test',
+                'type': DatasetTypes.KV_PAIR.name,
+                'root_folder': tdir.as_posix(),
+                'format': 'coco',
+                'train': {'index_path': 'test.json'},
+                'schema': schema
+            })
+            td = TorchDataset(VisionDataset(dataset_info, manifest))
+
+            for image in manifest.images:
+                image.img_path = image.img_path.split('@')[1] if '@' in image.img_path else image.img_path
+                image.img_path = tdir / image.img_path
+                os.makedirs(image.img_path.parent, exist_ok=True)
+                image.img_path = image.img_path.as_posix()
+                Image.new(mode="RGB", size=(20, 20)).save(image.img_path)
+
+            for x in td:
+                pass
+
+            td[0:-1]
+            
     def test_picklable(self):
         dataset = TorchDataset(FakeDataset())
         serialized = pickle.dumps(dataset)

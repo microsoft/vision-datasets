@@ -246,7 +246,7 @@ class AnnotationDataManifest(ManifestBase):
 class AnnotationWiseDatasetManifest(ManifestBase):
     """
     Annotation-wise manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in AnnotationDataManifest, 
-    including field 'img_ids' to capture indices in images.
+    including field 'img_ids' to capture indices in images list.
     """
 
     def __init__(self, images: List[ImageDataManifest], annotations: List[AnnotationDataManifest], data_type: str, addtional_info={}):

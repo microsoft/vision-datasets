@@ -4,12 +4,12 @@ from ..resources.util import coco_dict_to_manifest
 
 
 class BaseCocoAdaptor:
-    def test_create_data_manifest(self, coco_dict):
-        manifest = coco_dict_to_manifest(self.TASK, coco_dict)
+    def test_create_data_manifest(self, coco_dict, schema: dict = None):
+        manifest = coco_dict_to_manifest(self.TASK, coco_dict, schema)
         self.check(manifest, coco_dict)
         return manifest
 
-    def test_create_data_manifest_with_additional_info(self, coco_dict):
+    def test_create_data_manifest_with_additional_info(self, coco_dict, schema: dict = None):
         coco_dict = copy.deepcopy(coco_dict)
         for img in coco_dict['images']:
             img['img_field_1'] = 1
@@ -27,7 +27,7 @@ class BaseCocoAdaptor:
         coco_dict['dataset_field_1'] = 1
         coco_dict['dataset_field_2'] = 2
 
-        manifest = coco_dict_to_manifest(self.TASK, coco_dict)
+        manifest = coco_dict_to_manifest(self.TASK, coco_dict, schema)
         self.check(manifest, coco_dict)
         for img in manifest.images:
             assert img.additional_info.get('img_field_1') == 1
