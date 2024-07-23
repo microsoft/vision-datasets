@@ -47,7 +47,7 @@ class TestDatasetRegistry(unittest.TestCase):
     DUMMY_DATA_KV_PAIR = {
         "name": "dummykvpair",
         "version": 1,
-        "type": "kv_pair",
+        "type": "key_value_pair",
         "format": "coco",
         "root_folder": "dummy",
         "test": {
@@ -94,7 +94,7 @@ class TestDatasetRegistry(unittest.TestCase):
         assert info.name == dn
         assert info.version == self.DUMMY_DATA_KV_PAIR['version']
         assert info.root_folder == self.DUMMY_DATA_KV_PAIR['root_folder']
-        assert info.type == DatasetTypes.KV_PAIR
+        assert info.type == DatasetTypes.KEY_VALUE_PAIR
         assert info.files_for_local_usage[Usages.TEST] == self.DUMMY_DATA_KV_PAIR['test']['files_for_local_usage']
         assert info.index_files[Usages.TEST] == self.DUMMY_DATA_KV_PAIR['test']['index_path']
         # schema is required

@@ -23,7 +23,7 @@ def _one_arg_method(x):
 
 class TestTorchDataset:
     @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DatasetTypes
-                                                       if data_type not in [DatasetTypes.MULTITASK, DatasetTypes.KV_PAIR]])
+                                                       if data_type not in [DatasetTypes.MULTITASK, DatasetTypes.KEY_VALUE_PAIR]])
     def test_create_torch_dataset(self, data_type, coco_dicts):
         coco_dict = coco_dicts[0]
         manifest = coco_dict_to_manifest(data_type, coco_dict)
@@ -52,16 +52,16 @@ class TestTorchDataset:
 
             td[0:-1]
 
-    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KV_PAIR], schema_database[DatasetTypes.KV_PAIR]))
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KEY_VALUE_PAIR], schema_database[DatasetTypes.KEY_VALUE_PAIR]))
     def test_create_torch_dataset(self, coco_dict, schema):
-        manifest = coco_dict_to_manifest(DatasetTypes.KV_PAIR, coco_dict, schema)
+        manifest = coco_dict_to_manifest(DatasetTypes.KEY_VALUE_PAIR, coco_dict, schema)
         with tempfile.TemporaryDirectory() as temp_dir:
             tdir = pathlib.Path(temp_dir)
             (tdir / 'test.json').write_text(json.dumps(coco_dict))
 
             dataset_info = DatasetInfo({
                 'name': 'test',
-                'type': DatasetTypes.KV_PAIR.name,
+                'type': DatasetTypes.KEY_VALUE_PAIR.name,
                 'root_folder': tdir.as_posix(),
                 'format': 'coco',
                 'train': {'index_path': 'test.json'},

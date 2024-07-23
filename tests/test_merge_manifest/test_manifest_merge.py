@@ -10,7 +10,7 @@ DATA_TYPES = [x for x in ManifestMergeStrategyFactory.list_data_types() if x != 
 
 
 class TestMergeManifest:
-    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DATA_TYPES if data_type not in TYPES_WITH_CATEGORIES + [DatasetTypes.KV_PAIR]])
+    @pytest.mark.parametrize("data_type, coco_dicts", [(data_type, coco_database[data_type]) for data_type in DATA_TYPES if data_type not in TYPES_WITH_CATEGORIES + [DatasetTypes.KEY_VALUE_PAIR]])
     def test_merge_data_manifest_single_task_without_categories(self, data_type, coco_dicts):
         coco_dict_1, coco_dict_2 = coco_dicts[0], coco_dicts[-1]
         manifest1, manifest2, merged = self.merge_data_manifest_single_task(data_type, coco_dict_1, coco_dict_2)
@@ -57,9 +57,9 @@ class TestMergeManifest:
         merged = merger.run(manifest1, manifest2)
         return manifest1, manifest2, merged
     
-    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KV_PAIR], schema_database[DatasetTypes.KV_PAIR]))
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KEY_VALUE_PAIR], schema_database[DatasetTypes.KEY_VALUE_PAIR]))
     def test_merge_kv_pair_data_manifest(self, coco_dict, schema):
-        data_type = DatasetTypes.KV_PAIR
+        data_type = DatasetTypes.KEY_VALUE_PAIR
         manifest1 = coco_dict_to_manifest(data_type, coco_dict, schema)
         manifest2 = coco_dict_to_manifest(data_type, copy.deepcopy(coco_dict), copy.deepcopy(schema))
         strategy = ManifestMergeStrategyFactory.create(data_type)
@@ -68,7 +68,7 @@ class TestMergeManifest:
         self.check(manifest1, manifest2, merged)
         
     def test_merge_kv_pair_data_manifest_different_schema(self):
-        data_type = DatasetTypes.KV_PAIR
+        data_type = DatasetTypes.KEY_VALUE_PAIR
         coco_dict_1 = coco_database[data_type][0]
         coco_dict_2 = coco_database[data_type][1]
         schema_1 = schema_database[data_type][0]

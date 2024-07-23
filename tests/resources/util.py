@@ -10,7 +10,7 @@ TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTy
 def coco_dict_to_manifest(task, coco_dict, schema: dict = None):
     if task == DatasetTypes.MULTITASK:
         return coco_dict_to_manifest_multitask(coco_dict[0], coco_dict[1])
-    if task == DatasetTypes.KV_PAIR:
+    if task == DatasetTypes.KEY_VALUE_PAIR:
         adaptor = CocoManifestAdaptorFactory.create(task, schema=schema)
     else:
         adaptor = CocoManifestAdaptorFactory.create(task)
@@ -451,7 +451,7 @@ class KVPairTestCases:
             "annotations": [
                 {
                     "id": 1,
-                    "image_id": [1],
+                    "image_ids": [1],
                     "text_input": {
                         "query": "Complete the order" 
                     },
@@ -490,7 +490,7 @@ class KVPairTestCases:
             "annotations": [
                 {
                     "id": 1,
-                    "image_id": [1, 2],
+                    "image_ids": [1, 2],
                     "key_value_pairs": {
                         "productMatch": False,
                         "rationale": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves.",
@@ -500,7 +500,7 @@ class KVPairTestCases:
                 },
                 {
                     "id": 1,
-                    "image_id": [2, 1],
+                    "image_ids": [2, 1],
                     "text_input": {
                         "note": "reversed image order."
                     },
@@ -526,7 +526,7 @@ class KVPairTestCases:
             "annotations": [
                 {
                     "id": 1,
-                    "image_id": [1],
+                    "image_ids": [1],
                     "key_value_pairs": {
                         "defects": [
                             {
@@ -557,17 +557,17 @@ coco_database = {
     DatasetTypes.TEXT_2_IMAGE_RETRIEVAL: Text2ImageRetrievalTestCases.manifest_dicts,
     DatasetTypes.VISUAL_QUESTION_ANSWERING: VisualQuestionAnsweringTestCases.manifest_dicts,
     DatasetTypes.VISUAL_OBJECT_GROUNDING: VisualObjectGroundingTestCases.manifest_dicts,
-    DatasetTypes.KV_PAIR: KVPairTestCases.manifest_dicts
+    DatasetTypes.KEY_VALUE_PAIR: KVPairTestCases.manifest_dicts
 }
 
 schema_database = {
-    DatasetTypes.KV_PAIR: KVPairTestCases.schema_dicts
+    DatasetTypes.KEY_VALUE_PAIR: KVPairTestCases.schema_dicts
 }
 
 
 def two_tasks_test_cases(coco_database):
     tasks = list(coco_database.keys())
-    tasks = [t for t in tasks if t != DatasetTypes.KV_PAIR]
+    tasks = [t for t in tasks if t != DatasetTypes.KEY_VALUE_PAIR]
     two_tasks = list(itertools.product(tasks, tasks))
     coco_dicts = [list(itertools.product(coco_database[task1], coco_database[task2])) for task1, task2 in two_tasks]
     assert len(two_tasks) == len(coco_dicts)

@@ -141,13 +141,13 @@ from .resources.util import coco_database, schema_database
 
 
 class TestCocoKVPairDataset(unittest.TestCase):
-    kv_pair_coco = coco_database[DatasetTypes.KV_PAIR][1]
-    schema = schema_database[DatasetTypes.KV_PAIR][1]
+    kv_pair_coco = coco_database[DatasetTypes.KEY_VALUE_PAIR][1]
+    schema = schema_database[DatasetTypes.KEY_VALUE_PAIR][1]
     
     DATASET_INFO_DICT = {
         "name": "dummy",
         "version": 1,
-        "type": "kv_pair",
+        "type": "key_value_pair",
         "description": "A dummy test dataset",
         "format": "coco",
         "root_folder": "dummy",

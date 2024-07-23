@@ -10,12 +10,12 @@ from ..resources.util import coco_database, schema_database
 
 
 class TestKVPair(BaseCocoAdaptor):
-    TASK = DatasetTypes.KV_PAIR
+    TASK = DatasetTypes.KEY_VALUE_PAIR
 
     @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
     def test_create_data_manifest(self, coco_dict, schema):
         super().test_create_data_manifest(coco_dict, schema)
-                
+      
     @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
     def test_create_data_manifest_with_additional_info(self, coco_dict, schema):
         super().test_create_data_manifest_with_additional_info(coco_dict, schema)
@@ -38,14 +38,14 @@ class TestKVPair(BaseCocoAdaptor):
         ann_0 = kv_pair_manifest.annotations[0]
         assert ann_0.id == coco_dict['annotations'][0]['id']
         assert ann_0.img_ids == [0, 1]
-        assert ann_0.label.key_value_pairs == coco_dict['annotations'][0]['key_value_pairs']
-        assert ann_0.label.text_input is None
+        assert ann_0.key_value_pairs == coco_dict['annotations'][0]['key_value_pairs']
+        assert ann_0.text_input is None
         
         ann_1 = kv_pair_manifest.annotations[1]
         assert ann_1.id == coco_dict['annotations'][1]['id']
         assert ann_1.img_ids == [1, 0]
-        assert ann_1.label.key_value_pairs == coco_dict['annotations'][1]['key_value_pairs']
-        assert ann_1.label.text_input == coco_dict['annotations'][1]['text_input']
+        assert ann_1.key_value_pairs == coco_dict['annotations'][1]['key_value_pairs']
+        assert ann_1.text_input == coco_dict['annotations'][1]['text_input']
         
     def test_schema_mismatch_kv_pair(self):
         schema, coco_dict = self.prepare_schema_and_coco_dict()
