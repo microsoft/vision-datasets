@@ -4,7 +4,7 @@ import logging
 import typing
 
 from ....common.utils import deep_merge
-from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest, AnnotationWiseDatasetManifest
+from ..data_manifest import CategoryManifest, DatasetManifest, ImageLabelWithCategoryManifest, MultiImageDatasetManifest
 from .operation import Operation
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class SingleTaskMerge(MergeStrategy):
         additional_info = deep_merge([x.additional_info for x in args])
         return DatasetManifest(images, categories, copy.deepcopy(data_type), additional_info)
 
-    def check(self, *args: typing.Union[DatasetManifest, AnnotationWiseDatasetManifest]):
+    def check(self, *args: typing.Union[DatasetManifest, MultiImageDatasetManifest]):
         super().check(*args)
 
         if any([x.is_multitask for x in args]):
@@ -84,13 +84,12 @@ class SingleTaskMerge(MergeStrategy):
         return categories, category_name_to_idx
 
 
-class AnnotationWiseSingleTaskMerge(MergeStrategy):
+class MultiImageDatasetSingleTaskMerge(MergeStrategy):
     """
-    Merge for single task data type with AnnotationWiseDatasetManifest.
+    Merge for single task data type with MultiImageDatasetManifest.
     """
 
-    def merge(self, *args: AnnotationWiseDatasetManifest):
-        print(args[0])
+    def merge(self, *args: MultiImageDatasetManifest):
         data_type = args[0].data_type
         images = []
         annotations = []
@@ -109,4 +108,4 @@ class AnnotationWiseSingleTaskMerge(MergeStrategy):
                 annotations.append(new_annotation)
 
         additional_info = deep_merge([x.additional_info for x in args])
-        return AnnotationWiseDatasetManifest(images, annotations, copy.deepcopy(data_type), additional_info)
+        return MultiImageDatasetManifest(images, annotations, copy.deepcopy(data_type), additional_info)

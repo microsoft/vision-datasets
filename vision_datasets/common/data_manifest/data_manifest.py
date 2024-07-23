@@ -47,7 +47,7 @@ class ImageLabelManifest(ManifestBase):
     def label_data(self, val):
         self._label_data = val
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def _read_label_data(self):
         pass
 
@@ -64,7 +64,7 @@ class ImageLabelManifest(ManifestBase):
 
         return self._label_data == self._label_data
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def _check_label(self, label_data):
         raise NotImplementedError
 
@@ -84,6 +84,46 @@ class ImageLabelWithCategoryManifest(ImageLabelManifest):
         if not isinstance(value, int) or value < 0:
             raise ValueError
 
+
+class MultiImageLabelManifest(ImageLabelManifest):
+    """
+    Encapsulates information of an multi-image label. The label can be associated with a single image, or multi-image jointly. 
+    """
+    def __init__(self,
+                 id: int,
+                 img_ids: List[int],
+                 label_data,
+                 additional_info: Dict = {}):
+        """
+        Annotation manifest organized by img_ids, each set of images can have multiple labels. 
+        Args:
+            id (int): annotation id
+            img_ids: image ids
+            label_data: label data
+            additional_info (dict): additional info about this annotation
+        """
+        self.id = id
+        self.img_ids = img_ids
+        super().__init__(label_data, label_path=None, additional_info=additional_info)
+
+    def __eq__(self, other) -> bool:
+        if not super().__eq__(other):
+            return False
+
+        if not isinstance(other, MultiImageLabelManifest):
+            return False
+
+        return self.id == other.id and self.img_ids == other.img_ids and self.label_data == other.label_data \
+            and self.additional_info == other.additional_info
+
+    def is_negative(self) -> bool:
+        return self.label_data is None
+    
+    def _read_label_data(self):
+        pass
+    
+    def _check_label(self, label_data):
+        pass
 
 class ImageDataManifest(ManifestBase):
     """
@@ -201,55 +241,13 @@ class DatasetManifest(ManifestBase):
         return len(self.images)
 
 
-class AnnotationDataManifest(ManifestBase):
+class MultiImageDatasetManifest(ManifestBase):
     """
-    Encapsulates information of an annotation. The annotation can be associated with a single image, or multi-image jointly. 
-    """
-
-    def __init__(self,
-                 id: int,
-                 img_ids: List[int],
-                 label: ImageLabelManifest,
-                 additional_info: Dict = {}):
-        """
-        Annotation manifest organized by img_ids, each set of images can have multiple labels. 
-        Args:
-            id (int): annotation id
-            img_ids: image ids
-            labels (list): labels
-            additional_info (dict): additional info about this annotation
-        """
-        super().__init__(additional_info)
-
-        self.id = id
-        self.img_ids = img_ids
-        self.label = label
-        self.additional_info = additional_info
-
-    def __eq__(self, other) -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if not isinstance(other, AnnotationDataManifest):
-            return False
-
-        return self.id == other.id and self.img_ids == other.img_ids and self.label == other.label \
-            and self.additional_info == other.additional_info
-
-    def is_negative(self) -> bool:
-        if self.label is not None:
-            return True
-
-        return False
-
-
-class AnnotationWiseDatasetManifest(ManifestBase):
-    """
-    Annotation-wise manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in AnnotationDataManifest, 
-    including field 'img_ids' to capture indices in images list.
+    Multi-image dataset manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in MultiImageLabelManifest, 
+    including field 'img_ids' to capture indices in images list, and label_data to capture the label.
     """
 
-    def __init__(self, images: List[ImageDataManifest], annotations: List[AnnotationDataManifest], data_type: str, addtional_info={}):
+    def __init__(self, images: List[ImageDataManifest], annotations: List[MultiImageLabelManifest], data_type: str, addtional_info={}):
         """
 
         Args:
@@ -261,7 +259,7 @@ class AnnotationWiseDatasetManifest(ManifestBase):
         if isinstance(data_type, dict):
             raise ValueError("composition type is not supported!")
         for ann in annotations:
-            if not ann.is_negative() and any([img_id < 0 or img_id > len(images) for img_id in ann.img_ids]):
+            if not ann.is_negative() and any([img_id < 0 or img_id >= len(images) for img_id in ann.img_ids]):
                 raise ValueError(f"image ids of annotation are out of range, expect 0 to {len(images)-1}, got {ann.img_ids}!")
         super().__init__(addtional_info)
 
@@ -271,10 +269,9 @@ class AnnotationWiseDatasetManifest(ManifestBase):
         self.categories = None
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, AnnotationWiseDatasetManifest):
+        if not isinstance(other, MultiImageDatasetManifest) or self.data_type != other.data_type:
             return False
-
-        return self.images == other.images and self.annotations == other.annotations and self.data_type == other.data_type
+        return self.images == other.images and self.annotations == other.annotations
 
     def __len__(self):
         return len(self.annotations)

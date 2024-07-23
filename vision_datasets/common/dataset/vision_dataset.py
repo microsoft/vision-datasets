@@ -10,7 +10,7 @@ from tqdm import tqdm
 from ..constants import DatasetTypes
 from ..data_reader import FileReader, PILImageLoader
 from ..dataset_info import BaseDatasetInfo
-from ..data_manifest import DatasetManifest, ImageDataManifest, AnnotationWiseDatasetManifest, AnnotationDataManifest
+from ..data_manifest import DatasetManifest, ImageDataManifest, MultiImageDatasetManifest, MultiImageLabelManifest
 from .base_dataset import BaseDataset
 
 logger = logging.getLogger(__name__)
@@ -50,8 +50,8 @@ class VisionDataset(BaseDataset):
         return self.dataset_manifest.categories
 
     def get_targets(self, index):
-        if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
-            return self.dataset_manifest.annotations[index].label
+        if isinstance(self.dataset_manifest, MultiImageDatasetManifest):
+            return self.dataset_manifest.annotations[index]
 
         image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
         targets = image_manifest.labels
@@ -68,11 +68,11 @@ class VisionDataset(BaseDataset):
         return len(self.dataset_manifest.images) if isinstance(self.dataset_manifest, DatasetManifest) else len(self.dataset_manifest.annotations)
 
     def _get_single_item(self, index):
-        if isinstance(self.dataset_manifest, AnnotationWiseDatasetManifest):
-            annotation_manifest: AnnotationDataManifest = self.dataset_manifest.annotations[index]
-            image_manifests = [self.dataset_manifest.images[id] for id in annotation_manifest.img_ids]
+        if isinstance(self.dataset_manifest, MultiImageDatasetManifest):
+            multi_image_label_manifest: MultiImageLabelManifest = self.dataset_manifest.annotations[index]
+            image_manifests = [self.dataset_manifest.images[id] for id in multi_image_label_manifest.img_ids]
             image = [self._load_image(image_manifest.img_path) for image_manifest in image_manifests]
-            target = annotation_manifest.label
+            target = multi_image_label_manifest
         else:
             image_manifest: ImageDataManifest = self.dataset_manifest.images[index]
             image = self._load_image(image_manifest.img_path)

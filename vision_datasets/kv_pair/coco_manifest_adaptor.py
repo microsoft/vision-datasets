@@ -1,29 +1,28 @@
-from ..common import DatasetTypes, CocoManifestAdaptorFactory, CocoManifestWithMultiImageAnnotationAdaptor, AnnotationDataManifest
-from .manifest import KVPairLabelManifest, KVPairDatasetManifest, Schema
+from ..common import DatasetTypes, CocoManifestAdaptorFactory, CocoManifestWithMultiImageLabelAdaptor
+from .manifest import KVPairLabelManifest, KVPairDatasetManifest, KVPairSchema
 
 
-@CocoManifestAdaptorFactory.register(DatasetTypes.KV_PAIR)
-class KVPairCocoManifestAdaptor(CocoManifestWithMultiImageAnnotationAdaptor):
+@CocoManifestAdaptorFactory.register(DatasetTypes.KEY_VALUE_PAIR)
+class KVPairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
     def __init__(self, schema: dict) -> None:
         self.schema_dict = schema
-        self.schema = Schema(**schema)
-        super().__init__(DatasetTypes.KV_PAIR)
+        self.schema = KVPairSchema(schema['name'], schema['fieldSchema'], schema.get('description', None))
+        super().__init__(DatasetTypes.KEY_VALUE_PAIR)
     
+    def _construct_label_manifest(self, img_ids, ann, coco_manifest):
+        label_data = self.process_label(ann, coco_manifest)
+        return KVPairLabelManifest(ann['id'], img_ids, label_data, self._get_additional_info(ann, {'id', 'image_ids', KVPairLabelManifest.LABEL_KEY, KVPairLabelManifest.INPUT_KEY}))
+
     def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
         additional_info['schema'] = self.schema_dict
         images, annotations = self.get_images_and_annotations(images_by_id, coco_manifest)
         return KVPairDatasetManifest(images, annotations, additional_info)
 
-    def process_label(self, ann_manifest: AnnotationDataManifest, annotation: dict, coco_manifest: dict):
-        if KVPairLabelManifest.KV_PAIR_KEY not in annotation:
-            raise ValueError(f'{KVPairLabelManifest.KV_PAIR_KEY} not found in annotation {annotation}')            
+    def process_label(self, annotation: dict, coco_manifest: dict):
+        if KVPairLabelManifest.LABEL_KEY not in annotation:
+            raise ValueError(f'{KVPairLabelManifest.LABEL_KEY} not found in annotation {annotation}')            
         
-        ann_manifest.label = KVPairLabelManifest(
-            label_data={KVPairLabelManifest.KV_PAIR_KEY: annotation[KVPairLabelManifest.KV_PAIR_KEY], 
-                        KVPairLabelManifest.INPUT_KEY: annotation.get(KVPairLabelManifest.INPUT_KEY, None)},
-            additional_info=self._get_additional_info(annotation, {'id', 'image_id', KVPairLabelManifest.KV_PAIR_KEY, KVPairLabelManifest.INPUT_KEY}))
-
-        try:
-            ann_manifest.label.check_schema_match(self.schema)
-        except ValueError as e:
-            raise ValueError(f'annotation mismatch schema: {e}. Annotation: {annotation}, Schema: {self.schema}')
+        label_data = {KVPairLabelManifest.LABEL_KEY: annotation[KVPairLabelManifest.LABEL_KEY], 
+                      KVPairLabelManifest.INPUT_KEY: annotation.get(KVPairLabelManifest.INPUT_KEY, None)}
+        KVPairLabelManifest.check_schema_match(label_data[KVPairLabelManifest.LABEL_KEY], self.schema)
+        return label_data

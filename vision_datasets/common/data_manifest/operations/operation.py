@@ -1,6 +1,6 @@
 import abc
 import typing
-from ..data_manifest import DatasetManifest, AnnotationWiseDatasetManifest
+from ..data_manifest import DatasetManifest, MultiImageDatasetManifest
 
 
 class Operation(abc.ABC):
@@ -11,5 +11,5 @@ class Operation(abc.ABC):
     def __init__(self) -> None:
         pass
 
-    def run(*args: typing.Union[DatasetManifest, AnnotationWiseDatasetManifest]):
+    def run(*args: typing.Union[DatasetManifest, MultiImageDatasetManifest]):
         pass

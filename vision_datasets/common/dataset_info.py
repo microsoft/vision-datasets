@@ -26,7 +26,7 @@ class DatasetInfoFactory:
         data_type = _data_type_to_enum(dataset_info_dict.get('type'))
         if data_type == DatasetTypes.MULTITASK:
             return MultiTaskDatasetInfo(dataset_info_dict)
-        if data_type == DatasetTypes.KV_PAIR:
+        if data_type == DatasetTypes.KEY_VALUE_PAIR:
             return KVPairDatasetInfo(dataset_info_dict)
         return DatasetInfo(dataset_info_dict)
 
@@ -93,10 +93,10 @@ class MultiTaskDatasetInfo(BaseDatasetInfo):
 class KVPairDatasetInfo(DatasetInfo):
     def __init__(self, dataset_info_dict):
         data_type = _data_type_to_enum(dataset_info_dict.get('type'))
-        if data_type != DatasetTypes.KV_PAIR:
+        if data_type != DatasetTypes.KEY_VALUE_PAIR:
             raise ValueError
         if 'schema' not in dataset_info_dict:
-            raise ValueError('schema must be provided for kv_pair dataset!')
+            raise ValueError('schema must be provided for key_value_pair dataset!')
         
         schema = dataset_info_dict['schema']
         self._check_schema(schema)
