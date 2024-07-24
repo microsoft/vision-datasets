@@ -62,20 +62,32 @@ dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
 
 ### Creating KeyValuePairDatasetManifest
 
-You can use `CocoManifestAdaptorFactory` to create the manifest from COCO format data and a schema, a data example can be found in `COCO_DATA_FORMAT.md`, and a schema example (dictionary) can be found in `DATA_PREPARATION.md` in the `dataset_dict` with name `multi-image-question-answer` 
+You can use `CocoManifestAdaptorFactory` to create the manifest from COCO format data and a schema, a COCO data example can be found in `COCO_DATA_FORMAT.md`, and a schema example (dictionary) can be found in `DATA_PREPARATION.md`. 
 
 ```{python}
-from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfoFactory, DatasetTypes
-# From `DATA_PREPARATION.md`, use any example with type "key_value_pair" as dataset_dict
-dataset_info = DatasetInfoFactory.create(dataset_dict)
-adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KEY_VALUE_PAIR, schema=dataset_info.schema)
-key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url=`test.json`, url_or_root_dir='images/')
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetTypes
+# check schema dictionary example From `DATA_PREPARATION.md`
+adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KEY_VALUE_PAIR, schema=schema_dict)
+key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url='test.json', url_or_root_dir='data/')  # image paths in test.json is relative to url_or_root_dir
+# test the first sample
+print(
+    key_value_pair_dataset_manifest.images[0].img_path,'\n',
+    key_value_pair_dataset_manifest.annotations[0].key_value_pairs,'\n',
+    key_value_pair_dataset_manifest.annotations[0].text_input,'\n',
+)
 ```
 
 Once a `KeyValuePairDatasetManifest` is created, along with a dataset_info, create a `VisionDataset` for accessing the data in the dataset.
 
 ```{python}
+from vision_datasets.common import DatasetInfoFactory, VisionDataset
+# check dataset information dictionary example From `DATA_PREPARATION.md`
+dataset_info = DatasetInfoFactory.create(dataset_info_dict)
 dataset = VisionDataset(dataset_info, key_value_pair_dataset_manifest)
+# test the first sample
+imgs, target, _ = dataset[0]
+print(imgs)
+print(target)
 ```
 
 #### Coco format
@@ -134,7 +146,7 @@ from vision_datasets.common import Usages, DatasetHub
 
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text(), blob_container_sas, local_dir)
-stanford_cars = dataset_hub.create_manifest_dataset('stanford-cars', version=1, usage=Usages.TRAIN)
+stanford_cars = dataset_hub.create_vision_dataset('stanford-cars', version=1, usage=Usages.TRAIN)
 
 # note that you can pass multiple datasets.json to DatasetHub, it can combine them all
 # example: DatasetHub([ds_json1, ds_json2, ...])
@@ -142,6 +154,8 @@ stanford_cars = dataset_hub.create_manifest_dataset('stanford-cars', version=1, 
 # example dataset_hub.create_manifest_dataset('stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
 
 for img, targets, sample_idx_str in stanford_cars:
+    if isinstance(img, list):  # for key_value_pair dataset, the first item is a list of images
+       img = img[0]
     img.show()
     img.close()
     print(targets)

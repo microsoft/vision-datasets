@@ -159,7 +159,7 @@ Below is an example of multitask dataset:
 ]
 ```
 
-For `key_value_pair` dataset, an additional field `schema` is required to define the task and the label format. Below is an example:
+For `key_value_pair` dataset, an additional field `schema` is required to define the task and the label format. Below is an example of its dataset information dictionary:
 
 ```json
 [
