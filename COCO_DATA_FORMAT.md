@@ -227,4 +227,26 @@ people_dataset/
     train_coco_location.json
     test_coco_location.json
 ```
+
+
+## KeyValuePair dataset
+
+KeyValuePair dataset is associated with a schema defining a task that input is text + (multi-)image, label is key-value pairs. Each sample of dataset consists of
+1. images input, each image is optionally associated with text metadata as a dictionary
+2. text input (optional), e.g. specific question related to the images input
+3. key-value pairs
+
+The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation. In each annotation entry, `key_value_pairs` field is required, `text_input` is optional. In each image entry, `metadata` is optional. Below is an example of multi-image question answering.
+
+```json
+{
+    "images": [
+        {"id": 1, "zip_file": "test1.zip", "file_name": "test/0/image_1.jpg", "metadata": "street"},
+        {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
+    ],
+    "annotations": [
+        {"id": 1, "image_ids": [1, 2], "text_input": "What objects are unique in the first image compared to the second image?", "key_value_pairs": {"answer": "car", "rationale": "Both images capture street traffic, a car exists in the first image but not in the second."}},
+        {"id": 2, "image_ids": [2, 1], "text_input": "Does the first image have more cars?", "key_value_pairs": {"answer": "yes", "rationale": "First image has no car, second image has one."}}
+    ]
+}
 ```

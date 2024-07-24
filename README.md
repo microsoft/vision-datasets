@@ -23,18 +23,23 @@ Currently, seven `basic` types of data are supported:
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
+`key_value_pair` type is a generalized type, where a sample can be one or multiple images with optional text, labeled with key-value pairs. The keys and values are defined by a schema. Note that all the above seven basic types can be defined as this type with specific schemas.
+
 **Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.**
 
 ## Dataset Contracts
 
 - `DatasetManifest` wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. `ImageDataManifest` encapsulates information about each image.
+- `MultiImageDatasetManifest` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
+    1. `KVPairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KVPairLabelManifest`.
 - `ImageDataManifest` encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be
     1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
     2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
     3. an url
 - `ImageLabelManifest`: encapsulates one single image-level annotation
+- `MultiImageLabelManifest`: encapsulates one multi-image annotation, it contains the referred image indices and labels.
 - `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
-- `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
+- `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest` or `MultiImageDatasetManifest`.
 
 `VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
 
@@ -52,6 +57,25 @@ Once a `DatasetManifest` is created, you can create a `VisionDataset` for access
 
 ```{python}
 dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
+```
+
+
+### Creating KVPairDatasetManifest
+
+You can use `CocoManifestAdaptorFactory` to create the manifest from COCO format data and a schema, a data example can be found in `COCO_DATA_FORMAT.md`, and a schema example (dictionary) can be found in `DATA_PREPARATION.md` in the `dataset_dict` with name `multi-image-question-answer` 
+
+```{python}
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfoFactory, DatasetTypes
+# From `DATA_PREPARATION.md`, use any example with type "key_value_pair" as dataset_dict
+dataset_info = DatasetInfoFactory.create(dataset_dict)
+adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KEY_VALUE_PAIR, schema=dataset_info.schema)
+kvpair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url=`test.json`, url_or_root_dir='images/')
+```
+
+Once a `KVPairDatasetManifest` is created, along with a dataset_info, create a `VisionDataset` for accessing the data in the dataset.
+
+```{python}
+dataset = VisionDataset(dataset_info, kvpair_dataset_manifest)
 ```
 
 #### Coco format
@@ -87,7 +111,7 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
     }
 ```
 
-Coco annotation format details w.r.t. `image_classification_multiclass/label`, `image_object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
+Coco annotation format details w.r.t. `image_classification_multiclass/label`, `image_object_detection`, `image_caption`, `image_text_match`, `key_value_pair`, and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
 Index file can be put into a zip file as well (e.g., `annotations.zip@train.json`), no need to add the this zip to "files_for_local_usage" explicitly.
 
