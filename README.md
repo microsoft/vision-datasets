@@ -30,15 +30,15 @@ Currently, seven `basic` types of data are supported:
 ## Dataset Contracts
 
 - `DatasetManifest` wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. `ImageDataManifest` encapsulates information about each image.
-- `MultiImageDatasetManifest` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
-    1. `KVPairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KVPairLabelManifest`.
 - `ImageDataManifest` encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be
     1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
     2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
     3. an url
 - `ImageLabelManifest`: encapsulates one single image-level annotation
-- `MultiImageLabelManifest`: encapsulates one multi-image annotation, it contains the referred image indices and labels.
 - `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
+- `MultiImageLabelManifest`: encapsulates one multi-image annotation, it contains the referred image indices and labels.
+- `MultiImageDatasetManifest` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
+    1. `KVPairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KVPairLabelManifest`.
 - `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest` or `MultiImageDatasetManifest`.
 
 `VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.

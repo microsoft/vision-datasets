@@ -70,7 +70,8 @@ After everything is done, remember to run the commands below to do a final check
   - `vision_check_dataset stanford_cars -c train_coco.json -f ./ -t classification_multiclass`
   - `vision_check_dataset stanford_cars -c test_coco.json -f ./ -t classification_multiclass`
 
-Support for `key_value_pair` dataset is coming soon. 
+Support for `key_value_pair` dataset is coming soon.
+
 ## Host/manage datasets on cloud/disk
 
 `DatasetHub` class is the one that manages access of multiple datasets either from local disk or cloud, using the dataset name and version information. It takes a dataset regisration json file, which contains the meta information of each dataset. For each dataset, there is a corresponding entry in the json.
