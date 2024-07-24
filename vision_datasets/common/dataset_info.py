@@ -27,7 +27,7 @@ class DatasetInfoFactory:
         if data_type == DatasetTypes.MULTITASK:
             return MultiTaskDatasetInfo(dataset_info_dict)
         if data_type == DatasetTypes.KEY_VALUE_PAIR:
-            return KVPairDatasetInfo(dataset_info_dict)
+            return KeyValuePairDatasetInfo(dataset_info_dict)
         return DatasetInfo(dataset_info_dict)
 
 
@@ -90,7 +90,7 @@ class MultiTaskDatasetInfo(BaseDatasetInfo):
         return list(self.sub_task_infos.keys())
 
 
-class KVPairDatasetInfo(DatasetInfo):
+class KeyValuePairDatasetInfo(DatasetInfo):
     def __init__(self, dataset_info_dict):
         if 'schema' not in dataset_info_dict:
             raise ValueError('schema must be provided for key_value_pair dataset!')
@@ -98,7 +98,7 @@ class KVPairDatasetInfo(DatasetInfo):
         schema = dataset_info_dict['schema']
         self._check_schema(schema)
         
-        super(KVPairDatasetInfo, self).__init__(dataset_info_dict)
+        super(KeyValuePairDatasetInfo, self).__init__(dataset_info_dict)
         self.schema = schema
 
     def _check_schema(self, schema: dict) -> bool:

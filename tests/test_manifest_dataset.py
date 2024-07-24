@@ -140,8 +140,8 @@ class TestCocoVisionDataset(unittest.TestCase):
             self.assertTrue(np.array_equal(target1[0].label_data, np.asarray(images[3]), equal_nan=True))
 
 
-class TestCocoKVPairDataset(unittest.TestCase):
-    kv_pair_coco = coco_database[DatasetTypes.KEY_VALUE_PAIR][1]
+class TestCocoKeyValuePairDataset(unittest.TestCase):
+    key_value_pair_coco = coco_database[DatasetTypes.KEY_VALUE_PAIR][1]
     schema = schema_database[DatasetTypes.KEY_VALUE_PAIR][1]
     
     DATASET_INFO_DICT = {
@@ -162,8 +162,8 @@ class TestCocoKVPairDataset(unittest.TestCase):
     }
 
     @staticmethod
-    def _create_kv_pair_dataset(tempdir):
-        dataset_dict = copy.deepcopy(TestCocoKVPairDataset.DATASET_INFO_DICT)
+    def _create_key_value_pair_dataset(tempdir):
+        dataset_dict = copy.deepcopy(TestCocoKeyValuePairDataset.DATASET_INFO_DICT)
         dataset_dict['root_folder'] = tempdir
         images = [Image.new('RGB', (100, 100)), Image.new('RGB', (50, 50))]
         images[0].save(pathlib.Path(tempdir) / '0.jpg')
@@ -174,35 +174,35 @@ class TestCocoKVPairDataset(unittest.TestCase):
             zf.write(pathlib.Path(tempdir) / '1.jpg', '1.jpg')
 
         with open(pathlib.Path(tempdir) / 'test.json', 'w') as f:
-            json.dump(TestCocoKVPairDataset.kv_pair_coco, f)
+            json.dump(TestCocoKeyValuePairDataset.key_value_pair_coco, f)
         
         dataset_info = DatasetInfoFactory.create(dataset_dict)
         schema = dataset_info.schema
         ## Alternatively, provide schema dictionary directly:
-        # schema = TestCocoKVPairDataset.DATASET_INFO_DICT['schema']
+        # schema = TestCocoKeyValuePairDataset.DATASET_INFO_DICT['schema']
 
         dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type, schema=schema).create_dataset_manifest(dataset_info.index_files[Usages.TEST], dataset_info.root_folder)
         dataset = VisionDataset(dataset_info, dataset_manifest)
         return dataset, images
 
-    def test_kv_pair_dataset(self):
+    def test_key_value_pair_dataset(self):
         with tempfile.TemporaryDirectory() as tempdir:
-            dataset, images = self._create_kv_pair_dataset(tempdir)
+            dataset, images = self._create_key_value_pair_dataset(tempdir)
             self.assertEqual(len(dataset), 2)
             images_0, target0, _ = dataset[0]
             self.assertEqual(list(images_0[0].getdata()), list(images[0].getdata()))
             self.assertEqual(list(images_0[1].getdata()), list(images[1].getdata()))
-            self.assertEqual(target0.key_value_pairs, self.kv_pair_coco['annotations'][0]['key_value_pairs'])
+            self.assertEqual(target0.key_value_pairs, self.key_value_pair_coco['annotations'][0]['key_value_pairs'])
             self.assertEqual(target0.text_input, None)
             
             images_1, target1, _ = dataset[1]
             self.assertEqual(list(images_1[0].getdata()), list(images[1].getdata()))
             self.assertEqual(list(images_1[1].getdata()), list(images[0].getdata()))
-            self.assertEqual(target1.key_value_pairs, self.kv_pair_coco['annotations'][1]['key_value_pairs'])
+            self.assertEqual(target1.key_value_pairs, self.key_value_pair_coco['annotations'][1]['key_value_pairs'])
             self.assertEqual(target1.text_input, {"note": "reversed image order."})
 
             # test get targets
-            for i, coco_anno in enumerate(self.kv_pair_coco['annotations']):
+            for i, coco_anno in enumerate(self.key_value_pair_coco['annotations']):
                 t = dataset.get_targets(i)
                 self.assertEqual(t.key_value_pairs, coco_anno['key_value_pairs'])
                 self.assertEqual(t.text_input, coco_anno.get('text_input', None))

@@ -368,7 +368,7 @@ class VisualObjectGroundingTestCases:
     ]
     
 
-class KVPairTestCases:
+class KeyValuePairTestCases:
     schema_dicts = [
         {
             "name": "UI automation Schema",
@@ -557,11 +557,11 @@ coco_database = {
     DatasetTypes.TEXT_2_IMAGE_RETRIEVAL: Text2ImageRetrievalTestCases.manifest_dicts,
     DatasetTypes.VISUAL_QUESTION_ANSWERING: VisualQuestionAnsweringTestCases.manifest_dicts,
     DatasetTypes.VISUAL_OBJECT_GROUNDING: VisualObjectGroundingTestCases.manifest_dicts,
-    DatasetTypes.KEY_VALUE_PAIR: KVPairTestCases.manifest_dicts
+    DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.manifest_dicts
 }
 
 schema_database = {
-    DatasetTypes.KEY_VALUE_PAIR: KVPairTestCases.schema_dicts
+    DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.schema_dicts
 }
 
 

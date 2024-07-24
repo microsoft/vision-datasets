@@ -38,7 +38,7 @@ Currently, seven `basic` types of data are supported:
 - `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
 - `MultiImageLabelManifest`: encapsulates one multi-image annotation, it contains the referred image indices and labels.
 - `MultiImageDatasetManifest` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
-    1. `KVPairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KVPairLabelManifest`.
+    1. `KeyValuePairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KeyValuePairLabelManifest`.
 - `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest` or `MultiImageDatasetManifest`.
 
 `VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
@@ -60,7 +60,7 @@ dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
 ```
 
 
-### Creating KVPairDatasetManifest
+### Creating KeyValuePairDatasetManifest
 
 You can use `CocoManifestAdaptorFactory` to create the manifest from COCO format data and a schema, a data example can be found in `COCO_DATA_FORMAT.md`, and a schema example (dictionary) can be found in `DATA_PREPARATION.md` in the `dataset_dict` with name `multi-image-question-answer` 
 
@@ -69,13 +69,13 @@ from vision_datasets.common import CocoManifestAdaptorFactory, DatasetInfoFactor
 # From `DATA_PREPARATION.md`, use any example with type "key_value_pair" as dataset_dict
 dataset_info = DatasetInfoFactory.create(dataset_dict)
 adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KEY_VALUE_PAIR, schema=dataset_info.schema)
-kvpair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url=`test.json`, url_or_root_dir='images/')
+key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url=`test.json`, url_or_root_dir='images/')
 ```
 
-Once a `KVPairDatasetManifest` is created, along with a dataset_info, create a `VisionDataset` for accessing the data in the dataset.
+Once a `KeyValuePairDatasetManifest` is created, along with a dataset_info, create a `VisionDataset` for accessing the data in the dataset.
 
 ```{python}
-dataset = VisionDataset(dataset_info, kvpair_dataset_manifest)
+dataset = VisionDataset(dataset_info, key_value_pair_dataset_manifest)
 ```
 
 #### Coco format

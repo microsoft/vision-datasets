@@ -4,7 +4,7 @@ from .data_manifest import BalancedInstanceWeightsGenerator, CategoryManifest, D
     SampleBaseConfig, SampleByFewShotConfig, SampleByNumSamples, SampleByNumSamplesConfig, SampleFewShot, SampleStrategy, SampleStrategyType, SingleTaskMerge, Spawn, \
     SpawnConfig, Split, SplitConfig, SplitWithCategories, WeightsGenerationConfig, \
     CocoManifestWithoutCategoriesAdaptor, CocoManifestWithCategoriesAdaptor, CocoManifestWithMultiImageLabelAdaptor, CocoManifestAdaptorBase, GenerateStandAloneImageListBase
-from .dataset_info import BaseDatasetInfo, DatasetInfo, DatasetInfoFactory, KVPairDatasetInfo, MultiTaskDatasetInfo
+from .dataset_info import BaseDatasetInfo, DatasetInfo, DatasetInfoFactory, KeyValuePairDatasetInfo, MultiTaskDatasetInfo
 from .data_reader import DatasetDownloader, FileReader, PILImageLoader
 from .dataset import VisionDataset
 from .factory import CocoManifestAdaptorFactory, CocoDictGeneratorFactory, ManifestMergeStrategyFactory, DataManifestFactory, SampleStrategyFactory, BalancedInstanceWeightsFactory, SpawnFactory, \
@@ -19,7 +19,7 @@ __all__ = [
     'SingleTaskMerge', 'Operation', 'RemoveCategories', 'RemoveCategoriesConfig', 'ManifestSampler', 'SampleBaseConfig', 'SampleByFewShotConfig', 'SampleByNumSamples',
     'SampleByNumSamplesConfig', 'SampleFewShot', 'SampleStrategy', 'SampleStrategyType', 'Spawn', 'SpawnConfig', 'Split', 'SplitConfig', 'SplitWithCategories',
     'CocoManifestWithoutCategoriesAdaptor', 'CocoManifestWithCategoriesAdaptor', 'CocoManifestWithMultiImageLabelAdaptor', 'CocoManifestAdaptorBase', 'GenerateStandAloneImageListBase',
-    'DatasetInfo', 'BaseDatasetInfo', 'KVPairDatasetInfo', 'MultiTaskDatasetInfo', 'DatasetInfoFactory', 'DatasetDownloader', 'FileReader', 'PILImageLoader',
+    'DatasetInfo', 'BaseDatasetInfo', 'KeyValuePairDatasetInfo', 'MultiTaskDatasetInfo', 'DatasetInfoFactory', 'DatasetDownloader', 'FileReader', 'PILImageLoader',
     'VisionDataset',
     'CocoManifestAdaptorFactory', 'CocoDictGeneratorFactory', 'ManifestMergeStrategyFactory', 'DataManifestFactory', 'SampleStrategyFactory', 'BalancedInstanceWeightsFactory', 'SpawnFactory',
     'SplitFactory', 'StandAloneImageListGeneratorFactory', 'SupportedOperationsByDataType',

@@ -169,7 +169,7 @@ For `key_value_pair` dataset, an additional field `schema` is required to define
         "description": "Answer question related to one or more images",
         "type": "key_value_pair",
         "format": "coco",
-        "root_folder": "kv_pair/multi_img_qa_20240723",
+        "root_folder": "key_value_pair/multi_img_qa_20240723",
         "schema": {
         "name": "Multi-image QA schema",
         "description": "Provide answer and a rationale.",

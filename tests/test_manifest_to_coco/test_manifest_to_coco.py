@@ -12,7 +12,7 @@ class TestManifestToCoco:
         coco_dict = coco_generator.run(manifest)
 
     @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KEY_VALUE_PAIR], schema_database[DatasetTypes.KEY_VALUE_PAIR]))
-    def test_manifest_to_coco_dict_kvpair(self, coco_dict, schema):
+    def test_key_value_pair_manifest_to_coco_dict(self, coco_dict, schema):
         manifest = coco_dict_to_manifest(DatasetTypes.KEY_VALUE_PAIR, coco_dict, schema)
         coco_generator = CocoDictGeneratorFactory.create(DatasetTypes.KEY_VALUE_PAIR)
         coco_dict = coco_generator.run(manifest)
