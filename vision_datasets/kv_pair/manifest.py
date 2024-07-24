@@ -10,7 +10,7 @@ class KVPairFieldSchema:
         'integer': int,
         'boolean': bool,
         'string': str, 
-        'boundingBox': list
+        'boundingBox': list  # TODO: add more specific types such as list[int] | list[float] and fix check_field_schema_match
     }
     
     def __init__(self, type: str,
