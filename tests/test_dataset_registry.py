@@ -85,7 +85,7 @@ class TestDatasetRegistry(unittest.TestCase):
         assert dr.get_dataset_info(self.DUMMY_DATA_1['name'])
         assert dr.get_dataset_info(self.DUMMY_DATA_2['name'])
 
-    def test_create_kv_dataset_reg(self):
+    def test_create_key_value_pair_dataset_reg(self):
         dn = self.DUMMY_DATA_KEY_VALUE_PAIR['name']
         dr = DatasetRegistry(json.dumps([self.DUMMY_DATA_KEY_VALUE_PAIR]))
         assert len(dr.list_data_version_and_types()) == 1
