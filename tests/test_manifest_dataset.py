@@ -178,7 +178,7 @@ class TestCocoKeyValuePairDataset(unittest.TestCase):
         
         dataset_info = DatasetInfoFactory.create(dataset_dict)
         schema = dataset_info.schema
-        ## Alternatively, provide schema dictionary directly:
+        # Alternatively, provide schema dictionary directly:
         # schema = TestCocoKeyValuePairDataset.DATASET_INFO_DICT['schema']
 
         dataset_manifest = CocoManifestAdaptorFactory.create(dataset_info.type, schema=schema).create_dataset_manifest(dataset_info.index_files[Usages.TEST], dataset_info.root_folder)

@@ -493,7 +493,8 @@ class KeyValuePairTestCases:
                     "image_ids": [1, 2],
                     "key_value_pairs": {
                         "productMatch": False,
-                        "rationale": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves.",
+                        "rationale": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more \
+                            than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves.",
                         "hasDamage": True,
                         "damageDetails": "Scratch on the outside"
                     }

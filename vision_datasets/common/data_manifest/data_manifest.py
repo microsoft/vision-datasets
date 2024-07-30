@@ -125,6 +125,7 @@ class MultiImageLabelManifest(ImageLabelManifest):
     def _check_label(self, label_data):
         pass
 
+
 class ImageDataManifest(ManifestBase):
     """
     Encapsulates the information and annotations of an image.

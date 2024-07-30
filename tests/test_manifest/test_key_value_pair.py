@@ -6,6 +6,7 @@ from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 class TestKeyValuePair(unittest.TestCase):
     id = 1
     img_ids = [1, 2]
+
     def test_simple(self):
         manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'key_value_pairs': {'key1': 'val1'}, 'text_input': {'query': 'what fields are there?'}})
         self.assertEqual(manifest.id, self.id)

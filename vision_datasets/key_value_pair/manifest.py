@@ -31,22 +31,22 @@ class KeyValuePairFieldSchema:
     def __eq__(self, other) -> bool:
         if not isinstance(other, KeyValuePairFieldSchema):
             return False
-        return (self.type == other.type \
-            and self.description == other.description \
-            and self.examples == other.examples \
-            and self.enum == other.enum \
-            and self.items == other.items \
-            and self.properties == other.properties)
+        return (self.type == other.type
+                and self.description == other.description
+                and self.examples == other.examples
+                and self.enum == other.enum
+                and self.items == other.items
+                and self.properties == other.properties)
     
     def _check(self):
         if self.type not in self.TYPE_NAME_TO_PYTHON_TYPE:
             raise ValueError(f'Invalid type: {self.type}')
         if self.enum and self.type not in ['string', 'number', 'integer']:
-            raise ValueError(f'enum is only allowed for string, number, integer types')
+            raise ValueError('enum is only allowed for string, number, integer types')
         if self.type == 'array' and not self.items:
-            raise ValueError(f'items must be provided for array type')
+            raise ValueError('items must be provided for array type')
         elif self.type == 'object' and not self.properties:
-            raise ValueError(f'properties must be provided for object type')
+            raise ValueError('properties must be provided for object type')
 
 
 class KeyValuePairSchema:
@@ -83,14 +83,14 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
     def _check_label(self, label_data):
         if not isinstance(label_data, dict) or self.LABEL_KEY not in label_data:
             raise ValueError
-    
+
     @classmethod
     def check_schema_match(cls, key_value_pairs: dict, schema: KeyValuePairSchema):
         for key, field_schema in schema.field_schema.items():
             if key not in key_value_pairs:
                 raise ValueError(f'{key} not found')
             KeyValuePairLabelManifest.check_field_schema_match(key_value_pairs[key], field_schema)
-    
+
     @classmethod
     def check_field_schema_match(cls, value, field_schema: KeyValuePairFieldSchema):
         if not isinstance(value, KeyValuePairFieldSchema.TYPE_NAME_TO_PYTHON_TYPE[field_schema.type]):
@@ -100,7 +100,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
                 raise ValueError(f'{value} not in enum {field_schema.enum}')
         if field_schema.type == 'boundingBox':
             if len(value) != 4:
-                raise ValueError(f'boundingBox must have 4 elements')
+                raise ValueError('boundingBox must have 4 elements')
         elif field_schema.type == 'array':
             for array_item in value:
                 cls.check_field_schema_match(array_item, field_schema.items)
@@ -113,7 +113,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
 
 class KeyValuePairDatasetManifest(MultiImageDatasetManifest):
     """Manifest that has schema in additional_info which defines the structure of the key-value pairs in the annotations."""
-    
+
     def __init__(self, images, annotations, additional_info):
         if 'schema' not in additional_info:
             raise ValueError('schema not found in additional_info')
