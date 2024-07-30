@@ -28,25 +28,22 @@ Currently, seven `basic` types of data are supported:
 **Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.**
 
 ## Dataset Contracts
-<!-- | Single-image annotation | Multi-image annotation |
-|-------------------------|------------------------|
-|`DatasetManifest` wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations.|`DatasetManifestWithMultiImageLabel` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
-    1. `KeyValuePairDatasetManifest` inherits `DatasetManifestWithMultiImageLabel`, where the `MultiImageLabelManifest` class is inherited by `KeyValuePairLabelManifest`.|
-|`ImageDataManifest` encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be 1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`), 2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or 3. an url||
-|`ImageLabelManifest`: encapsulates one single image-level annotation||
-|`CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable|| -->
+We support datasets with two types of annotations:
+- single-image annotation (S), and
+- multi-image annotation (M)
 
-| Annotation type | Contract class | Explaination |
+Below table shows all the supported contracts: 
+| Annotation | Contract class | Explaination |
 |-----------------|----------------|--------------|
-|S|`DatasetManifest`|wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. <br>Information about each image is obtained in `ImageDataManifest`. <br>For multitask dataset, the labels stored in the ImageDataManifest is a dict mapping from task name to that task's labels. The labelmap stored in DatasetManifest is also a dict mapping from task name to that task's labels.|
+|S|`DatasetManifest`|wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. Information about each image is obtained in `ImageDataManifest`. <br><br>For multitask dataset, the labels stored in the ImageDataManifest is a dict mapping from task name to that task's labels. The labelmap stored in DatasetManifest is also a dict mapping from task name to that task's labels.|
 |S,M|`ImageDataManifest`|encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be:<br>&nbsp;1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`), <br>&nbsp;2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or <br>&nbsp;3. an url. <br>All three kinds of paths can be loaded by `VisionDataset`|
 |S|`ImageLabelManifest`|encapsulates one single image-level annotation|
 |S|`CategoryManifest`|encapsulates the information about a category, such as its name and super category, if applicable|
-|M|`MultiImageLabelManifest`|encapsulates one annotation with multiple images and one text dictionary involved, it contains the referred image indices and labels.|
+|M|`MultiImageLabelManifest`|is abstract class. It encapsulates one annotation with one or multiple images, each image is stored as an image index.|
 |M|`DatasetManifestWithMultiImageLabel`|supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`.|
-|M|`KeyValuePairDatasetManifest`|inherits `DatasetManifestWithMultiImageLabel`|
-|M|`KeyValuePairLabelManifest`|inherits `MultiImageLabelManifest`, defines labels for `KeyValuePairDatasetManifest`|
-|S,M|`VisionDataset`|is an iterable dataset class that consumes the information from `DatasetManifest` or `DatasetManifestWithMultiImageLabel`.|
+|M|`KeyValuePairDatasetManifest`|inherits `DatasetManifestWithMultiImageLabel`, dataset with each sample having `KeyValuePairLabelManifest` label, dataset is also associated with a schema to define the expected keys and values.|
+|M|`KeyValuePairLabelManifest`|inherits `MultiImageLabelManifest`, encapsulates label information of `KeyValuePairDatasetManifest`. Each label has fields `img_ids` (associated images), `text` (associated text input), and `key_value_pairs` (dictionary of interested field keys and values). |
+|S,M|`VisionDataset`|is an iterable dataset class that consumes the information from `DatasetManifest` or `DatasetManifestWithMultiImageLabel`|
 
 
 ### Creating DatasetManifest
