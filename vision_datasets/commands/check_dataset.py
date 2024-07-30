@@ -3,6 +3,7 @@ Check if a dataset is prepared well to be consumed by this pkg
 """
 
 import argparse
+import json
 import pathlib
 import random
 
@@ -16,9 +17,13 @@ logger = set_up_cmd_logger(__name__)
 
 
 def show_dataset_stats(dataset: VisionDataset):
-    logger.info(f'Dataset stats: #images {len(dataset)}')
-    if dataset.categories:
-        logger.info(f'Dataset stats: #tags {len(dataset.categories)}')
+    if dataset.dataset_info.type == DatasetTypes.KEY_VALUE_PAIR:
+        logger.info(f'Dataset stats: #images {len(dataset.dataset_manifest.images)}, #annotations {len(dataset)}')
+        logger.info(f'Schema:\n{json.dumps(dataset.dataset_info.schema, indent=2)}')
+    else:
+        logger.info(f'Dataset stats: #images {len(dataset)}')
+        if dataset.categories:
+            logger.info(f'Dataset stats: #tags {len(dataset.categories)}')
 
 
 def show_img(sample):
@@ -28,6 +33,13 @@ def show_img(sample):
     logger.info(f'annotations = {[str(x) for x in sample[1]]}')
 
 
+def show_img_for_key_value_pair(sample):
+    for img in sample[0]:
+        img.show()
+        img.close()
+    logger.info(f'annotations = {str(sample[1].label_data)}')
+
+
 def logging_prefix(dataset_name, version):
     return f'Dataset check {dataset_name}, version {version}: '
 
@@ -35,7 +47,7 @@ def logging_prefix(dataset_name, version):
 def quick_check_images(dataset: VisionDataset):
     show_dataset_stats(dataset)
     for idx in random.sample(range(len(dataset)), min(10, len(dataset))):
-        show_img(dataset[idx])
+        show_img(dataset[idx]) if dataset.dataset_info.type != DatasetTypes.KEY_VALUE_PAIR else show_img_for_key_value_pair(dataset[idx])
 
 
 def check_images(dataset: VisionDataset):
