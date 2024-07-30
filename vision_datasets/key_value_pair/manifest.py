@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, List, Optional, Union
 from ..common import MultiImageLabelManifest, DatasetManifestWithMultiImageLabel, DatasetTypes
         
 
@@ -15,10 +15,10 @@ class KeyValuePairFieldSchema:
     
     def __init__(self, type: str,
                  description: str = None,
-                 examples: list[str] = None,
-                 enum: list[str] | list[int] | list[float] = None,
+                 examples: List[str] = None,
+                 enum: List[Union[str, int, float]] = None,
                  items: 'KeyValuePairFieldSchema' = None,
-                 properties: dict[str, 'KeyValuePairFieldSchema'] = None) -> None:
+                 properties: Dict[str, 'KeyValuePairFieldSchema'] = None) -> None:
         """
         Key-value pair schema for each field.
         
@@ -62,7 +62,7 @@ class KeyValuePairFieldSchema:
 
 
 class KeyValuePairSchema:
-    def __init__(self, name: str, field_schema_dict: dict, description: str = None) -> None:
+    def __init__(self, name: str, field_schema_dict: Dict, description: str = None) -> None:
         self.name = name
         self.description = description
         self.field_schema = {k: KeyValuePairFieldSchema(**v) for k, v in field_schema_dict.items()}
@@ -97,7 +97,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
             raise ValueError
 
     @classmethod
-    def check_schema_match(cls, key_value_pairs: dict, schema: KeyValuePairSchema):
+    def check_schema_match(cls, key_value_pairs: Dict, schema: KeyValuePairSchema):
         for key, field_schema in schema.field_schema.items():
             if key not in key_value_pairs:
                 raise ValueError(f'{key} not found')
