@@ -6,7 +6,7 @@ from typing import Union
 
 from ..data_reader import FileReader
 from ..utils import can_be_url, construct_full_url_or_path_func
-from .data_manifest import CategoryManifest, DatasetManifest, ImageDataManifest, MultiImageDatasetManifest, MultiImageLabelManifest
+from .data_manifest import CategoryManifest, DatasetManifest, ImageDataManifest, DatasetManifestWithMultiImageLabel, MultiImageLabelManifest
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class CocoManifestWithMultiImageLabelAdaptor(CocoManifestAdaptorBase):
 
     def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
         images, annotations = self.get_images_and_annotations(images_by_id, coco_manifest)
-        return MultiImageDatasetManifest(images, annotations, data_type, additional_info)
+        return DatasetManifestWithMultiImageLabel(images, annotations, data_type, additional_info)
 
     @abstractmethod
     def process_label(self, annotation: dict, coco_manifest: dict):

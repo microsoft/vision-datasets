@@ -1,6 +1,6 @@
 import abc
 
-from ..data_manifest import DatasetManifest, MultiImageDatasetManifest
+from ..data_manifest import DatasetManifest, DatasetManifestWithMultiImageLabel
 from .operation import Operation
 
 
@@ -70,10 +70,10 @@ class GenerateCocoDictBase(Operation):
 
 class MultiImageCocoDictGenerator(GenerateCocoDictBase):
     """
-    Base class for generating a COCO dictionary from MultiImageDatasetManifest that can be serialized
+    Base class for generating a COCO dictionary from DatasetManifestWithMultiImageLabel that can be serialized
     """
 
-    def _generate_annotations(self, manifest: MultiImageDatasetManifest):
+    def _generate_annotations(self, manifest: DatasetManifestWithMultiImageLabel):
         annotations = []
         for id, ann in enumerate(manifest.annotations, 1):
             coco_ann = {

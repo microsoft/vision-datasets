@@ -1,5 +1,5 @@
 import copy
-from vision_datasets.common import DatasetManifest, MultiImageDatasetManifest
+from vision_datasets.common import DatasetManifest, DatasetManifestWithMultiImageLabel
 from ..resources.util import coco_dict_to_manifest
 
 
@@ -36,7 +36,7 @@ class BaseCocoAdaptor:
                 assert ann.additional_info.get('ann_field_1') == 1
                 assert ann.additional_info.get('ann_field_2') == 2
 
-        if isinstance(manifest, MultiImageDatasetManifest):
+        if isinstance(manifest, DatasetManifestWithMultiImageLabel):
             for ann in manifest.annotations:
                 assert ann.additional_info.get('ann_field_1') == 1
                 assert ann.additional_info.get('ann_field_2') == 2
@@ -56,7 +56,7 @@ class BaseCocoAdaptor:
             assert manifest.categories and len(manifest.categories) == len(categories)
         if isinstance(manifest, DatasetManifest):
             assert sum([len(img.labels) for img in manifest.images]) == len(coco_dict['annotations'])
-        elif isinstance(manifest, MultiImageDatasetManifest):
+        elif isinstance(manifest, DatasetManifestWithMultiImageLabel):
             assert manifest.categories is None
             assert len(manifest.annotations) == len(coco_dict['annotations'])
             img_id_set = set(range(len(manifest.images)))

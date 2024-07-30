@@ -1,6 +1,6 @@
 from .constants import AnnotationFormats, BBoxFormat, DatasetTypes, Usages
 from .data_manifest import BalancedInstanceWeightsGenerator, CategoryManifest, DatasetFilter, DatasetManifest, GenerateCocoDictBase, MultiImageCocoDictGenerator, ImageDataManifest, ImageFilter, \
-    ImageLabelManifest, ImageLabelWithCategoryManifest, ImageNoAnnotationFilter, ManifestMerger, ManifestSampler, MergeStrategy, MultiImageDatasetSingleTaskMerge, MultiImageDatasetManifest, \
+    ImageLabelManifest, ImageLabelWithCategoryManifest, ImageNoAnnotationFilter, ManifestMerger, ManifestSampler, MergeStrategy, MultiImageDatasetSingleTaskMerge, DatasetManifestWithMultiImageLabel, \
     MultiImageLabelManifest, Operation, RemoveCategories, RemoveCategoriesConfig, SampleBaseConfig, SampleByFewShotConfig, SampleByNumSamples, SampleByNumSamplesConfig, SampleFewShot, \
     SampleStrategy, SampleStrategyType, SingleTaskMerge, Spawn, SpawnConfig, Split, SplitConfig, SplitWithCategories, WeightsGenerationConfig, CocoManifestWithoutCategoriesAdaptor, \
     CocoManifestWithCategoriesAdaptor, CocoManifestWithMultiImageLabelAdaptor, CocoManifestAdaptorBase, GenerateStandAloneImageListBase
@@ -13,7 +13,7 @@ from .dataset_management import DatasetHub, DatasetRegistry
 from .base64_utils import Base64Utils
 
 __all__ = [
-    'Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat', 'MultiImageDatasetSingleTaskMerge', 'MultiImageDatasetManifest', 'MultiImageLabelManifest',
+    'Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat', 'MultiImageDatasetSingleTaskMerge', 'DatasetManifestWithMultiImageLabel', 'MultiImageLabelManifest',
     'ImageLabelManifest', 'ImageLabelWithCategoryManifest', 'ImageDataManifest', 'CategoryManifest', 'DatasetManifest',
     'BalancedInstanceWeightsGenerator', 'WeightsGenerationConfig', 'DatasetFilter', 'ImageFilter', 'ImageNoAnnotationFilter', 'GenerateCocoDictBase', 'MultiImageCocoDictGenerator', 'ManifestMerger',
     'MergeStrategy', 'SingleTaskMerge', 'Operation', 'RemoveCategories', 'RemoveCategoriesConfig', 'ManifestSampler', 'SampleBaseConfig', 'SampleByFewShotConfig', 'SampleByNumSamples',

@@ -236,7 +236,7 @@ class DatasetManifest(ManifestBase):
         return len(self.images)
 
 
-class MultiImageDatasetManifest(ManifestBase):
+class DatasetManifestWithMultiImageLabel(ManifestBase):
     """
     Multi-image dataset manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in MultiImageLabelManifest, 
     including field 'img_ids' to capture indices in images list, and label_data to capture the label.
@@ -267,7 +267,7 @@ class MultiImageDatasetManifest(ManifestBase):
         self.categories = None
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, MultiImageDatasetManifest) or self.data_type != other.data_type:
+        if not isinstance(other, DatasetManifestWithMultiImageLabel) or self.data_type != other.data_type:
             return False
         return self.images == other.images and self.annotations == other.annotations
 

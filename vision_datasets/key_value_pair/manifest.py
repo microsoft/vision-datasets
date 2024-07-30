@@ -1,5 +1,5 @@
 from typing import Optional
-from ..common import MultiImageLabelManifest, MultiImageDatasetManifest, DatasetTypes
+from ..common import MultiImageLabelManifest, DatasetManifestWithMultiImageLabel, DatasetTypes
         
 
 class KeyValuePairFieldSchema:
@@ -123,7 +123,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
                 cls.check_field_schema_match(v, field_schema.properties[k])
 
 
-class KeyValuePairDatasetManifest(MultiImageDatasetManifest):
+class KeyValuePairDatasetManifest(DatasetManifestWithMultiImageLabel):
     """Manifest that has schema in additional_info which defines the structure of the key-value pairs in the annotations."""
 
     def __init__(self, images, annotations, additional_info):
