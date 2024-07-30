@@ -452,7 +452,7 @@ class KeyValuePairTestCases:
                 {
                     "id": 1,
                     "image_ids": [1],
-                    "text_input": {
+                    "text": {
                         "query": "Complete the order" 
                     },
                     "key_value_pairs": {
@@ -502,7 +502,7 @@ class KeyValuePairTestCases:
                 {
                     "id": 1,
                     "image_ids": [2, 1],
-                    "text_input": {
+                    "text": {
                         "note": "reversed image order."
                     },
                     "key_value_pairs": {

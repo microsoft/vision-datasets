@@ -85,7 +85,7 @@ class ImageLabelWithCategoryManifest(ImageLabelManifest):
             raise ValueError
 
 
-class MultiImageLabelManifest(ImageLabelManifest):
+class MultiImageLabelManifest(ImageLabelManifest, abc.ABC):
     """
     Encapsulates information of an multi-image label. The label can be associated with a single image, or multi-image jointly. 
     """
@@ -98,8 +98,8 @@ class MultiImageLabelManifest(ImageLabelManifest):
         Annotation manifest organized by img_ids, each set of images can have multiple labels. 
         Args:
             id (int): annotation id
-            img_ids: image ids
-            label_data: label data
+            img_ids (list of integers): image ids
+            label_data (dict or str): label data
             additional_info (dict): additional info about this annotation
         """
         self.id = id
@@ -118,12 +118,6 @@ class MultiImageLabelManifest(ImageLabelManifest):
 
     def is_negative(self) -> bool:
         return self.label_data is None
-    
-    def _read_label_data(self):
-        pass
-    
-    def _check_label(self, label_data):
-        pass
 
 
 class ImageDataManifest(ManifestBase):
@@ -252,13 +246,16 @@ class MultiImageDatasetManifest(ManifestBase):
         """
 
         Args:
-            images (list): image manifest
+            images (list of ImageDataManifest): image manifest. For each single image, image.labels won't be respected, label information is instead obtained in annotations below.
             annotations (list): annotations
-            data_type (str or dict) : data type
+            data_type (str) : data type
             additional_info (dict): additional info about this dataset
         """
         if isinstance(data_type, dict):
             raise ValueError("composition type is not supported!")
+        for img in images:
+            if img.labels:
+                raise ValueError(f"labels associated with single image manifest ({img.id}) should not be provided.")
         for ann in annotations:
             if not ann.is_negative() and any([img_id < 0 or img_id >= len(images) for img_id in ann.img_ids]):
                 raise ValueError(f"image ids of annotation are out of range, expect 0 to {len(images)-1}, got {ann.img_ids}!")

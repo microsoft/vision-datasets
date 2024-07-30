@@ -16,10 +16,20 @@ class KeyValuePairFieldSchema:
     def __init__(self, type: str,
                  description: str = None,
                  examples: list[str] = None,
-                 enum: list[str] = None,
+                 enum: list[str] | list[int] | list[float] = None,
                  items: 'KeyValuePairFieldSchema' = None,
                  properties: dict[str, 'KeyValuePairFieldSchema'] = None) -> None:
+        """
+        Key-value pair schema for each field.
         
+        Args:
+            type (str): type of the field, one of TYPE_NAME_TO_PYTHON_TYPE keys
+            description (str): description of the field
+            examples (list of str): examples of the field
+            enum (list of str/float/int): if the field is restricted to a list of values, define that list. Only work when type is string/number/integer.
+            items (KeyValuePairFieldSchema): each item's schema when type is array
+            properties (dict of KeyValuePairFieldSchema): properties schema when type is object
+        """
         self.type = type
         self.description = description
         self.examples = examples
@@ -43,6 +53,8 @@ class KeyValuePairFieldSchema:
             raise ValueError(f'Invalid type: {self.type}')
         if self.enum and self.type not in ['string', 'number', 'integer']:
             raise ValueError('enum is only allowed for string, number, integer types')
+        if self.enum and len(self.enum) != len(set(self.enum)):
+            raise ValueError('enum values must be unique')
         if self.type == 'array' and not self.items:
             raise ValueError('items must be provided for array type')
         elif self.type == 'object' and not self.properties:
@@ -56,29 +68,29 @@ class KeyValuePairSchema:
         self.field_schema = {k: KeyValuePairFieldSchema(**v) for k, v in field_schema_dict.items()}
     
     def __eq__(self, other) -> bool:
-        return self.name == other.name and self.field_schema == other.field_schema and self.description == other.description
+        return isinstance(other, KeyValuePairSchema) and self.name == other.name and self.field_schema == other.field_schema and self.description == other.description
 
 
 class KeyValuePairLabelManifest(MultiImageLabelManifest):
     """
     {
         "key_value_pairs": {"key1": "value1", ...},
-        "text_input": "optional text input for this annotation"
+        "text": "optional text input for this annotation"
     }
     """
     LABEL_KEY = 'key_value_pairs'
-    INPUT_KEY = 'text_input'
+    INPUT_KEY = 'text'
     
     @property
     def key_value_pairs(self) -> dict:
         return self.label_data[self.LABEL_KEY]
 
     @property
-    def text_input(self) -> Optional[dict]:
+    def text(self) -> Optional[dict]:
         return self.label_data.get(self.INPUT_KEY, None)
 
     def _read_label_data(self):
-        raise NotImplementedError
+        raise NotImplementedError('Read label data is not supported!')
     
     def _check_label(self, label_data):
         if not isinstance(label_data, dict) or self.LABEL_KEY not in label_data:

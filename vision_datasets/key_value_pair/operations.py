@@ -10,8 +10,8 @@ _DATA_TYPE = DatasetTypes.KEY_VALUE_PAIR
 class KeyValuePairCocoDictGenerator(MultiImageCocoDictGenerator):
     def process_labels(self, coco_ann, label: KeyValuePairLabelManifest):
         coco_ann[KeyValuePairLabelManifest.LABEL_KEY] = label.key_value_pairs
-        if label.text_input is not None:
-            coco_ann[KeyValuePairLabelManifest.INPUT_KEY] = label.text_input
+        if label.text is not None:
+            coco_ann[KeyValuePairLabelManifest.INPUT_KEY] = label.text
 
     def _generate_images(self, manifest: KeyValuePairDatasetManifest):
         images = super()._generate_images(manifest)

@@ -36,7 +36,7 @@ Currently, seven `basic` types of data are supported:
     3. an url
 - `ImageLabelManifest`: encapsulates one single image-level annotation
 - `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
-- `MultiImageLabelManifest`: encapsulates one multi-image annotation, it contains the referred image indices and labels.
+- `MultiImageLabelManifest`: encapsulates one annotation with multiple images and one text dictionary involved, it contains the referred image indices and labels.
 - `MultiImageDatasetManifest` supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`. 
     1. `KeyValuePairDatasetManifest` inherits `MultiImageDatasetManifest`, where the `MultiImageLabelManifest` class is inherited by `KeyValuePairLabelManifest`.
 - `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest` or `MultiImageDatasetManifest`.
@@ -73,7 +73,7 @@ key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path
 print(
     key_value_pair_dataset_manifest.images[0].img_path,'\n',
     key_value_pair_dataset_manifest.annotations[0].key_value_pairs,'\n',
-    key_value_pair_dataset_manifest.annotations[0].text_input,'\n',
+    key_value_pair_dataset_manifest.annotations[0].text,'\n',
 )
 ```
 
