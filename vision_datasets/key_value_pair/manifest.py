@@ -1,16 +1,31 @@
 from typing import Dict, List, Optional, Union
+from enum import Enum
 from ..common import MultiImageLabelManifest, DatasetManifestWithMultiImageLabel, DatasetTypes
-        
+
+
+class KeyValuePairValueTypes(Enum):
+    ARRAY = 1
+    OBJECT = 2
+    NUMBER = 3
+    INTEGER = 4
+    BOOLEAN = 5
+    STRING = 6
+    BBOX = 7
+
+
+def _key_value_pair_value_type_to_enum(val: str):
+    return KeyValuePairValueTypes[val.upper()]
+
 
 class KeyValuePairFieldSchema:
     TYPE_NAME_TO_PYTHON_TYPE = {
-        'array': list,
-        'object': dict,
-        'number': (float, int),
-        'integer': int,
-        'boolean': bool,
-        'string': str, 
-        'boundingBox': list  # TODO: add more specific types such as list[int] | list[float] and fix check_field_schema_match
+        KeyValuePairValueTypes.ARRAY: list,
+        KeyValuePairValueTypes.OBJECT: dict,
+        KeyValuePairValueTypes.NUMBER: (float, int),
+        KeyValuePairValueTypes.INTEGER: int,
+        KeyValuePairValueTypes.BOOLEAN: bool,
+        KeyValuePairValueTypes.STRING: str, 
+        KeyValuePairValueTypes.BBOX: list  # ltrb format in absolute pixel values
     }
     
     def __init__(self, type: str,
@@ -23,14 +38,14 @@ class KeyValuePairFieldSchema:
         Key-value pair schema for each field.
         
         Args:
-            type (str): type of the field, one of TYPE_NAME_TO_PYTHON_TYPE keys
+            type (str): type of the field, one of KeyValuePairValueTypes names in lower case.
             description (str): description of the field
             examples (list of str): examples of the field
             enum (list of str/float/int): if the field is restricted to a list of values, define that list. Only work when type is string/number/integer.
             items (KeyValuePairFieldSchema): each item's schema when type is array
             properties (dict of KeyValuePairFieldSchema): properties schema when type is object
         """
-        self.type = type
+        self.type = _key_value_pair_value_type_to_enum(type)
         self.description = description
         self.examples = examples
         self.enum = enum
@@ -51,13 +66,13 @@ class KeyValuePairFieldSchema:
     def _check(self):
         if self.type not in self.TYPE_NAME_TO_PYTHON_TYPE:
             raise ValueError(f'Invalid type: {self.type}')
-        if self.enum and self.type not in ['string', 'number', 'integer']:
+        if self.enum and self.type not in [KeyValuePairValueTypes.STRING, KeyValuePairValueTypes.NUMBER, KeyValuePairValueTypes.INTEGER]:
             raise ValueError('enum is only allowed for string, number, integer types')
         if self.enum and len(self.enum) != len(set(self.enum)):
             raise ValueError('enum values must be unique')
-        if self.type == 'array' and not self.items:
+        if self.type == KeyValuePairValueTypes.ARRAY and not self.items:
             raise ValueError('items must be provided for array type')
-        elif self.type == 'object' and not self.properties:
+        elif self.type == KeyValuePairValueTypes.OBJECT and not self.properties:
             raise ValueError('properties must be provided for object type')
 
 
@@ -79,7 +94,8 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
     }
     """
     LABEL_KEY = 'key_value_pairs'
-    INPUT_KEY = 'text'
+    TEXT_INPUT_KEY = 'text'
+    IMAGES_INPUT_KEY = 'image_ids'
     
     @property
     def key_value_pairs(self) -> dict:
@@ -87,14 +103,14 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
 
     @property
     def text(self) -> Optional[dict]:
-        return self.label_data.get(self.INPUT_KEY, None)
+        return self.label_data.get(self.TEXT_INPUT_KEY, None)
 
     def _read_label_data(self):
         raise NotImplementedError('Read label data is not supported!')
     
     def _check_label(self, label_data):
         if not isinstance(label_data, dict) or self.LABEL_KEY not in label_data:
-            raise ValueError
+            raise ValueError(f'{self.LABEL_KEY} not found in label_data dictionary: {label_data}')
 
     @classmethod
     def check_schema_match(cls, key_value_pairs: Dict, schema: KeyValuePairSchema):
@@ -110,13 +126,13 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
         if field_schema.enum:
             if value not in field_schema.enum:
                 raise ValueError(f'{value} not in enum {field_schema.enum}')
-        if field_schema.type == 'boundingBox':
-            if len(value) != 4:
-                raise ValueError('boundingBox must have 4 elements')
-        elif field_schema.type == 'array':
+        if field_schema.type == KeyValuePairValueTypes.BBOX:
+            if len(value) != 4 or any(x < 0 for x in value):
+                raise ValueError('bbox must have 4 non-negative elements: left, top, right, bottom absolute pixel values!')
+        elif field_schema.type == KeyValuePairValueTypes.ARRAY:
             for array_item in value:
                 cls.check_field_schema_match(array_item, field_schema.items)
-        elif field_schema.type == 'object':
+        elif field_schema.type == KeyValuePairValueTypes.OBJECT:
             for k, v in value.items():
                 if k not in field_schema.properties:
                     raise ValueError(f'{k} not found in schema')
@@ -126,11 +142,8 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
 class KeyValuePairDatasetManifest(DatasetManifestWithMultiImageLabel):
     """Manifest that has schema in additional_info which defines the structure of the key-value pairs in the annotations."""
 
-    def __init__(self, images, annotations, additional_info):
-        if 'schema' not in additional_info:
-            raise ValueError('schema not found in additional_info')
-        self.schema = KeyValuePairSchema(additional_info['schema']['name'], additional_info['schema']['fieldSchema'], additional_info['schema'].get('description', None))
-        del additional_info['schema']
+    def __init__(self, images, annotations, schema, additional_info):
+        self.schema = KeyValuePairSchema(schema['name'], schema['fieldSchema'], schema.get('description'))
         super().__init__(images, annotations, DatasetTypes.KEY_VALUE_PAIR, additional_info)
         self._check_annotations()
     

@@ -10,10 +10,8 @@ TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTy
 def coco_dict_to_manifest(task, coco_dict, schema: dict = None):
     if task == DatasetTypes.MULTITASK:
         return coco_dict_to_manifest_multitask(coco_dict[0], coco_dict[1])
-    if task == DatasetTypes.KEY_VALUE_PAIR:
-        adaptor = CocoManifestAdaptorFactory.create(task, schema=schema)
-    else:
-        adaptor = CocoManifestAdaptorFactory.create(task)
+    # schema is only required for key_value_pair dataset
+    adaptor = CocoManifestAdaptorFactory.create(task, schema) if schema else CocoManifestAdaptorFactory.create(task)
     with tempfile.TemporaryDirectory() as temp_dir:
         dm1_path = pathlib.Path(temp_dir) / 'coco.json'
         dm1_path.write_text(json.dumps(coco_dict))
@@ -375,7 +373,7 @@ class KeyValuePairTestCases:
             "description": "Find UI elements and actions by natural language query from given image.",
             "fieldSchema": {
                 "UIElementBbox": {
-                    "type": "boundingBox",
+                    "type": "bbox",
                     "description": "bounding box coordinates of ui element."
                 },
                 "action": {
@@ -427,7 +425,7 @@ class KeyValuePairTestCases:
                                 ]
                             },
                             "defectLocation": {
-                                "type": "boundingBox",
+                                "type": "bbox",
                                 "description": "Bounding box indicating the location of the defect"
                             }
                         }
