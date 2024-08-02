@@ -7,11 +7,11 @@ from vision_datasets.common import CocoManifestAdaptorFactory, DatasetTypes
 TYPES_WITH_CATEGORIES = [DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS, DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL, DatasetTypes.IMAGE_OBJECT_DETECTION]
 
 
-def coco_dict_to_manifest(task, coco_dict):
+def coco_dict_to_manifest(task, coco_dict, schema: dict = None):
     if task == DatasetTypes.MULTITASK:
         return coco_dict_to_manifest_multitask(coco_dict[0], coco_dict[1])
-
-    adaptor = CocoManifestAdaptorFactory.create(task)
+    # schema is only required for key_value_pair dataset
+    adaptor = CocoManifestAdaptorFactory.create(task, schema) if schema else CocoManifestAdaptorFactory.create(task)
     with tempfile.TemporaryDirectory() as temp_dir:
         dm1_path = pathlib.Path(temp_dir) / 'coco.json'
         dm1_path.write_text(json.dumps(coco_dict))
@@ -364,6 +364,184 @@ class VisualObjectGroundingTestCases:
             ]
         }
     ]
+    
+
+class KeyValuePairTestCases:
+    schema_dicts = [
+        {
+            "name": "UI automation Schema",
+            "description": "Find UI elements and actions by natural language query from given image.",
+            "fieldSchema": {
+                "UIElementBbox": {
+                    "type": "bbox",
+                    "description": "bounding box coordinates of ui element."
+                },
+                "action": {
+                    "type": "string",
+                    "description": "type of action to take on ui element",
+                    "enum": [
+                        "click", "select", "type"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Retail Fraud Detection Schema",
+            "description": "Schema for detecting retail fraud by comparing product images",
+            "fieldSchema": {
+                "productMatch": {
+                    "type": "boolean",
+                    "description": "Does the product match between the two images"
+                },
+                "rationale": {
+                    "type": "string",
+                    "description": "Reason for the 'Product Match' decision"
+                },
+                "hasDamage": {
+                    "type": "boolean",
+                    "description": "Is image 2 damaged based on comparison"
+                },
+                "damageDetails": {
+                    "type": "string",
+                    "description": "Describe the damage if any in detail"
+                }
+            }
+        },
+        {
+            "name": "Defect detection - screws",
+            "description": "Extract defect location and type from an image of metal screws on an assembly line",
+            "fieldSchema": {
+                "defects": {
+                    "type": "array",
+                    "description": "The defect types with bounding boxes detected in the image",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "defectType": {
+                                "type": "string",
+                                "description": "The type of defect detected",
+                                "enum": [
+                                    "scratch", "dent", "discoloration", "crack"
+                                ]
+                            },
+                            "defectLocation": {
+                                "type": "bbox",
+                                "description": "Bounding box indicating the location of the defect"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+
+    manifest_dicts = [
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip"
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_ids": [1],
+                    "text": {
+                        "query": "Complete the order" 
+                    },
+                    "key_value_pairs": {
+                        "UIElementBbox": [50, 50, 10, 10],
+                        "action": "click"
+                    }
+                }
+            ]
+        },
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 100,
+                    "height": 100,
+                    "file_name": "0.jpg",
+                    "zip_file": "test.zip",
+                    "metadata": {
+                        "catalog": True,
+                        "description": "iphone 12"
+                    }
+                },
+                {
+                    "id": 2,
+                    "width": 50,
+                    "height": 50,
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip",
+                    "metadata": {
+                        "catalog": False,
+                        "description": "user 1xxx's review."
+                    }
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_ids": [1, 2],
+                    "key_value_pairs": {
+                        "productMatch": False,
+                        "rationale": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more \
+                            than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves.",
+                        "hasDamage": True,
+                        "damageDetails": "Scratch on the outside"
+                    }
+                },
+                {
+                    "id": 1,
+                    "image_ids": [2, 1],
+                    "text": {
+                        "note": "reversed image order."
+                    },
+                    "key_value_pairs": {
+                        "productMatch": False,
+                        "rationale": "",
+                        "hasDamage": True,
+                        "damageDetails": "Scratch on the outside"
+                    }
+                }
+            ]
+        },
+        {
+            "images": [
+                {
+                    "id": 1,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "1.jpg",
+                    "zip_file": "test.zip"
+                }
+            ],
+            "annotations": [
+                {
+                    "id": 1,
+                    "image_ids": [1],
+                    "key_value_pairs": {
+                        "defects": [
+                            {
+                                "defectType": "scratch",
+                                "defectLocation": [30, 30, 20, 20],
+                            },
+                            {
+                                "defectType": "dent",
+                                "defectLocation": [80, 80, 10, 10],
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
 
 
 # Database for valid coco dicts per task
@@ -378,11 +556,17 @@ coco_database = {
     DatasetTypes.TEXT_2_IMAGE_RETRIEVAL: Text2ImageRetrievalTestCases.manifest_dicts,
     DatasetTypes.VISUAL_QUESTION_ANSWERING: VisualQuestionAnsweringTestCases.manifest_dicts,
     DatasetTypes.VISUAL_OBJECT_GROUNDING: VisualObjectGroundingTestCases.manifest_dicts,
+    DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.manifest_dicts
+}
+
+schema_database = {
+    DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.schema_dicts
 }
 
 
 def two_tasks_test_cases(coco_database):
     tasks = list(coco_database.keys())
+    tasks = [t for t in tasks if t != DatasetTypes.KEY_VALUE_PAIR]
     two_tasks = list(itertools.product(tasks, tasks))
     coco_dicts = [list(itertools.product(coco_database[task1], coco_database[task2])) for task1, task2 in two_tasks]
     assert len(two_tasks) == len(coco_dicts)

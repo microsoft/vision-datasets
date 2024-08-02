@@ -6,7 +6,7 @@ from typing import Union
 
 from ..data_reader import FileReader
 from ..utils import can_be_url, construct_full_url_or_path_func
-from .data_manifest import CategoryManifest, DatasetManifest, ImageDataManifest
+from .data_manifest import CategoryManifest, DatasetManifest, ImageDataManifest, DatasetManifestWithMultiImageLabel, MultiImageLabelManifest
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,12 @@ class CocoManifestAdaptorBase(ABC):
         images_by_id = {img['id']: ImageDataManifest(img['id'], self._append_zip_prefix_if_needed(img, img['file_name']), img.get('width'),
                                                      img.get('height'), [], self._get_additional_info(img, {'id', 'file_name', 'width', 'height', 'zip_file'})) for img in coco_manifest['images']}
 
+        return self._construct_manifest(images_by_id, coco_manifest, self.data_type, self._get_additional_info(coco_manifest, {'images', 'categories', 'annotations'}))
+    
+    def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
         images, categories = self.get_images_and_categories(images_by_id, coco_manifest)
-        return DatasetManifest(images, categories, self.data_type, self._get_additional_info(coco_manifest, {'images', 'categories', 'annotations'}))
-
+        return DatasetManifest(images, categories, data_type, additional_info)
+    
     @abstractmethod
     def get_images_and_categories(self, images_by_id, coco_manifest):
         pass
@@ -118,4 +121,38 @@ class CocoManifestWithoutCategoriesAdaptor(CocoManifestAdaptorBase):
 
     @abstractmethod
     def process_label(self, image: ImageDataManifest, annotation: dict, coco_manifest: dict):
+        pass
+
+
+class CocoManifestWithMultiImageLabelAdaptor(CocoManifestAdaptorBase):
+    """
+    Adaptor for generating multi-image label dataset manifest from adapted coco format.
+    """
+    
+    def get_images_and_categories(self, images_by_id, coco_manifest):
+        NotImplementedError("This method should not be called for multi-image annotation datasets")
+    
+    def get_images_and_annotations(self, images_by_id, coco_manifest):
+        images = [x for x in images_by_id.values()]
+        images.sort(key=lambda x: x.id)
+        img_id_to_pos = {x.id: i for i, x in enumerate(images)}
+        annotations = []
+        
+        for ann in coco_manifest['annotations']:
+            img_ids = ann['image_ids']
+            img_positions = [img_id_to_pos[img_id] for img_id in img_ids]
+            multi_image_label_manifest = self._construct_label_manifest(img_positions, ann, coco_manifest)
+            annotations.append(multi_image_label_manifest)
+        return images, annotations
+
+    def _construct_label_manifest(self, img_ids, ann, coco_manifest):
+        label_data = self.process_label(ann, coco_manifest)
+        return MultiImageLabelManifest(ann['id'], img_ids, label_data, self._get_additional_info(ann, {'id', 'image_ids'}))
+
+    def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
+        images, annotations = self.get_images_and_annotations(images_by_id, coco_manifest)
+        return DatasetManifestWithMultiImageLabel(images, annotations, data_type, additional_info)
+
+    @abstractmethod
+    def process_label(self, annotation: dict, coco_manifest: dict):
         pass

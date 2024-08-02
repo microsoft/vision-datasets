@@ -7,6 +7,7 @@ from .image_matting import ImageMattingLabelManifest
 from .image_object_detection import ImageObjectDetectionLabelManifest
 from .image_regression import ImageRegressionLabelManifest
 from .image_text_matching import ImageTextMatchingLabelManifest
+from .key_value_pair import KeyValuePairLabelManifest
 from .multi_task import MultitaskMerge
 from .text_2_image_retrieval import Text2ImageRetrievalLabelManifest
 from .visual_question_answering import VisualQuestionAnsweringLabelManifest
@@ -19,5 +20,5 @@ __all__ = ['Usages', 'DatasetTypes', 'AnnotationFormats', 'BBoxFormat', 'Dataset
            'CocoManifestAdaptorFactory', 'DataManifestFactory',
            'BalancedInstanceWeightsFactory', 'CocoDictGeneratorFactory', 'ManifestMergeStrategyFactory', 'SampleStrategyFactory', 'SpawnFactory', 'SplitFactory', 'SupportedOperationsByDataType',
            'ImageCaptionLabelManifest', 'ImageClassificationLabelManifest', 'ImageMattingLabelManifest', 'ImageObjectDetectionLabelManifest', 'ImageRegressionLabelManifest',
-           'ImageTextMatchingLabelManifest', 'MultitaskMerge', 'Text2ImageRetrievalLabelManifest',
+           'ImageTextMatchingLabelManifest', 'KeyValuePairLabelManifest', 'MultitaskMerge', 'Text2ImageRetrievalLabelManifest',
            'VisualQuestionAnsweringLabelManifest', 'VisualObjectGroundingLabelManifest']

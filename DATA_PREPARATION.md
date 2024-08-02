@@ -70,7 +70,6 @@ After everything is done, remember to run the commands below to do a final check
   - `vision_check_dataset stanford_cars -c train_coco.json -f ./ -t classification_multiclass`
   - `vision_check_dataset stanford_cars -c test_coco.json -f ./ -t classification_multiclass`
 
-
 ## Host/manage datasets on cloud/disk
 
 `DatasetHub` class is the one that manages access of multiple datasets either from local disk or cloud, using the dataset name and version information. It takes a dataset regisration json file, which contains the meta information of each dataset. For each dataset, there is a corresponding entry in the json.
@@ -157,5 +156,59 @@ Below is an example of multitask dataset:
     }
 ]
 ```
+
+For `key_value_pair` dataset, an additional field `schema` is required to define the task and the label format. Below is an example of its dataset information dictionary:
+
+```json
+[
+    {
+        "name": "multi-image-question-answer",
+        "version": 1,
+        "description": "Answer question related to one or more images",
+        "type": "key_value_pair",
+        "format": "coco",
+        "root_folder": "key_value_pair/multi_img_qa_20240723",
+        "schema": {
+            "name": "Multi-image QA schema",
+            "description": "Provide answer and a rationale.",
+            "fieldSchema": {
+                "answer": {
+                    "type": "string",
+                    "description": "answer."  
+                },
+                "rationale": {
+                    "type": "string",
+                    "description" :"rationale of answer"
+                }
+            }    
+        },
+        "train": {
+            "index_path": "train.json",
+            "files_for_local_usage": [
+                "train_images.zip"
+            ]
+        },
+        "val": {
+            "index_path": "val.json",
+            "files_for_local_usage": [
+                "val_images.zip"
+            ]
+        }
+    }
+]
+```
+
+The `fieldSchema` is a dictionary mapping each field to a dictionary called `FieldSchema`. In above example, there are two fields: `answer` and `rationale`. Below is the definition of `FieldSchema`:
+
+| Property    | Type                              | Example                                                                                                                                                        | Required?               |
+| :---------- | :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
+| type        | FieldValueType                    | JSON type: string, number, integer, boolean, array, object. Complex object type: bbox, in `ltrb` format, i.e. [left, top, width, height] absolute pixel values. | yes                     |
+| description | string                            | answer to question                                                                                                                                             | no                      |
+| examples    | list[string]                      | examples of field content                                                                                                                                      | no                      |
+| enum        | list[string \| number \| integer] | only work when type is string or number or integer                                                                                                             | no                      |
+| properties  | dict[string, FieldSchema]         | define FieldSchema of each subfield                                                                                                                            | yes when type is object |
+| items       | FieldSchema                       | define the FieldSchema for all items in array                                                                                                                  | yes when type is array  |
+
+More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py)
 
 Check the usage code example in [`README.md`](README.md).

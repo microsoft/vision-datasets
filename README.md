@@ -23,22 +23,29 @@ Currently, seven `basic` types of data are supported:
 
 `multitask` type is a composition type, where one set of images has multiple sets of annotations available for different tasks, where each task can be of any basic type.
 
+`key_value_pair` type is a generalized type, where a sample can be one or multiple images with optional text, labeled with key-value pairs. The keys and values are defined by a schema. Note that all the above seven basic types can be defined as this type with specific schemas.
+
 **Note that `image_caption` and `text_2_image_retrieval` might be merged into `image_text_matching` in future.**
 
 ## Dataset Contracts
 
-- `DatasetManifest` wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. `ImageDataManifest` encapsulates information about each image.
-- `ImageDataManifest` encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be
-    1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`)
-    2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or
-    3. an url
-- `ImageLabelManifest`: encapsulates one single image-level annotation
-- `CategoryManifest`: encapsulates the information about a category, such as its name and super category, if applicable
-- `VisionDataset` is an iterable dataset class that consumes the information from `DatasetManifest`.
+We support datasets with two types of annotations:
 
-`VisionDataset` is able to load the data from all three kinds of paths. Both 1. and 2. are good for training, as they access data from local disk while the 3rd one is good for data exploration, if you have the data in azure storage.
+- single-image annotation (S), and
+- multi-image annotation (M)
 
-For `multitask` dataset, the labels stored in the `ImageDataManifest` is a `dict` mapping from task name to that task's labels. The labelmap stored in `DatasetManifest` is also a `dict` mapping from task name to that task's labels.
+Below table shows all the supported contracts: 
+| Annotation | Contract class                       | Explaination                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| :--------- | :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S          | `DatasetManifest`                    | wraps the information about a dataset including labelmap, images (width, height, path to image), and annotations. Information about each image is obtained in `ImageDataManifest`. <br>For multitask dataset, the labels stored in the ImageDataManifest is a dict mapping from task name to that task's labels. The labelmap stored in DatasetManifest is also a dict mapping from task name to that task's labels.                            |
+| S,M        | `ImageDataManifest`                  | encapsulates image-specific information, such as image id, path, labels, and width/height. One thing to note here is that the image path can be:<br>&nbsp;1. a local path (absolute `c:\images\1.jpg` or relative `images\1.jpg`), <br>&nbsp;2. a local path in a **non-compressed** zip file (absolute `c:\images.zip@1.jpg` or relative `images.zip@1.jpg`) or <br>&nbsp;3. an url. <br>All three kinds of paths can be loaded by `VisionDataset` |
+| S          | `ImageLabelManifest`                 | encapsulates one single image-level annotation                                                                                                                                                                                                                                                                                                                                                                                                      |
+| S          | `CategoryManifest`                   | encapsulates the information about a category, such as its name and super category, if applicable                                                                                                                                                                                                                                                                                                                                                   |
+| M          | `MultiImageLabelManifest`            | is abstract class. It encapsulates one annotation with one or multiple images, each image is stored as an image index.                                                                                                                                                                                                                                                                                                                              |
+| M          | `DatasetManifestWithMultiImageLabel` | supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`.                                                                                                                                                                                                                                                               |
+| M          | `KeyValuePairDatasetManifest`        | inherits `DatasetManifestWithMultiImageLabel`, dataset with each sample having `KeyValuePairLabelManifest` label, dataset is also associated with a schema to define the expected keys and values.                                                                                                                                                                                                                                                  |
+| M          | `KeyValuePairLabelManifest`          | inherits `MultiImageLabelManifest`, encapsulates label information of `KeyValuePairDatasetManifest`. Each label has fields `img_ids` (associated images), `text` (associated text input), and `key_value_pairs` (dictionary of interested field keys and values).                                                                                                                                                                                   |
+| S,M        | `VisionDataset`                      | is an iterable dataset class that consumes the information from `DatasetManifest` or `DatasetManifestWithMultiImageLabel`                                                                                                                                                                                                                                                                                                                           |
 
 ### Creating DatasetManifest
 
@@ -52,6 +59,37 @@ Once a `DatasetManifest` is created, you can create a `VisionDataset` for access
 
 ```{python}
 dataset = VisionDataset(dataset_info, dataset_manifest, coordinates='relative')
+```
+
+
+### Creating KeyValuePairDatasetManifest
+
+You can use `CocoManifestAdaptorFactory` to create the manifest from COCO format data and a schema, a COCO data example can be found in `COCO_DATA_FORMAT.md`, and a schema example (dictionary) can be found in `DATA_PREPARATION.md`. 
+
+```{python}
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetTypes
+# check schema dictionary example From `DATA_PREPARATION.md`
+adaptor = CocoManifestAdaptorFactory.create(DatasetTypes.KEY_VALUE_PAIR, schema=schema_dict)
+key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path_or_url='test.json', url_or_root_dir='data/')  # image paths in test.json is relative to url_or_root_dir
+# test the first sample
+print(
+    key_value_pair_dataset_manifest.images[0].img_path,'\n',
+    key_value_pair_dataset_manifest.annotations[0].key_value_pairs,'\n',
+    key_value_pair_dataset_manifest.annotations[0].text,'\n',
+)
+```
+
+Once a `KeyValuePairDatasetManifest` is created, along with a dataset_info, create a `VisionDataset` for accessing the data in the dataset.
+
+```{python}
+from vision_datasets.common import DatasetInfoFactory, VisionDataset
+# check dataset information dictionary example From `DATA_PREPARATION.md`
+dataset_info = DatasetInfoFactory.create(dataset_info_dict)
+dataset = VisionDataset(dataset_info, key_value_pair_dataset_manifest)
+# test the first sample
+imgs, target, _ = dataset[0]
+print(imgs)
+print(target)
 ```
 
 #### Coco format
@@ -87,7 +125,7 @@ Here is an example with explanation of what a `DatasetInfo` looks like for coco 
     }
 ```
 
-Coco annotation format details w.r.t. `image_classification_multiclass/label`, `image_object_detection`, `image_caption`, `image_text_match` and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
+Coco annotation format details w.r.t. `image_classification_multiclass/label`, `image_object_detection`, `image_caption`, `image_text_match`, `key_value_pair`, and `multitask`  can be found in `COCO_DATA_FORMAT.md`.
 
 Index file can be put into a zip file as well (e.g., `annotations.zip@train.json`), no need to add the this zip to "files_for_local_usage" explicitly.
 
@@ -110,7 +148,7 @@ from vision_datasets.common import Usages, DatasetHub
 
 dataset_infos_json_path = 'datasets.json'
 dataset_hub = DatasetHub(pathlib.Path(dataset_infos_json_path).read_text(), blob_container_sas, local_dir)
-stanford_cars = dataset_hub.create_manifest_dataset('stanford-cars', version=1, usage=Usages.TRAIN)
+stanford_cars = dataset_hub.create_vision_dataset('stanford-cars', version=1, usage=Usages.TRAIN)
 
 # note that you can pass multiple datasets.json to DatasetHub, it can combine them all
 # example: DatasetHub([ds_json1, ds_json2, ...])
@@ -118,6 +156,8 @@ stanford_cars = dataset_hub.create_manifest_dataset('stanford-cars', version=1, 
 # example dataset_hub.create_manifest_dataset('stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
 
 for img, targets, sample_idx_str in stanford_cars:
+    if isinstance(img, list):  # for key_value_pair dataset, the first item is a list of images
+       img = img[0]
     img.show()
     img.close()
     print(targets)

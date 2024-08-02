@@ -47,7 +47,7 @@ class ImageLabelManifest(ManifestBase):
     def label_data(self, val):
         self._label_data = val
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def _read_label_data(self):
         pass
 
@@ -64,7 +64,7 @@ class ImageLabelManifest(ManifestBase):
 
         return self._label_data == self._label_data
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def _check_label(self, label_data):
         raise NotImplementedError
 
@@ -83,6 +83,41 @@ class ImageLabelWithCategoryManifest(ImageLabelManifest):
     def _category_id_check(self, value):
         if not isinstance(value, int) or value < 0:
             raise ValueError
+
+
+class MultiImageLabelManifest(ImageLabelManifest, abc.ABC):
+    """
+    Encapsulates information of an multi-image label. The label can be associated with a single image, or multi-image jointly. 
+    """
+    def __init__(self,
+                 id: int,
+                 img_ids: List[int],
+                 label_data,
+                 additional_info: Dict = {}):
+        """
+        Annotation manifest organized by img_ids, each set of images can have multiple labels. 
+        Args:
+            id (int): annotation id
+            img_ids (list of integers): image ids
+            label_data (dict or str): label data
+            additional_info (dict): additional info about this annotation
+        """
+        self.id = id
+        self.img_ids = img_ids
+        super().__init__(label_data, label_path=None, additional_info=additional_info)
+
+    def __eq__(self, other) -> bool:
+        if not super().__eq__(other):
+            return False
+
+        if not isinstance(other, MultiImageLabelManifest):
+            return False
+
+        return self.id == other.id and self.img_ids == other.img_ids and self.label_data == other.label_data \
+            and self.additional_info == other.additional_info
+
+    def is_negative(self) -> bool:
+        return self.label_data is None
 
 
 class ImageDataManifest(ManifestBase):
@@ -199,3 +234,42 @@ class DatasetManifest(ManifestBase):
 
     def __len__(self):
         return len(self.images)
+
+
+class DatasetManifestWithMultiImageLabel(ManifestBase):
+    """
+    Multi-image dataset manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in MultiImageLabelManifest, 
+    including field 'img_ids' to capture indices in images list, and label_data to capture the label.
+    """
+
+    def __init__(self, images: List[ImageDataManifest], annotations: List[MultiImageLabelManifest], data_type: str, addtional_info={}):
+        """
+
+        Args:
+            images (list of ImageDataManifest): image manifest. For each single image, image.labels won't be respected, label information is instead obtained in annotations below.
+            annotations (list): annotations
+            data_type (str) : data type
+            additional_info (dict): additional info about this dataset
+        """
+        if isinstance(data_type, dict):
+            raise ValueError("composition type is not supported!")
+        for img in images:
+            if img.labels:
+                raise ValueError(f"labels associated with single image manifest ({img.id}) should not be provided.")
+        for ann in annotations:
+            if not ann.is_negative() and any([img_id < 0 or img_id >= len(images) for img_id in ann.img_ids]):
+                raise ValueError(f"image ids of annotation are out of range, expect 0 to {len(images)-1}, got {ann.img_ids}!")
+        super().__init__(addtional_info)
+
+        self.images = images
+        self.annotations = annotations
+        self.data_type = data_type
+        self.categories = None
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, DatasetManifestWithMultiImageLabel) or self.data_type != other.data_type:
+            return False
+        return self.images == other.images and self.annotations == other.annotations
+
+    def __len__(self):
+        return len(self.annotations)
