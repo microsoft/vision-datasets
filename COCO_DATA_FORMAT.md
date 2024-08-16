@@ -236,7 +236,7 @@ It is a generic variation of an image-text dataset, where the input consists of 
   - images, image is optionally associated with a metadata dictionary which stores the text attributes of interest for the image. For example, image is a product catalog image: `{'metadata': {'catalog': true}}`, capture location of an image: `{'metadata': {'location': 'street'}}`, information of the assembly component captured in image of a defect detection dataset: `{'metadata': {'name': 'Hex Head Lag Screw', 'type': '3/8-inch x 4-inch'}}`  
   - text (optional), a dictionary with keys being field names e.g. `{'text': {'question': 'a specific question related to the images input'}}`
 - output:
-  - key-value pairs, a dictionary with keys being the attributes of interest
+  - key-value pairs, a dictionary with keys being the attributes of interest, values being dictionary that stores the actual attribute value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format).
 
 The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation. In each annotation entry, `key_value_pairs` field is required, `text` is optional. In each image entry, `metadata` is optional. Below is an example of multi-image question answering.
 
@@ -249,6 +249,35 @@ The dataset format is a simple variation of COCO, where `image_id` of an annotat
     "annotations": [
         {"id": 1, "image_ids": [1, 2], "text": {"question": "What objects are unique in the first image compared to the second image?"}, "key_value_pairs": {"answer": "car", "rationale": "Both images capture street traffic, a car exists in the first image but not in the second."}},
         {"id": 2, "image_ids": [2, 1], "text": {"question": "Does the first image have more cars?"}, "key_value_pairs": {"answer": "yes", "rationale": "First image has no car, second image has one."}}
+    ]
+}
+```
+
+Another example for object detection:
+```json
+{
+    "images": [
+        {
+            "id": 1,
+            "width": 224,
+            "height": 224,
+            "file_name": "1.jpg",
+            "zip_file": "test.zip"
+        }
+    ],
+    "annotations": [
+        {
+            "id": 1,
+            "image_ids": [1],
+            "key_value_pairs": {
+                "defects": {
+                    "value": [
+                        {"value": "scratch", "groundings": [[10, 10, 10, 10], [30, 30, 10, 10]]},
+                        {"value": "dent", "groundings": [[80, 80, 20, 20]]}
+                    ]
+                }
+            }
+        }
     ]
 }
 ```
