@@ -47,12 +47,12 @@ class KeyValuePairFieldSchema:
                  classes: Dict[str, KeyValuePairClassSchema] = None,
                  items: 'KeyValuePairFieldSchema' = None,
                  properties: Dict[str, 'KeyValuePairFieldSchema'] = None,
-                 groundings: bool = False) -> None:
+                 includeGrounding: bool = False) -> None:
         """
         Key-value pair schema for each field.
         The annotation of each key is a dictionary containing
             1. "value"  field that contains the annotation
-            2. "groundings" field enabled when groundings=True, which contains a list of grounded bounding boxes in image for the annotation
+            2. "groundings" field enabled when includeGrounding=True, which contains a list of grounded bounding boxes in image for the annotation
 
         Args:
             type (str): type of the field, one of KeyValuePairValueTypes names in lower case.
@@ -61,7 +61,7 @@ class KeyValuePairFieldSchema:
             classes (dict[str, KeyValuePairClassSchema]): if the field is restricted to a list of classes, define the map from class name to its information. Only work when type is string.
             items (KeyValuePairFieldSchema): each item's schema when type is array
             properties (dict of KeyValuePairFieldSchema): properties schema when type is object,
-            groundings (bool): whether the field should be grounded a list of bboxes in the image.
+            includeGrounding (bool): whether the field should be grounded a list of bboxes in the image.
         """
         self.type = _key_value_pair_value_type_to_enum(type)
         self.description = description
@@ -69,7 +69,7 @@ class KeyValuePairFieldSchema:
         self.classes = {k: KeyValuePairClassSchema(v) for k, v in classes.items()} if classes else None
         self.items = KeyValuePairFieldSchema(**items) if items else None
         self.properties = {k: KeyValuePairFieldSchema(**v) for k, v in properties.items()} if properties else None
-        self.groundings = groundings
+        self.includeGrounding = includeGrounding
         self._check()
     
     def __eq__(self, other) -> bool:
@@ -81,7 +81,7 @@ class KeyValuePairFieldSchema:
                 and self.classes == other.classes
                 and self.items == other.items
                 and self.properties == other.properties
-                and self.groundings == other.groundings)
+                and self.includeGrounding == other.includeGrounding)
     
     def _check(self):
         if self.type not in self.TYPE_NAME_TO_PYTHON_TYPE:
@@ -123,7 +123,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
     {
         "name": "example key value pair schema",
         "fieldSchema": {
-            "key1": {"type": "string", "groundings": true},
+            "key1": {"type": "string", "includeGrounding": true},
             "key2": {"type": "string"},
             ...
         }
@@ -161,7 +161,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
     def check_field_schema_match(cls, value, field_schema: KeyValuePairFieldSchema):
         if not isinstance(value, dict) or cls.LABEL_VALUE_KEY not in value:
             raise ValueError(f'{value} must be a dictionary that maps "{cls.LABEL_VALUE_KEY}" to the annotation.')
-        if field_schema.groundings:
+        if field_schema.includeGrounding:
             if cls.LABEL_GROUNDINGS_KEY not in value:
                 raise ValueError(f'{cls.LABEL_GROUNDINGS_KEY} is required in schema, but not found in {value}.')
             if any(not _valid_ltrb_bbox(bbox) for bbox in value[cls.LABEL_GROUNDINGS_KEY]):

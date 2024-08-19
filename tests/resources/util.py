@@ -380,7 +380,7 @@ class KeyValuePairTestCases:
                         "select": {"description": "select the element"},
                         "type": {"description": "type in the element"}
                     },
-                    "groundings": True
+                    "includeGrounding": True
                 }
             }
         },
@@ -422,7 +422,7 @@ class KeyValuePairTestCases:
                             "discoloration": {"description": "color is abnormal"},
                             "crack": {"description": "deeper mark than a scratch"}
                         },
-                        "groundings": True
+                        "includeGrounding": True
                     }
                 }
             }
