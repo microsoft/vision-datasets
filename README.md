@@ -44,7 +44,7 @@ Below table shows all the supported contracts:
 | M          | `MultiImageLabelManifest`            | is abstract class. It encapsulates one annotation with one or multiple images, each image is stored as an image index.                                                                                                                                                                                                                                                                                                                              |
 | M          | `DatasetManifestWithMultiImageLabel` | supports annotations associated with one or multiple images. Each annotation is represented by `MultiImageLabelManifest` class, and each image is represented by `ImageDataManifest`.                                                                                                                                                                                                                                                               |
 | M          | `KeyValuePairDatasetManifest`        | inherits `DatasetManifestWithMultiImageLabel`, dataset with each sample having `KeyValuePairLabelManifest` label, dataset is also associated with a schema to define the expected keys and values.                                                                                                                                                                                                                                                  |
-| M          | `KeyValuePairLabelManifest`          | inherits `MultiImageLabelManifest`, encapsulates label information of `KeyValuePairDatasetManifest`. Each label has fields `img_ids` (associated images), `text` (associated text input), and `key_value_pairs` (dictionary of interested field keys and values).                                                                                                                                                                                   |
+| M          | `KeyValuePairLabelManifest`          | inherits `MultiImageLabelManifest`, encapsulates label information of `KeyValuePairDatasetManifest`. Each label has fields `img_ids` (associated images), `text` (associated text input), and `fields` (dictionary of interested field keys and values).                                                                                                                                                                                   |
 | S,M        | `VisionDataset`                      | is an iterable dataset class that consumes the information from `DatasetManifest` or `DatasetManifestWithMultiImageLabel`                                                                                                                                                                                                                                                                                                                           |
 
 ### Creating DatasetManifest
@@ -74,7 +74,7 @@ key_value_pair_dataset_manifest = adaptor.create_dataset_manifest(coco_file_path
 # test the first sample
 print(
     key_value_pair_dataset_manifest.images[0].img_path,'\n',
-    key_value_pair_dataset_manifest.annotations[0].key_value_pairs,'\n',
+    key_value_pair_dataset_manifest.annotations[0].fields,'\n',
     key_value_pair_dataset_manifest.annotations[0].text,'\n',
 )
 ```

@@ -448,7 +448,7 @@ class KeyValuePairTestCases:
                     "text": {
                         "query": "Complete the order" 
                     },
-                    "key_value_pairs": {
+                    "fields": {
                         "action": {
                             "value": "click",
                             "groundings": [[50, 50, 100, 100]]
@@ -486,7 +486,7 @@ class KeyValuePairTestCases:
                 {
                     "id": 1,
                     "image_ids": [1, 2],
-                    "key_value_pairs": {
+                    "fields": {
                         "productMatch": {"value": False},
                         "rationale": {"value": "The products appear to be similar, but do not have the same brand name or text on them. The catalog image also has more \
                             than one port on the left side and a curved appearance, while the product image has ports on two sides and has a boxy appearance with no curves."},
@@ -500,7 +500,7 @@ class KeyValuePairTestCases:
                     "text": {
                         "note": "reversed image order."
                     },
-                    "key_value_pairs": {
+                    "fields": {
                         "productMatch": {"value": False},
                         "rationale": {"value": ""},
                         "hasDamage": {"value": True},
@@ -523,7 +523,7 @@ class KeyValuePairTestCases:
                 {
                     "id": 1,
                     "image_ids": [1],
-                    "key_value_pairs": {
+                    "fields": {
                         "defects": {
                             "value": [
                                 {

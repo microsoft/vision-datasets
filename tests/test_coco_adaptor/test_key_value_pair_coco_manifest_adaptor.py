@@ -38,19 +38,19 @@ class TestKeyValuePair(BaseCocoAdaptor):
         ann_0 = key_value_pair_manifest.annotations[0]
         assert ann_0.id == coco_dict['annotations'][0]['id']
         assert ann_0.img_ids == [0, 1]
-        assert ann_0.key_value_pairs == coco_dict['annotations'][0]['key_value_pairs']
+        assert ann_0.fields == coco_dict['annotations'][0]['fields']
         assert ann_0.text is None
         
         ann_1 = key_value_pair_manifest.annotations[1]
         assert ann_1.id == coco_dict['annotations'][1]['id']
         assert ann_1.img_ids == [1, 0]
-        assert ann_1.key_value_pairs == coco_dict['annotations'][1]['key_value_pairs']
+        assert ann_1.fields == coco_dict['annotations'][1]['fields']
         assert ann_1.text == coco_dict['annotations'][1]['text']
         
     def test_schema_mismatch_key_value_pair(self):
         schema, coco_dict = self.prepare_schema_and_coco_dict()
         # remove a field that defined in schema
-        del coco_dict['annotations'][0]['key_value_pairs']['productMatch']
+        del coco_dict['annotations'][0]['fields']['productMatch']
 
         adaptor = CocoManifestAdaptorFactory.create(TestKeyValuePair.TASK, schema=schema)
         with tempfile.TemporaryDirectory() as temp_dir:

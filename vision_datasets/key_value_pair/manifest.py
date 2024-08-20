@@ -44,7 +44,7 @@ class KeyValuePairFieldSchema:
     def __init__(self, type: str,
                  description: str = None,
                  examples: List[str] = None,
-                 classes: Dict[str, KeyValuePairClassSchema] = None,
+                 classes: Dict[str|int|float, KeyValuePairClassSchema] = None,
                  items: 'KeyValuePairFieldSchema' = None,
                  properties: Dict[str, 'KeyValuePairFieldSchema'] = None,
                  includeGrounding: bool = False) -> None:
@@ -52,13 +52,13 @@ class KeyValuePairFieldSchema:
         Key-value pair schema for each field.
         The annotation of each key is a dictionary containing
             1. "value"  field that contains the annotation
-            2. "groundings" field enabled when includeGrounding=True, which contains a list of grounded bounding boxes in image for the annotation
+            2. "groundings" field enabled when includeGrounding=True, which contains a list of grounded bounding boxes in the image for the annotation
 
         Args:
             type (str): type of the field, one of KeyValuePairValueTypes names in lower case.
             description (str): description of the field
             examples (list of str): examples of the field
-            classes (dict[str, KeyValuePairClassSchema]): if the field is restricted to a list of classes, define the map from class name to its information. Only work when type is string.
+            classes (dict[str|int|float, KeyValuePairClassSchema]): if the field is restricted to a list of classes, defines the map from class name to its information. Only works when type is string.
             items (KeyValuePairFieldSchema): each item's schema when type is array
             properties (dict of KeyValuePairFieldSchema): properties schema when type is object,
             includeGrounding (bool): whether the field should be grounded a list of bboxes in the image.
@@ -87,8 +87,8 @@ class KeyValuePairFieldSchema:
         if self.type not in self.TYPE_NAME_TO_PYTHON_TYPE:
             raise ValueError(f'Invalid type: {self.type}')
         if self.classes:
-            if self.type != KeyValuePairValueTypes.STRING:
-                raise ValueError('"classes" is only allowed for string type')
+            if self.type not in {KeyValuePairValueTypes.STRING, KeyValuePairValueTypes.INTEGER, KeyValuePairValueTypes.NUMBER}:
+                raise ValueError('"classes" is only allowed for string, integer, number types')
             if any(not isinstance(k, str) for k in self.classes.keys()):
                 raise ValueError('"classes" keys must be string')
         if self.type == KeyValuePairValueTypes.ARRAY and not self.items:
@@ -109,19 +109,19 @@ class KeyValuePairSchema:
 
 class KeyValuePairLabelManifest(MultiImageLabelManifest):
     """
-    Label manifest for key-value pair annotations. The "key_value_pairs" field follows KeyValuePairSchema.
+    Label manifest for key-value pair annotations. The "fields" field follows KeyValuePairSchema.
     For example, the label data can be:   
     {
-        "key_value_pairs": {
+        "fields": {
             "key1": {"value": "v1", "groundings": [[10,10,5,5]]},
             "key2": {"value": "v2"},
             ...
         },
         "text": "optional text input for this annotation"
     },
-    the key value pairs follow the schema:
+    the fields follow the schema:
     {
-        "name": "example key value pair schema",
+        "name": "example key value pair field schema",
         "fieldSchema": {
             "key1": {"type": "string", "includeGrounding": true},
             "key2": {"type": "string"},
@@ -129,14 +129,14 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
         }
     }
     """
-    LABEL_KEY = 'key_value_pairs'
+    LABEL_KEY = 'fields'
     LABEL_VALUE_KEY = 'value'
     LABEL_GROUNDINGS_KEY = 'groundings'
     TEXT_INPUT_KEY = 'text'
     IMAGES_INPUT_KEY = 'image_ids'
     
     @property
-    def key_value_pairs(self) -> dict:
+    def fields(self) -> dict:
         return self.label_data[self.LABEL_KEY]
 
     @property
@@ -151,11 +151,11 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
             raise ValueError(f'{self.LABEL_KEY} not found in label_data dictionary: {label_data}')
 
     @classmethod
-    def check_schema_match(cls, key_value_pairs: Dict[str, Dict], schema: KeyValuePairSchema):
+    def check_schema_match(cls, fields: Dict[str, Dict], schema: KeyValuePairSchema):
         for key, field_schema in schema.field_schema.items():
-            if key not in key_value_pairs:
+            if key not in fields:
                 raise ValueError(f'{key} not found')
-            KeyValuePairLabelManifest.check_field_schema_match(key_value_pairs[key], field_schema)
+            KeyValuePairLabelManifest.check_field_schema_match(fields[key], field_schema)
 
     @classmethod
     def check_field_schema_match(cls, value, field_schema: KeyValuePairFieldSchema):

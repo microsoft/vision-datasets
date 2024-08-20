@@ -9,7 +9,7 @@ _DATA_TYPE = DatasetTypes.KEY_VALUE_PAIR
 @CocoDictGeneratorFactory.register(_DATA_TYPE)
 class KeyValuePairCocoDictGenerator(MultiImageCocoDictGenerator):
     def process_labels(self, coco_ann, label: KeyValuePairLabelManifest):
-        coco_ann[KeyValuePairLabelManifest.LABEL_KEY] = label.key_value_pairs
+        coco_ann[KeyValuePairLabelManifest.LABEL_KEY] = label.fields
         if label.text is not None:
             coco_ann[KeyValuePairLabelManifest.TEXT_INPUT_KEY] = label.text
 
