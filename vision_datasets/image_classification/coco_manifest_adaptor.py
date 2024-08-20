@@ -12,7 +12,7 @@ class MultiClassClassificationCocoManifestAdaptor(CocoManifestWithCategoriesAdap
 
     def process_label(self, image: ImageDataManifest, annotation, coco_manifest, label_id_to_pos):
         if len(image.labels) != 0:
-            raise ValueError(f"image with id {annotation['image_id']} will possess unexpected number of annotations {len(image.labels) + 1} for {DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS} dataset")
+            raise ValueError(f"image with id {annotation['image_id']} will possess unexpected number of annotations {len(image.labels) + 1} for {DatasetTypes.IMAGE_CLASSIFICATION_MULTICLASS} dataset.")
 
         label = ImageClassificationLabelManifest(label_id_to_pos[annotation['category_id']], additional_info=self._get_additional_info(annotation, {'id', 'image_id', 'category_id'}))
         image.labels.append(label)

@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from enum import Enum
 from ..common import MultiImageLabelManifest, DatasetManifestWithMultiImageLabel, DatasetTypes
 
@@ -44,7 +44,7 @@ class KeyValuePairFieldSchema:
     def __init__(self, type: str,
                  description: str = None,
                  examples: List[str] = None,
-                 classes: Dict[str | int | float, KeyValuePairClassSchema] = None,
+                 classes: Dict[Union[str, int, float], KeyValuePairClassSchema] = None,
                  items: 'KeyValuePairFieldSchema' = None,
                  properties: Dict[str, 'KeyValuePairFieldSchema'] = None,
                  includeGrounding: bool = False) -> None:
