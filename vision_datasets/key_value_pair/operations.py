@@ -1,6 +1,6 @@
 from ..common import DatasetTypes, MultiImageCocoDictGenerator, \
     MultiImageDatasetSingleTaskMerge, CocoDictGeneratorFactory, ManifestMergeStrategyFactory
-    
+
 from .manifest import KeyValuePairLabelManifest, KeyValuePairDatasetManifest
 
 _DATA_TYPE = DatasetTypes.KEY_VALUE_PAIR

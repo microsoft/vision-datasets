@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 from enum import Enum
 from ..common import MultiImageLabelManifest, DatasetManifestWithMultiImageLabel, DatasetTypes
 
@@ -40,11 +40,11 @@ class KeyValuePairFieldSchema:
         KeyValuePairValueTypes.BOOLEAN: bool,
         KeyValuePairValueTypes.STRING: str
     }
-    
+
     def __init__(self, type: str,
                  description: str = None,
                  examples: List[str] = None,
-                 classes: Dict[str|int|float, KeyValuePairClassSchema] = None,
+                 classes: Dict[str | int | float, KeyValuePairClassSchema] = None,
                  items: 'KeyValuePairFieldSchema' = None,
                  properties: Dict[str, 'KeyValuePairFieldSchema'] = None,
                  includeGrounding: bool = False) -> None:
@@ -71,7 +71,7 @@ class KeyValuePairFieldSchema:
         self.properties = {k: KeyValuePairFieldSchema(**v) for k, v in properties.items()} if properties else None
         self.includeGrounding = includeGrounding
         self._check()
-    
+
     def __eq__(self, other) -> bool:
         if not isinstance(other, KeyValuePairFieldSchema):
             return False
@@ -82,7 +82,7 @@ class KeyValuePairFieldSchema:
                 and self.items == other.items
                 and self.properties == other.properties
                 and self.includeGrounding == other.includeGrounding)
-    
+
     def _check(self):
         if self.type not in self.TYPE_NAME_TO_PYTHON_TYPE:
             raise ValueError(f'Invalid type: {self.type}')
@@ -110,7 +110,7 @@ class KeyValuePairSchema:
 class KeyValuePairLabelManifest(MultiImageLabelManifest):
     """
     Label manifest for key-value pair annotations. The "fields" field follows KeyValuePairSchema.
-    For example, the label data can be:   
+    For example, the label data can be:
     {
         "fields": {
             "key1": {"value": "v1", "groundings": [[10,10,5,5]]},
@@ -134,7 +134,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
     LABEL_GROUNDINGS_KEY = 'groundings'
     TEXT_INPUT_KEY = 'text'
     IMAGES_INPUT_KEY = 'image_ids'
-    
+
     @property
     def fields(self) -> dict:
         return self.label_data[self.LABEL_KEY]
@@ -145,7 +145,7 @@ class KeyValuePairLabelManifest(MultiImageLabelManifest):
 
     def _read_label_data(self):
         raise NotImplementedError('Read label data is not supported!')
-    
+
     def _check_label(self, label_data):
         if not isinstance(label_data, dict) or self.LABEL_KEY not in label_data:
             raise ValueError(f'{self.LABEL_KEY} not found in label_data dictionary: {label_data}')
@@ -193,7 +193,7 @@ class KeyValuePairDatasetManifest(DatasetManifestWithMultiImageLabel):
         self.schema = KeyValuePairSchema(schema['name'], schema['fieldSchema'], schema.get('description'))
         super().__init__(images, annotations, DatasetTypes.KEY_VALUE_PAIR, additional_info)
         self._check_annotations()
-    
+
     def _check_annotations(self):
         for ann in self.annotations:
             if not isinstance(ann, KeyValuePairLabelManifest):

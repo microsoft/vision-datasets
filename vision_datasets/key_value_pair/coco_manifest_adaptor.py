@@ -14,7 +14,8 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
     
     def _construct_label_manifest(self, img_ids, ann, coco_manifest):
         label_data = self.process_label(ann, coco_manifest)
-        return KeyValuePairLabelManifest(ann['id'], img_ids, label_data, self._get_additional_info(ann, {'id', KeyValuePairLabelManifest.IMAGES_INPUT_KEY, KeyValuePairLabelManifest.LABEL_KEY,                                                                                                         KeyValuePairLabelManifest.TEXT_INPUT_KEY}))
+        return KeyValuePairLabelManifest(ann['id'], img_ids, label_data, self._get_additional_info(ann, {'id', KeyValuePairLabelManifest.IMAGES_INPUT_KEY, KeyValuePairLabelManifest.LABEL_KEY,
+                                                                                                         KeyValuePairLabelManifest.TEXT_INPUT_KEY}))
 
     def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
         images, annotations = self.get_images_and_annotations(images_by_id, coco_manifest)

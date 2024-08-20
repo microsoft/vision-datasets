@@ -364,7 +364,7 @@ class VisualObjectGroundingTestCases:
             ]
         }
     ]
-    
+ 
 
 class KeyValuePairTestCases:
     schema_dicts = [
@@ -446,7 +446,7 @@ class KeyValuePairTestCases:
                     "id": 1,
                     "image_ids": [1],
                     "text": {
-                        "query": "Complete the order" 
+                        "query": "Complete the order"
                     },
                     "fields": {
                         "action": {

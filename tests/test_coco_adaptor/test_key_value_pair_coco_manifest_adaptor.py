@@ -15,16 +15,16 @@ class TestKeyValuePair(BaseCocoAdaptor):
     @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
     def test_create_data_manifest(self, coco_dict, schema):
         super().test_create_data_manifest(coco_dict, schema)
-      
+
     @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
     def test_create_data_manifest_with_additional_info(self, coco_dict, schema):
         super().test_create_data_manifest_with_additional_info(coco_dict, schema)
-    
+
     def prepare_schema_and_coco_dict(self):
         schema = copy.deepcopy(schema_database[TestKeyValuePair.TASK][1])
         coco_dict = copy.deepcopy(coco_database[TestKeyValuePair.TASK][1])
         return schema, coco_dict
-    
+
     def test_create_data_manifest_example(self):
         schema, coco_dict = self.prepare_schema_and_coco_dict()
         adaptor = CocoManifestAdaptorFactory.create(TestKeyValuePair.TASK, schema=schema)
