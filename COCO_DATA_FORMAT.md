@@ -230,8 +230,77 @@ people_dataset/
 
 ## KeyValuePair dataset
 
-It is a generic variation of an image-text dataset, where the input consists of one or more images and a text. The output is represented as a dictionary, where keys are the attributes of interests.
+It is a generic image-text datase. For each sample, the input consists of one or more images and a text. The output is represented as a dictionary, where keys are the fields of interests. Each dataset is associated with a schema to define the task, fields of interests and format of those fields. The schema format follows JSON Schema stype, and is defined below:
+| Property    | Type                      | Details                                                                                                                      | Required?                                  |
+| :---------- | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- |
+| name        | string                    | schema name                                                                                                                  | yes                                       |
+| description | string                    | detailed description of the schema. e.g. Extract defect location and type from an image of metal screws on an assembly line. | no, but strongly recommended to provide |
+| fieldSchema | dict[string\|number\|integer, FieldSchema] | schemas of fields                                                                                                            | yes                                       |
 
+The schema of each field is defined by `FieldSchema`, recursively:
+
+| Property         | Type                      | Details                                                                                                                                                                                                                   | Required?               |
+| :--------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------- |
+| type             | FieldValueType            | JSON type: string, number, integer, boolean, array, object.                                                                                                                                                               | yes                     |
+| description      | string                    | describes the field in more detail,                                                                                                                                                                                       | no                      |
+| examples         | list[string]              | examples of field content,                                                                                                                                                                                                | no                      |
+| classes          | dict[str, ClassSchema]    | dictionary that maps each class name to `ClassSchema`.                                                                                                                                                                    | no                      |
+| properties       | dict[string, FieldSchema] | defines FieldSchema of each subfield,                                                                                                                                                                                     | yes when type is object |
+| items            | FieldSchema               | defines the FieldSchema for all items in array,                                                                                                                                                                           | yes when type is array  |
+| includeGrounding | boolean                   | whether annotation of this field has bbox groundings associated; if true, bboxes are stored in the `groundings` field of the annotation. bboxes follow [BBox Format](#bbox-format). Only support single-image annotation. | No, default false       |
+
+Definition of `ClassSchema`:
+| Property    | Type   | Details                                                                    | Required?         |
+| :---------- | :----- | :------------------------------------------------------------------------- | :---------------- |
+| description | string | describes the class in more detail, e.g., "long, thin, surface-level mark" | no. Default: null |
+
+For example, a visual question answering task schema is:
+```json
+{
+  "name": "Visual question answering",
+  "description": "Answer questions on given images and provide rationales.",
+  "fieldSchema": {
+    "answer": {
+      "type": "string",
+      "description": "Answer to the question."
+    },
+    "rationale": {
+        "type": "string", 
+        "description": "Rationale of the answer."
+    }
+  }
+}
+```
+We can see it is an object detection task with four classes: scratch, dent, discoloration, crack.
+
+In addition, a defect detection schema can be defined as
+```json
+{
+  "name": "Defect detection - screws",
+  "description": "Extract defect location and type from an image of metal screws on an assembly line",
+  "fieldSchema": {
+    "defects": {
+      "type": "array",
+      "description": "The defect types with bounding boxes detected in the image",
+      "items": {
+        "type": "string",
+        "description": "The type of defect detected",
+        "classes": {
+          "scratch": {"description": "long, thin, surface-level mark"},
+          "dent": {"description": "appears to be caving in"},
+          "discoloration": {"description": "color is abnormal"},
+          "crack": {"description": "deeper mark than a scratch"}
+        },
+        "includeGrounding": true
+      }
+    }        
+  }
+}
+```  
+
+More examples can be found at [DATA_PREPARATION.md](DATA_PREPARATION.md). More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py).
+
+Once schema is defined, we can construct the dataset. In details, each sample consists of:
 - input:
   - images, image is optionally associated with a metadata dictionary which stores the text attributes of interest for the image. For example, image is a product catalog image: `{'metadata': {'catalog': true}}`, capture location of an image: `{'metadata': {'location': 'street'}}`, information of the assembly component captured in image of a defect detection dataset: `{'metadata': {'name': 'Hex Head Lag Screw', 'type': '3/8-inch x 4-inch'}}`  
   - text (optional), a dictionary with keys being field names e.g. `{'text': {'question': 'a specific question related to the images input'}}`

@@ -197,24 +197,6 @@ For `key_value_pair` dataset, an additional field `schema` is required to define
     }
 ]
 ```
-
-The `fieldSchema` is a dictionary mapping each field to a dictionary called `FieldSchema`. In above example, there are two fields: `answer` and `rationale`. Below is the definition of `FieldSchema`:
-
-| Property         | Type                      | Details                                                                                                                                 | Required?               |
-| :--------------- | :------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
-| type             | FieldValueType            | JSON type: string, number, integer, boolean, array, object.                                                                             | yes                     |
-| description      | string                    | describes the field in more detail                                                                                                      | no                      |
-| examples         | list[string]              | examples of field content                                                                                                               | no                      |
-| classes          | dict[str, ClassSchema]    | dictionary that maps each class name to `ClassSchema`.                                                                                  | no                      |
-| properties       | dict[string, FieldSchema] | defines FieldSchema of each subfield                                                                                                    | yes when type is object |
-| items            | FieldSchema               | defines the FieldSchema for all items in array                                                                                          | yes when type is array  |
-| includeGrounding | boolean                   | whether annotation of this field should contain bbox groundings; if true, bboxes are stored in the `groundings` field of the annotation | No, default false       |
-
-Definition of `ClassSchema`:
-| Property    | Type   | Details                                                                    | Required?         |
-| :---------- | :----- | :------------------------------------------------------------------------- | :---------------- |
-| description | string | describes the class in more detail, e.g., "long, thin, surface-level mark" | no. Default: null |
-
-More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py). Example COCO annotations can be found at [`COCO_DATA_FORMAT.md`](COCO_DATA_FORMAT.md).
+In above example, there are two fields of interests: `answer` (string type) and `rationale` (string type). Formal definition of `schema` can be found at [COCO_DATA_FORMAT.md](COCO_DATA_FORMAT.md)
 
 Check the usage code example in [`README.md`](README.md).
