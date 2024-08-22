@@ -271,7 +271,7 @@ For example, a visual question answering task schema is:
   }
 }
 ```
-We can see it is an object detection task with four classes: scratch, dent, discoloration, crack.
+The fields or interests are `answer` and `rationale`.
 
 In addition, a defect detection schema can be defined as
 ```json
@@ -296,7 +296,8 @@ In addition, a defect detection schema can be defined as
     }        
   }
 }
-```  
+``` 
+We can see it is an object detection task with four classes: scratch, dent, discoloration, crack.
 
 More examples can be found at [DATA_PREPARATION.md](DATA_PREPARATION.md). More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py).
 
@@ -305,9 +306,10 @@ Once schema is defined, we can construct the dataset. In details, each sample co
   - images, image is optionally associated with a metadata dictionary which stores the text attributes of interest for the image. For example, image is a product catalog image: `{'metadata': {'catalog': true}}`, capture location of an image: `{'metadata': {'location': 'street'}}`, information of the assembly component captured in image of a defect detection dataset: `{'metadata': {'name': 'Hex Head Lag Screw', 'type': '3/8-inch x 4-inch'}}`  
   - text (optional), a dictionary with keys being field names e.g. `{'text': {'question': 'a specific question related to the images input'}}`
 - output:
-  - fields, a dictionary with keys being the attributes of interest, values being dictionaries that store the actual attribute value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format).
+  - fields, a dictionary with keys being the fields of interest, values being dictionaries that store the actual field value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format). The format of each field should comply to the defined `fieldSchema`.
 
-The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation. In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional. Below is an example of multi-image question answering.
+The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation.
+In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional. Below is an example of multi-image question answering.
 
 ```json
 {
@@ -316,8 +318,22 @@ The dataset format is a simple variation of COCO, where `image_id` of an annotat
         {"id": 2, "zip_file": "test2.zip", "file_name": "test/1/image_2.jpg"}
     ],
     "annotations": [
-        {"id": 1, "image_ids": [1, 2], "text": {"question": "What objects are unique in the first image compared to the second image?"}, "fields": {"answer": "car", "rationale": "Both images capture street traffic, a car exists in the first image but not in the second."}},
-        {"id": 2, "image_ids": [2, 1], "text": {"question": "Does the first image have more cars?"}, "fields": {"answer": "yes", "rationale": "First image has no car, second image has one."}}
+        {
+            "id": 1, "image_ids": [1, 2],
+            "text": {"question": "What objects are unique in the first image compared to the second image?"},
+            "fields": {
+                "answer": {"value": "car"}, 
+                "rationale": {"value": "Both images capture street traffic, a car exists in the first image but not in the second."}
+            }
+        },
+        {
+            "id": 2, "image_ids": [2, 1],
+            "text": {"question": "Does the first image have more cars?"}, 
+            "fields": {
+                "answer": {"value": "yes"}, 
+                "rationale": {"value": "First image has no car, second image has one."}
+            }
+        }
     ]
 }
 ```

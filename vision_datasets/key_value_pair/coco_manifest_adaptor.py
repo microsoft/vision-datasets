@@ -33,6 +33,16 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
                 else:
                     self.convert_bbox_ltwh_to_ltrb(value[k])
 
+    def check_no_groundings_for_multi_image_annotation(self, value: dict):
+        if isinstance(value, list):
+            for v in value:
+                self.check_no_groundings_for_multi_image_annotation(v)
+        elif isinstance(value, dict):
+            if KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY in value:
+                raise ValueError('Groundings are not allowed for multi-image annotations')            
+            for v in value.values():
+                self.check_no_groundings_for_multi_image_annotation(v)
+                
     def process_label(self, annotation: dict, coco_manifest: dict):
         if KeyValuePairLabelManifest.LABEL_KEY not in annotation:
             raise ValueError(f'{KeyValuePairLabelManifest.LABEL_KEY} not found in annotation {annotation}')            
@@ -40,9 +50,16 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
         bbox_format = coco_manifest.get('bbox_format')
         bbox_format = BBoxFormat[bbox_format.upper()] if bbox_format else BBoxFormat.LTWH
         if bbox_format == BBoxFormat.LTWH:
-            logger.info('Provided bounding box format is LTWH, converting to LTRB')
+            logger.info('Provided bounding box format is LTWH, converting bounding boxes (if any) to LTRB')
             for k in annotation[KeyValuePairLabelManifest.LABEL_KEY]:
                 self.convert_bbox_ltwh_to_ltrb(annotation[KeyValuePairLabelManifest.LABEL_KEY][k])
+
+        # If the annotation is for multiple images, groundings should be disabled
+        if len(annotation['image_ids']) > 1:
+            print('hereere')
+            for field in annotation[KeyValuePairLabelManifest.LABEL_KEY].values():
+                self.check_no_groundings_for_multi_image_annotation(field)
+
         label_data = {KeyValuePairLabelManifest.LABEL_KEY: annotation[KeyValuePairLabelManifest.LABEL_KEY], 
                       KeyValuePairLabelManifest.TEXT_INPUT_KEY: annotation.get(KeyValuePairLabelManifest.TEXT_INPUT_KEY, None)}
         KeyValuePairLabelManifest.check_schema_match(label_data[KeyValuePairLabelManifest.LABEL_KEY], self.schema)

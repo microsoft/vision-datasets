@@ -517,6 +517,13 @@ class KeyValuePairTestCases:
                     "height": 224,
                     "file_name": "1.jpg",
                     "zip_file": "test.zip"
+                },
+                {
+                    "id": 2,
+                    "width": 224,
+                    "height": 224,
+                    "file_name": "2.jpg",
+                    "zip_file": "test.zip"
                 }
             ],
             "annotations": [
