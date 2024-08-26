@@ -197,18 +197,6 @@ For `key_value_pair` dataset, an additional field `schema` is required to define
     }
 ]
 ```
-
-The `fieldSchema` is a dictionary mapping each field to a dictionary called `FieldSchema`. In above example, there are two fields: `answer` and `rationale`. Below is the definition of `FieldSchema`:
-
-| Property    | Type                              | Example                                                                                                                                                        | Required?               |
-| :---------- | :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
-| type        | FieldValueType                    | JSON type: string, number, integer, boolean, array, object. Complex object type: bbox, in `ltrb` format, i.e. [left, top, width, height] absolute pixel values. | yes                     |
-| description | string                            | answer to question                                                                                                                                             | no                      |
-| examples    | list[string]                      | examples of field content                                                                                                                                      | no                      |
-| enum        | list[string \| number \| integer] | only work when type is string or number or integer                                                                                                             | no                      |
-| properties  | dict[string, FieldSchema]         | define FieldSchema of each subfield                                                                                                                            | yes when type is object |
-| items       | FieldSchema                       | define the FieldSchema for all items in array                                                                                                                  | yes when type is array  |
-
-More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py)
+In above example, there are two fields of interests: `answer` (string type) and `rationale` (string type). Formal definition of `schema` can be found at [COCO_DATA_FORMAT.md](COCO_DATA_FORMAT.md)
 
 Check the usage code example in [`README.md`](README.md).

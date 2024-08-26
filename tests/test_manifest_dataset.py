@@ -192,17 +192,17 @@ class TestCocoKeyValuePairDataset(unittest.TestCase):
             images_0, target0, _ = dataset[0]
             self.assertEqual(list(images_0[0].getdata()), list(images[0].getdata()))
             self.assertEqual(list(images_0[1].getdata()), list(images[1].getdata()))
-            self.assertEqual(target0.key_value_pairs, self.key_value_pair_coco['annotations'][0]['key_value_pairs'])
+            self.assertEqual(target0.fields, self.key_value_pair_coco['annotations'][0]['fields'])
             self.assertEqual(target0.text, None)
             
             images_1, target1, _ = dataset[1]
             self.assertEqual(list(images_1[0].getdata()), list(images[1].getdata()))
             self.assertEqual(list(images_1[1].getdata()), list(images[0].getdata()))
-            self.assertEqual(target1.key_value_pairs, self.key_value_pair_coco['annotations'][1]['key_value_pairs'])
+            self.assertEqual(target1.fields, self.key_value_pair_coco['annotations'][1]['fields'])
             self.assertEqual(target1.text, {"note": "reversed image order."})
 
             # test get targets
             for i, coco_anno in enumerate(self.key_value_pair_coco['annotations']):
                 t = dataset.get_targets(i)
-                self.assertEqual(t.key_value_pairs, coco_anno['key_value_pairs'])
+                self.assertEqual(t.fields, coco_anno['fields'])
                 self.assertEqual(t.text, coco_anno.get('text', None))

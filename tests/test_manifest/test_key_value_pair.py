@@ -8,10 +8,10 @@ class TestKeyValuePair(unittest.TestCase):
     img_ids = [1, 2]
 
     def test_simple(self):
-        manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'key_value_pairs': {'key1': 'val1'}, 'text': {'query': 'what fields are there?'}})
+        manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'fields': {'key1': 'val1'}, 'text': {'query': 'what fields are there?'}})
         self.assertEqual(manifest.id, self.id)
         self.assertEqual(manifest.img_ids, self.img_ids)
-        self.assertEqual(manifest.key_value_pairs, {'key1': 'val1'})
+        self.assertEqual(manifest.fields, {'key1': 'val1'})
         self.assertEqual(manifest.text, {'query': 'what fields are there?'})
 
     def test_missing_key_value_pair(self):
@@ -19,5 +19,5 @@ class TestKeyValuePair(unittest.TestCase):
             KeyValuePairLabelManifest(self.id, self.img_ids, {'text': {'query': 'what fields are there?'}})
             
     def test_missing_text(self):
-        manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'key_value_pairs': {'key1': 'val1'}})
+        manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'fields': {'key1': 'val1'}})
         self.assertIsNone(manifest.text)
