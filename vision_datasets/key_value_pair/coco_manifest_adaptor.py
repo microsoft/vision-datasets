@@ -56,7 +56,6 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
 
         # If the annotation is for multiple images, groundings should be disabled
         if len(annotation['image_ids']) > 1:
-            print('hereere')
             for field in annotation[KeyValuePairLabelManifest.LABEL_KEY].values():
                 self.check_no_groundings_for_multi_image_annotation(field)
 
