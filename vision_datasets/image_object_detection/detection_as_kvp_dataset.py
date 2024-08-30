@@ -1,9 +1,12 @@
 import logging
-from copy import deepcopy
 import typing
+from copy import deepcopy
 
-from vision_datasets.common import VisionDataset, DatasetTypes, KeyValuePairDatasetInfo
-from vision_datasets.key_value_pair import KeyValuePairDatasetManifest, KeyValuePairLabelManifest
+from vision_datasets.common import DatasetTypes, KeyValuePairDatasetInfo, VisionDataset
+from vision_datasets.key_value_pair import (
+    KeyValuePairDatasetManifest,
+    KeyValuePairLabelManifest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -77,9 +80,10 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
 
     def construct_kvp_label_data(self, bboxes: typing.List[typing.List[int]]):
         """
-        Convert the classification dataset label_name to the desired format for KVP annnotation.
-        E.g. {"fields": {"className": label_name}, "text": None} as defined by the BASE_CLASSIFICATION_SCHEMA
-
+        Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the BASE_DETECTION_SCHEMA.
+        E.g. {"fields": {"bboxes": {"value": [{"value": "class1", "groundings" : [[10,10,20,20]]},
+                                              {"value": "class2", "groundings" : [[0,0,20,20], [20,20,30,30]]}]
+                        "text": None}
         """
 
         label_wise_bboxes = self._sort_bboxes_label_wise(bboxes)
@@ -87,7 +91,7 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         return {
             f"{KeyValuePairLabelManifest.LABEL_KEY}": {
                 f"{BBOXES_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{"value": key, "groundings": value} for key, value in label_wise_bboxes.items()]
+                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key, f"{KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY}": value} for key, value in label_wise_bboxes.items()]
                 }
             },
             f"{KeyValuePairLabelManifest.TEXT_INPUT_KEY}": None
