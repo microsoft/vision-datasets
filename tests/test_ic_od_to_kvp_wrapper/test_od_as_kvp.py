@@ -12,7 +12,6 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
     def test_detection_to_kvp(self):
         sample_detection_dataset, _ = DetectionTestFixtures.create_an_od_dataset()
         kvp_dataset = DetectionAsKeyValuePairDataset(sample_detection_dataset)
-        print(kvp_dataset.dataset_info.schema)
 
         self.assertIsInstance(kvp_dataset, DetectionAsKeyValuePairDataset)
         self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
@@ -30,7 +29,6 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
                                                'includeGrounding': True}}})
 
         _, target, _ = kvp_dataset[0]
-        print(target.label_data)
         self.assertIsInstance(target, KeyValuePairLabelManifest)
         self.assertEqual(target.label_data,
                          {'fields': {'bboxes': {'value': [{'value': '0', 'groundings': [[0, 0, 100, 100]]},
