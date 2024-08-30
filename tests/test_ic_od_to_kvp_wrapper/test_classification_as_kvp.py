@@ -66,6 +66,24 @@ class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
 
         print(kvp_dataset)
 
+        self.assertIsInstance(kvp_dataset, ClassificationAsKeyValuePairDataset)
+        self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
+        self.assertIn("name", kvp_dataset.dataset_info.schema)
+        self.assertIn("description", kvp_dataset.dataset_info.schema)
+        self.assertIn("fieldSchema", kvp_dataset.dataset_info.schema)
+
+        self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"],
+                         {"className": {
+                             "type": "string",
+                             "description": "Class name that the image belongs to.",
+                             "classes": {
+                                 "1-class": {},
+                                 "2-class": {},
+                                 "3-class": {},
+                             }
+                         }
+        })
+
 
 if __name__ == '__main__':
     unittest.main()

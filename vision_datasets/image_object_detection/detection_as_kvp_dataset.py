@@ -1,6 +1,7 @@
 import logging
 import typing
 from copy import deepcopy
+from typing import Any, Dict, List
 
 from vision_datasets.common import DatasetTypes, KeyValuePairDatasetInfo, VisionDataset
 from vision_datasets.key_value_pair import (
@@ -37,11 +38,11 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         """
         Initializes an instance of the ClassificationAsKeyValuePairDataset class.
         Args:
-            detection_dataset (VisionDataset): The classification dataset to convert to key-value pair dataset.
+            detection_dataset (VisionDataset): The detection dataset to convert to key-value pair dataset.
         """
 
         if detection_dataset is None or detection_dataset.dataset_info.type not in {DatasetTypes.IMAGE_OBJECT_DETECTION}:
-            raise ValueError
+            raise ValueError("DetectionAsKeyValuePairDataset only supports Image Object Detection datasets.")
 
         # Generate schema and update dataset info
         detection_dataset = deepcopy(detection_dataset)
@@ -60,7 +61,6 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         annotations = []
         for id, img in enumerate(detection_dataset.dataset_manifest.images, 1):
             bboxes = [box.label_data for box in img.labels]
-            # label_names = [self.class_id_to_names[box[0]] for box in bboxes]
 
             kvp_label_data = self.construct_kvp_label_data(bboxes)
             img_ids = [self.img_id_to_pos[img.id]]  # 0-based index
@@ -73,12 +73,12 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         dataset_manifest = KeyValuePairDatasetManifest(detection_dataset.dataset_manifest.images, annotations, schema, additional_info=detection_dataset.dataset_manifest.additional_info)
         super().__init__(dataset_info, dataset_manifest, dataset_resources=detection_dataset.dataset_resources)
 
-    def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
-        schema: typing.Dict[str, typing.Any] = BASE_DETECTION_SCHEMA  # initialize with base schema
+    def construct_schema(self, class_names: List[str]) -> Dict[str, Any]:
+        schema: Dict[str, Any] = BASE_DETECTION_SCHEMA  # initialize with base schema
         schema["fieldSchema"][f"{BBOXES_KEY}"]["items"]["classes"] = {c: {} for c in class_names}
         return schema
 
-    def construct_kvp_label_data(self, bboxes: typing.List[typing.List[int]]):
+    def construct_kvp_label_data(self, bboxes: List[List[int]]):
         """
         Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the BASE_DETECTION_SCHEMA.
         E.g. {"fields": {"bboxes": {"value": [{"value": "class1", "groundings" : [[10,10,20,20]]},
@@ -86,7 +86,7 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
                         "text": None}
         """
 
-        label_wise_bboxes = self._sort_bboxes_label_wise(bboxes)
+        label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
 
         return {
             f"{KeyValuePairLabelManifest.LABEL_KEY}": {
@@ -97,7 +97,7 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
             f"{KeyValuePairLabelManifest.TEXT_INPUT_KEY}": None
         }
 
-    def _sort_bboxes_label_wise(self, bboxes: typing.List[typing.List[int]]):
+    def sort_bboxes_label_wise(self, bboxes: List[List[int]]) -> Dict[str, List[List[int]]]:
         """
         Convert a list of bounding boxes to a dictionary with class name as key and list of bounding boxes as value.
 
