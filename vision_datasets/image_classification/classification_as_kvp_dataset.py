@@ -77,7 +77,7 @@ class ClassificationAsKeyValuePairDataset(VisionDataset):
     def construct_kvp_label_data(self, label_name: str) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
         """
         Convert the classification dataset label_name to the desired format for KVP annnotation as defined by the BASE_CLASSIFICATION_SCHEMA.
-        E.g. {"fields": {"className": label_name}, "text": None} 
+        E.g. {"fields": {"className": {"value": <label_name>}}}
 
         """
         return {
@@ -85,6 +85,5 @@ class ClassificationAsKeyValuePairDataset(VisionDataset):
                 f"{CLASS_NAME_KEY}": {
                     f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": label_name
                 }
-            },
-            f"{KeyValuePairLabelManifest.TEXT_INPUT_KEY}": None
+            }
         }

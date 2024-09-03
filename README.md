@@ -92,6 +92,22 @@ print(imgs)
 print(target)
 ```
 
+### Loading IC/OD Datasets in KeyValuePair (KVP) Format:
+You can convert an existing IC/OD VisionDataset to the generalized KVP format using the following adapter:
+
+```{python}
+# For IC dataset
+from vision_datasets.image_classification import ClassificationAsKeyValuePairDataset
+sample_ic_dataset = VisionDataset(dataset_info, dataset_manifest)
+kvp_dataset = ClassificationAsKeyValuePairDataset(sample_ic_dataset)
+
+# For OD dataset
+from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset
+sample_od_dataset = VisionDataset(dataset_info, dataset_manifest)
+kvp_dataset = DetectionAsKeyValuePairDataset(sample_od_dataset)
+```
+
+
 #### Coco format
 
 Here is an example with explanation of what a `DatasetInfo` looks like for coco format, when it is serialized into json:

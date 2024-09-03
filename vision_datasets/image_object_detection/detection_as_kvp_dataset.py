@@ -1,5 +1,4 @@
 import logging
-import typing
 from copy import deepcopy
 from typing import Any, Dict, List
 
@@ -12,17 +11,17 @@ from vision_datasets.key_value_pair import (
 logger = logging.getLogger(__name__)
 
 
-BBOXES_KEY = "bboxes"
+OBJECTS_KEY = "detectedObjects"
 BASE_DETECTION_SCHEMA = {
     "name": "Image Object Detection",
-    "description": "Detect objects in images and provide bounding boxes and class label for each object.",
+    "description": "Detect objects in images and provide bounding boxes and class label for each object",
     "fieldSchema": {
-        f"{BBOXES_KEY}": {
+        f"{OBJECTS_KEY}": {
             "type": "array",
-            "description": "Bounding boxes of objects in the image",
+            "description": "Objects in the image of the specified classes, with bounding boxes",
             "items": {
                 "type": "string",
-                "description": "Class name that the box belongs to",
+                "description": "Class name of the object",
                 "classes": {},
                 "includeGrounding": True
             }
@@ -75,7 +74,7 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
 
     def construct_schema(self, class_names: List[str]) -> Dict[str, Any]:
         schema: Dict[str, Any] = BASE_DETECTION_SCHEMA  # initialize with base schema
-        schema["fieldSchema"][f"{BBOXES_KEY}"]["items"]["classes"] = {c: {} for c in class_names}
+        schema["fieldSchema"][f"{OBJECTS_KEY}"]["items"]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, bboxes: List[List[int]]):
@@ -83,31 +82,31 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the BASE_DETECTION_SCHEMA.
         E.g. {"fields": {"bboxes": {"value": [{"value": "class1", "groundings" : [[10,10,20,20]]},
                                               {"value": "class2", "groundings" : [[0,0,20,20], [20,20,30,30]]}]
-                        "text": None}
+            }
         """
 
         label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
 
         return {
             f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{BBOXES_KEY}": {
+                f"{OBJECTS_KEY}": {
                     f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key, f"{KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY}": value} for key, value in label_wise_bboxes.items()]
                 }
-            },
-            f"{KeyValuePairLabelManifest.TEXT_INPUT_KEY}": None
+            }
         }
 
     def sort_bboxes_label_wise(self, bboxes: List[List[int]]) -> Dict[str, List[List[int]]]:
         """
         Convert a list of bounding boxes to a dictionary with class name as key and list of bounding boxes as value.
 
-        E.g. [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6]] -> {"1": [[2, 3, 4, 5], [2, 3, 4, 5]], "2": [[3, 4, 5, 6]]}
+        E.g. [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5], [2, 3, 4, 5, 6]] -> {"<label_name_1>": [[2, 3, 4, 5], [2, 3, 4, 5]], "<label_name_2>": [[3, 4, 5, 6]]}
         """
 
         label_wise_bboxes = {}
         for box in bboxes:
-            if box[0] not in label_wise_bboxes:
-                label_wise_bboxes[str(box[0])] = []
-            label_wise_bboxes[str(box[0])].append(box[1:])
+            label_name = self.class_id_to_names[box[0]]
+            if label_name not in label_wise_bboxes:
+                label_wise_bboxes[label_name] = []
+            label_wise_bboxes[label_name].append(box[1:])
 
         return label_wise_bboxes

@@ -2,9 +2,7 @@ import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets.common.constants import DatasetTypes
-from vision_datasets.image_object_detection.detection_as_kvp_dataset import (
-    DetectionAsKeyValuePairDataset,
-)
+from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset
 from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
 
@@ -20,20 +18,20 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
         self.assertIn("fieldSchema", kvp_dataset.dataset_info.schema)
 
         self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"],
-                         {'bboxes': {'type': 'array', 'description': 'Bounding boxes of objects in the image',
-                                     'items': {'type': 'string', 'description': 'Class name that the box belongs to',
-                                               'classes': {'1-class': {},
-                                                           '2-class': {},
-                                                           '3-class': {},
-                                                           '4-class': {}},
-                                               'includeGrounding': True}}})
+                         {'detectedObjects': {'type': 'array', 'description': 'Objects in the image of the specified classes, with bounding boxes',
+                                              'items': {'type': 'string', 'description': 'Class name of the object',
+                                                        'classes': {'1-class': {'description': 'A single class name. Only output 1-class as the class name if present.'},
+                                                                    '2-class': {'description': 'A single class name. Only output 2-class as the class name if present.'},
+                                                                    '3-class': {'description': 'A single class name. Only output 3-class as the class name if present.'},
+                                                                    '4-class': {'description': 'A single class name. Only output 4-class as the class name if present.'}},
+                                                        'includeGrounding': True}}})
 
         _, target, _ = kvp_dataset[0]
         self.assertIsInstance(target, KeyValuePairLabelManifest)
         self.assertEqual(target.label_data,
-                         {'fields': {'bboxes': {'value': [{'value': '0', 'groundings': [[0, 0, 100, 100]]},
-                                                          {'value': '1', 'groundings': [[10, 10, 50, 100]]}]}},
-                          'text': None})
+                         {'fields': {'detectedObjects': {'value': [{'value': '1-class', 'groundings': [[0, 0, 100, 100]]},
+                                                                   {'value': '2-class', 'groundings': [[10, 10, 50, 100]]}]}}
+                          })
 
 
 if __name__ == '__main__':

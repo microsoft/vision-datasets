@@ -2,9 +2,7 @@ import unittest
 
 from tests.test_fixtures import MultilcassClassificationTestFixtures
 from vision_datasets.common import DatasetTypes
-from vision_datasets.image_classification.classification_as_kvp_dataset import (
-    ClassificationAsKeyValuePairDataset,
-)
+from vision_datasets.image_classification import ClassificationAsKeyValuePairDataset
 from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
 
@@ -33,6 +31,9 @@ class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
 
         _, target, _ = kvp_dataset[0]
         self.assertIsInstance(target, KeyValuePairLabelManifest)
+        self.assertEqual(target.label_data,
+                         {"fields": {"className": {"value": "1-class"}}}
+                         )
 
 
 if __name__ == '__main__':
