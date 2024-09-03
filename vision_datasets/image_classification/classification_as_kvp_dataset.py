@@ -71,7 +71,7 @@ class ClassificationAsKeyValuePairDataset(VisionDataset):
 
     def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
         schema: typing.Dict[str, typing.Any] = BASE_CLASSIFICATION_SCHEMA  # initialize with base schema
-        schema["fieldSchema"][f"{CLASS_NAME_KEY}"]["classes"] = {c: {} for c in class_names}
+        schema["fieldSchema"][f"{CLASS_NAME_KEY}"]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, label_name: str) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
