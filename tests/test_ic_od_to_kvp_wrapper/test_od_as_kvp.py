@@ -20,10 +20,10 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
         self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"],
                          {'detectedObjects': {'type': 'array', 'description': 'Objects in the image of the specified classes, with bounding boxes',
                                               'items': {'type': 'string', 'description': 'Class name of the object',
-                                                        'classes': {'1-class': {'description': 'A single class name. Only output 1-class as the class name if present.'},
-                                                                    '2-class': {'description': 'A single class name. Only output 2-class as the class name if present.'},
-                                                                    '3-class': {'description': 'A single class name. Only output 3-class as the class name if present.'},
-                                                                    '4-class': {'description': 'A single class name. Only output 4-class as the class name if present.'}},
+                                                        'classes': {'1-class': {},
+                                                                    '2-class': {},
+                                                                    '3-class': {},
+                                                                    '4-class': {}},
                                                         'includeGrounding': True}}})
 
         _, target, _ = kvp_dataset[0]

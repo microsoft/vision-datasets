@@ -74,7 +74,7 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
 
     def construct_schema(self, class_names: List[str]) -> Dict[str, Any]:
         schema: Dict[str, Any] = BASE_DETECTION_SCHEMA  # initialize with base schema
-        schema["fieldSchema"][f"{OBJECTS_KEY}"]["items"]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
+        schema["fieldSchema"][f"{OBJECTS_KEY}"]["items"]["classes"] = {c: {"description": f"Always output {c} as the class."} if len(class_names) == 1 else {} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, bboxes: List[List[int]]):
