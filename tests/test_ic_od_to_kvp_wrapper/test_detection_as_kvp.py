@@ -33,6 +33,13 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
                                                                    {'value': '2-class', 'groundings': [[10, 10, 50, 100]]}]}}
                           })
 
+    def test_single_class_description(self):
+        sample_detection_dataset, _ = DetectionTestFixtures.create_an_od_dataset(n_categories=1)
+        kvp_dataset = DetectionAsKeyValuePairDataset(sample_detection_dataset)
+
+        self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"]['detectedObjects']['items']['classes'],
+                         {'1-class': {"description": "Always output 1-class as the class."}})
+
 
 if __name__ == '__main__':
     unittest.main()
