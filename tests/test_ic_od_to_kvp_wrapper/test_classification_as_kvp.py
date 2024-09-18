@@ -1,19 +1,18 @@
-import tempfile
 import unittest
 
 from tests.test_fixtures import MulticlassClassificationTestFixtures, MultilabelClassificationTestFixtures
 from vision_datasets.common import DatasetTypes
-from vision_datasets.image_classification import MultiClassAsKeyValuePairDataset, MultiLabelAsKeyValuePairDataset
+from vision_datasets.image_classification import MulticlassClassificationAsKeyValuePairDataset, MultilabelClassificationAsKeyValuePairDataset
 from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
 
 class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
     def test_multiclass_classification(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            sample_classification_dataset = MulticlassClassificationTestFixtures.create_an_ic_dataset(tempdir)
-            kvp_dataset = MultiClassAsKeyValuePairDataset(sample_classification_dataset)
+        sample_classification_dataset, tempdir = MulticlassClassificationTestFixtures.create_an_ic_dataset()
+        with tempdir:
+            kvp_dataset = MulticlassClassificationAsKeyValuePairDataset(sample_classification_dataset)
 
-            self.assertIsInstance(kvp_dataset, MultiClassAsKeyValuePairDataset)
+            self.assertIsInstance(kvp_dataset, MulticlassClassificationAsKeyValuePairDataset)
             self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
             self.assertIn("name", kvp_dataset.dataset_info.schema)
             self.assertIn("description", kvp_dataset.dataset_info.schema)
@@ -38,11 +37,11 @@ class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
                             )
 
     def test_multilabel_classification(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            sample_classification_dataset = MultilabelClassificationTestFixtures.create_an_ic_dataset(tempdir, n_images=2, n_categories=2)
-            kvp_dataset = MultiLabelAsKeyValuePairDataset(sample_classification_dataset)
+        sample_classification_dataset, tempdir = MultilabelClassificationTestFixtures.create_an_ic_dataset(n_images=2, n_categories=2)
+        with tempdir:
+            kvp_dataset = MultilabelClassificationAsKeyValuePairDataset(sample_classification_dataset)
 
-            self.assertIsInstance(kvp_dataset, MultiLabelAsKeyValuePairDataset)
+            self.assertIsInstance(kvp_dataset, MultilabelClassificationAsKeyValuePairDataset)
             self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
             self.assertIn("name", kvp_dataset.dataset_info.schema)
             self.assertIn("description", kvp_dataset.dataset_info.schema)
@@ -54,6 +53,7 @@ class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
                                 'description': 'Class names that the image belongs to.',
                                 'items': {
                                     'type': 'string',
+                                    'description': 'Single class name.',
                                     'classes': {
                                         '1-class': {'description': 'A single class name. Only output 1-class as the class name if present.'},
                                         '2-class': {'description': 'A single class name. Only output 2-class as the class name if present.'}
@@ -67,7 +67,7 @@ class TestClassificationAsKeyValuePairDataset(unittest.TestCase):
             self.assertIsInstance(target, KeyValuePairLabelManifest)
             self.assertEqual(target.label_data,
                             {'fields': {
-                                'classNames': {'value': ['1-class', '2-class']}}
+                                'classNames': {'value': [{'value': '1-class'}, {'value': '2-class'}]}}
                             })
 
 

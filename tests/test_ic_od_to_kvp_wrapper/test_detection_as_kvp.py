@@ -1,4 +1,3 @@
-import tempfile
 import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
@@ -9,8 +8,8 @@ from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
 class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
     def test_detection_to_kvp(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            sample_detection_dataset = DetectionTestFixtures.create_an_od_dataset(tempdir)
+        sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
+        with tempdir:
             kvp_dataset = DetectionAsKeyValuePairDataset(sample_detection_dataset)
 
             self.assertIsInstance(kvp_dataset, DetectionAsKeyValuePairDataset)
@@ -36,8 +35,8 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
                             })
 
     def test_single_class_description(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            sample_detection_dataset = DetectionTestFixtures.create_an_od_dataset(tempdir, n_categories=1)
+        sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset(n_categories=1)
+        with tempdir:
             kvp_dataset = DetectionAsKeyValuePairDataset(sample_detection_dataset)
 
             self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"]['detectedObjects']['items']['classes'],

@@ -61,7 +61,7 @@ class ClassificationAsKeyValuePairDatasetBase(VisionDataset):
         raise NotImplementedError
 
 
-class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
+class MulticlassClassificationAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
     CLASS_NAME_KEY = "className"
     SCHEMA_BASE = {
         "name": "Multiclass image classification",
@@ -76,8 +76,8 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
     }
 
     def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
-        schema: typing.Dict[str, typing.Any] = MultiClassAsKeyValuePairDataset.SCHEMA_BASE  # initialize with base schema
-        schema["fieldSchema"][MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
+        schema: typing.Dict[str, typing.Any] = self.SCHEMA_BASE  # initialize with base schema
+        schema["fieldSchema"][self.CLASS_NAME_KEY]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, label_names: typing.List[str]) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
@@ -88,7 +88,7 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
         """
         return {
             KeyValuePairLabelManifest.LABEL_KEY: {
-                MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY: {
+                self.CLASS_NAME_KEY: {
                     KeyValuePairLabelManifest.LABEL_VALUE_KEY: label_names[0]
                 }
             }
@@ -96,7 +96,7 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
 
 
 
-class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
+class MultilabelClassificationAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
     CLASS_NAME_KEY = "classNames"
     SCHEMA_BASE = {
         "name": "Multilabel image classification",
@@ -107,6 +107,7 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
                 "description": "Class names that the image belongs to.",
                 "items": {
                     "type": "string",
+                    'description': 'Single class name.',
                     "classes": {}
                 }
             }
@@ -114,8 +115,8 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
     }
 
     def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
-        schema: typing.Dict[str, typing.Any] = MultiLabelAsKeyValuePairDataset.SCHEMA_BASE  # initialize with base schema
-        schema["fieldSchema"][MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY]['items']["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
+        schema: typing.Dict[str, typing.Any] = self.SCHEMA_BASE  # initialize with base schema
+        schema["fieldSchema"][self.CLASS_NAME_KEY]['items']["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, label_names: typing.List[str]) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
@@ -126,8 +127,8 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
         """
         return {
             KeyValuePairLabelManifest.LABEL_KEY: {
-                MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY: {
-                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: label_names
+                self.CLASS_NAME_KEY: {
+                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: [{KeyValuePairLabelManifest.LABEL_VALUE_KEY: n} for n in label_names]
                 }
             }
         }

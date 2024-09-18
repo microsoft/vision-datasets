@@ -1,7 +1,7 @@
 import copy
 import json
 import pathlib
-
+import tempfile
 from PIL import Image
 
 from vision_datasets.common import (
@@ -42,18 +42,18 @@ class DetectionTestFixtures:
         return CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_OBJECT_DETECTION).create_dataset_manifest(coco_path.name, root_dir)
 
     @staticmethod
-    def create_an_od_dataset(tempdir, n_images=2, n_categories=4, coordinates='relative'):
+    def create_an_od_dataset(n_images=2, n_categories=4, coordinates='relative'):
         dataset_dict = copy.deepcopy(DetectionTestFixtures.DATASET_INFO_DICT)
-
-        dataset_dict['root_folder'] = tempdir
+        tempdir = tempfile.TemporaryDirectory()
+        dataset_dict['root_folder'] = tempdir.name
         dataset_dict['type'] = 'object_detection'
         for i in range(n_images):
-            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir) / f'{i + 1}.jpg')
+            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
 
         dataset_info = DatasetInfo(dataset_dict)
-        dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir, n_images, n_categories)
+        dataset_manifest = DetectionTestFixtures.create_an_od_manifest(tempdir.name, n_images, n_categories)
         dataset = VisionDataset(dataset_info, dataset_manifest, coordinates)
-        return dataset
+        return dataset, tempdir
 
 
 class MulticlassClassificationTestFixtures:
@@ -72,16 +72,17 @@ class MulticlassClassificationTestFixtures:
     }
 
     @staticmethod
-    def create_an_ic_dataset(tempdir, n_images=2, n_categories=3):
+    def create_an_ic_dataset(n_images=2, n_categories=3):
         dataset_dict = copy.deepcopy(MulticlassClassificationTestFixtures.DATASET_INFO_DICT)
-        dataset_dict['root_folder'] = tempdir
+        tempdir = tempfile.TemporaryDirectory()
+        dataset_dict['root_folder'] = tempdir.name
         for i in range(n_images):
-            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir) / f'{i + 1}.jpg')
+            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
 
         dataset_info = DatasetInfo(dataset_dict)
-        dataset_manifest = MulticlassClassificationTestFixtures.create_an_ic_manifest(tempdir, n_images, n_categories)
+        dataset_manifest = MulticlassClassificationTestFixtures.create_an_ic_manifest(tempdir.name, n_images, n_categories)
         dataset = VisionDataset(dataset_info, dataset_manifest)
-        return dataset
+        return dataset, tempdir
 
     @staticmethod
     def create_an_ic_manifest(root_dir='', n_images=2, n_categories=3):
@@ -113,16 +114,17 @@ class MultilabelClassificationTestFixtures:
     }
 
     @staticmethod
-    def create_an_ic_dataset(tempdir, n_images=2, n_categories=3):
+    def create_an_ic_dataset(n_images=2, n_categories=3):
+        tempdir = tempfile.TemporaryDirectory()
         dataset_dict = copy.deepcopy(MultilabelClassificationTestFixtures.DATASET_INFO_DICT)
-        dataset_dict['root_folder'] = tempdir
+        dataset_dict['root_folder'] = tempdir.name
         for i in range(n_images):
-            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir) / f'{i + 1}.jpg')
+            Image.new('RGB', (100, 100)).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
 
         dataset_info = DatasetInfo(dataset_dict)
-        dataset_manifest = MultilabelClassificationTestFixtures.create_an_ic_manifest(tempdir, n_images, n_categories)
+        dataset_manifest = MultilabelClassificationTestFixtures.create_an_ic_manifest(tempdir.name, n_images, n_categories)
         dataset = VisionDataset(dataset_info, dataset_manifest)
-        return dataset
+        return dataset, tempdir
 
     @staticmethod
     def create_an_ic_manifest(root_dir='', n_images=2, n_categories=3):
