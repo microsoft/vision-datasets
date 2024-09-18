@@ -67,7 +67,7 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
         "name": "Multiclass image classification",
         "description": "Classify images into one of the provided classes.",
         "fieldSchema": {
-            f"{CLASS_NAME_KEY}": {
+            CLASS_NAME_KEY: {
                 "type": "string",
                 "description": "Class name that the image belongs to.",
                 "classes": {}
@@ -77,7 +77,7 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
 
     def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
         schema: typing.Dict[str, typing.Any] = MultiClassAsKeyValuePairDataset.SCHEMA_BASE  # initialize with base schema
-        schema["fieldSchema"][f"{MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY}"]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
+        schema["fieldSchema"][MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY]["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, label_names: typing.List[str]) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
@@ -87,9 +87,9 @@ class MultiClassAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
 
         """
         return {
-            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": label_names[0]
+            KeyValuePairLabelManifest.LABEL_KEY: {
+                MultiClassAsKeyValuePairDataset.CLASS_NAME_KEY: {
+                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: label_names[0]
                 }
             }
         }
@@ -102,11 +102,11 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
         "name": "Multilabel image classification",
         "description": "Classify images into one or more of the provided classes.",
         "fieldSchema": {
-            f"{CLASS_NAME_KEY}": {
+            CLASS_NAME_KEY: {
                 "type": "array",
+                "description": "Class names that the image belongs to.",
                 "items": {
                     "type": "string",
-                    "description": "Class names that the image belongs to.",
                     "classes": {}
                 }
             }
@@ -115,7 +115,7 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
 
     def construct_schema(self, class_names: typing.List[str]) -> typing.Dict[str, typing.Any]:
         schema: typing.Dict[str, typing.Any] = MultiLabelAsKeyValuePairDataset.SCHEMA_BASE  # initialize with base schema
-        schema["fieldSchema"][f"{MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY}"]['items']["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
+        schema["fieldSchema"][MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY]['items']["classes"] = {c: {"description": f"A single class name. Only output {c} as the class name if present."} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, label_names: typing.List[str]) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
@@ -125,9 +125,9 @@ class MultiLabelAsKeyValuePairDataset(ClassificationAsKeyValuePairDatasetBase):
 
         """
         return {
-            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": label_names
+            KeyValuePairLabelManifest.LABEL_KEY: {
+                MultiLabelAsKeyValuePairDataset.CLASS_NAME_KEY: {
+                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: label_names
                 }
             }
         }
