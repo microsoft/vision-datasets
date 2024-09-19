@@ -2,7 +2,7 @@ import unittest
 
 from tests.test_fixtures import DetectionTestFixtures
 from vision_datasets.common.constants import DatasetTypes
-from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset
+from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset, DetectionAsKeyValuePairDatasetForMultilabelClassification
 from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
 
@@ -41,6 +41,38 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
 
             self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"]['detectedObjects']['items']['classes'],
                             {'1-class': {"description": "Always output 1-class as the class."}})
+
+
+class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.TestCase):
+    def test_detection_to_kvp(self):
+        sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
+        with tempdir:
+            kvp_dataset = DetectionAsKeyValuePairDatasetForMultilabelClassification(sample_detection_dataset)
+
+            self.assertIsInstance(kvp_dataset, DetectionAsKeyValuePairDatasetForMultilabelClassification)
+            self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
+            self.assertIn("name", kvp_dataset.dataset_info.schema)
+            self.assertIn("description", kvp_dataset.dataset_info.schema)
+            self.assertIn("fieldSchema", kvp_dataset.dataset_info.schema)
+
+            print(kvp_dataset.dataset_info.schema["fieldSchema"])
+            self.assertEqual(kvp_dataset.dataset_info.schema["fieldSchema"],
+                            {'objectClassNames': {
+                                'type': 'array', 
+                                'description': 'Unique class names of objects in the image of the specified classes.', 
+                                'items': {
+                                    'type': 'string', 
+                                    'description': 'Class name of the object.',
+                                    'classes': {'1-class': {}, '2-class': {}, '3-class': {}, '4-class': {}}}}}
+            )
+            _, target, _ = kvp_dataset[0]
+            print(target.label_data)
+            self.assertIsInstance(target, KeyValuePairLabelManifest)
+            self.assertEqual(target.label_data,
+                            {'fields': {
+                                'objectClassNames': {
+                                    'value': [{'value': '1-class'}, {'value': '2-class'}]}}}
+                            )
 
 
 if __name__ == '__main__':

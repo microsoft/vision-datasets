@@ -97,17 +97,18 @@ You can convert an existing IC/OD VisionDataset to the generalized KVP format us
 
 ```{python}
 # For MultiClass and MultiLabel IC dataset
-from vision_datasets.image_classification import MultiClassAsKeyValuePairDataset, MultiLabelAsKeyValuePairDataset
+from vision_datasets.image_classification import MulticlassClassificationAsKeyValuePairDataset, MultilabelClassificationAsKeyValuePairDataset
 sample_multiclass_ic_dataset = VisionDataset(dataset_info, dataset_manifest)
-kvp_dataset = MultiClassAsKeyValuePairDataset(sample_multiclass_ic_dataset)
+kvp_dataset = MulticlassClassificationAsKeyValuePairDataset(sample_multiclass_ic_dataset)
 sample_multilabel_ic_dataset = VisionDataset(dataset_info, dataset_manifest)
-kvp_dataset = MultiLabelAsKeyValuePairDataset(sample_multilabel_ic_dataset)
+kvp_dataset = MultilabelClassificationAsKeyValuePairDataset(sample_multilabel_ic_dataset)
 
 
 # For OD dataset
-from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset
+from vision_datasets.image_object_detection import DetectionAsKeyValuePairDataset, DetectionAsKeyValuePairDatasetForMultilabelClassification
 sample_od_dataset = VisionDataset(dataset_info, dataset_manifest)
 kvp_dataset = DetectionAsKeyValuePairDataset(sample_od_dataset)
+kvp_dataset_for_multilabel_classification = DetectionAsKeyValuePairDatasetForMultilabelClassification(sample_od_dataset)
 ```
 
 
