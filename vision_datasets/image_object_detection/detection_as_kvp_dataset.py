@@ -11,31 +11,12 @@ from vision_datasets.key_value_pair import (
 logger = logging.getLogger(__name__)
 
 
-OBJECTS_KEY = "detectedObjects"
-BASE_DETECTION_SCHEMA = {
-    "name": "Image Object Detection",
-    "description": "Detect objects in images and provide bounding boxes and class label for each object",
-    "fieldSchema": {
-        f"{OBJECTS_KEY}": {
-            "type": "array",
-            "description": "Objects in the image of the specified classes, with bounding boxes",
-            "items": {
-                "type": "string",
-                "description": "Class name of the object",
-                "classes": {},
-                "includeGrounding": True
-            }
-        }
-    }
-}
-
-
-class DetectionAsKeyValuePairDataset(VisionDataset):
+class DetectionAsKeyValuePairDatasetBase(VisionDataset):
     """Dataset class that access Detection datset as KeyValuePair dataset."""
 
     def __init__(self, detection_dataset: VisionDataset):
         """
-        Initializes an instance of the ClassificationAsKeyValuePairDataset class.
+        Initializes an instance of the DetectionAsKeyValuePairDataset class.
         Args:
             detection_dataset (VisionDataset): The detection dataset to convert to key-value pair dataset.
         """
@@ -73,28 +54,13 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
         super().__init__(dataset_info, dataset_manifest, dataset_resources=detection_dataset.dataset_resources)
 
     def construct_schema(self, class_names: List[str]) -> Dict[str, Any]:
-        schema: Dict[str, Any] = BASE_DETECTION_SCHEMA  # initialize with base schema
-        schema["fieldSchema"][f"{OBJECTS_KEY}"]["items"]["classes"] = {c: {"description": f"Always output {c} as the class."} if len(class_names) == 1 else {} for c in class_names}
+        schema: Dict[str, Any] = self.DETECTION_SCHEMA  # initialize with base schema
+        schema["fieldSchema"][f"{self.OBJECTS_KEY}"]["items"]["classes"] = {c: {"description": f"Always output {c} as the class."} if len(class_names) == 1 else {} for c in class_names}
         return schema
 
     def construct_kvp_label_data(self, bboxes: List[List[int]]):
-        """
-        Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the BASE_DETECTION_SCHEMA.
-        E.g. {"fields": {"bboxes": {"value": [{"value": "class1", "groundings" : [[10,10,20,20]]},
-                                              {"value": "class2", "groundings" : [[0,0,20,20], [20,20,30,30]]}]
-            }
-        """
-
-        label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
-
-        return {
-            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{OBJECTS_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key, f"{KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY}": value} for key, value in label_wise_bboxes.items()]
-                }
-            }
-        }
-
+        raise NotImplementedError
+    
     def sort_bboxes_label_wise(self, bboxes: List[List[int]]) -> Dict[str, List[List[int]]]:
         """
         Convert a list of bounding boxes to a dictionary with class name as key and list of bounding boxes as value.
@@ -110,3 +76,76 @@ class DetectionAsKeyValuePairDataset(VisionDataset):
             label_wise_bboxes[label_name].append(box[1:])
 
         return label_wise_bboxes
+
+
+class DetectionAsKeyValuePairDataset(DetectionAsKeyValuePairDatasetBase):
+    OBJECTS_KEY = "detectedObjects"
+    DETECTION_SCHEMA = {
+        "name": "Image Object Detection",
+        "description": "Detect objects in images and provide bounding boxes and class label for each object",
+        "fieldSchema": {
+            f"{OBJECTS_KEY}": {
+                "type": "array",
+                "description": "Objects in the image of the specified classes, with bounding boxes",
+                "items": {
+                    "type": "string",
+                    "description": "Class name of the object",
+                    "classes": {},
+                    "includeGrounding": True
+                }
+            }
+        }
+    }
+
+    def construct_kvp_label_data(self, bboxes: List[List[int]]):
+        """
+        Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the DETECTION_SCHEMA.
+        E.g. {"fields": {"bboxes": {"value": [{"value": "class1", "groundings" : [[10,10,20,20]]},
+                                              {"value": "class2", "groundings" : [[0,0,20,20], [20,20,30,30]]}]
+            }
+        """
+
+        label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
+
+        return {
+            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
+                f"{self.OBJECTS_KEY}": {
+                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key, f"{KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY}": value} for key, value in label_wise_bboxes.items()]
+                }
+            }
+        }
+
+
+class DetectionAsKeyValuePairDatasetForMultilabelClassification(DetectionAsKeyValuePairDatasetBase):
+    OBJECTS_KEY = "objectClassNames"
+    DETECTION_SCHEMA = {
+        "name": "Get object class names from an image.",
+        "description": "Find all the objects within the provided classes from an image. If multiple objects of the same class are present, only output the class name once.",
+        "fieldSchema": {
+            f"{OBJECTS_KEY}": {
+                "type": "array",
+                "description": "Unique class names of objects in the image of the specified classes.",
+                "items": {
+                    "type": "string",
+                    "description": "Class name of the object.",
+                    "classes": {}
+                }
+            }
+        }
+    }
+    
+    def construct_kvp_label_data(self, bboxes: List[List[int]]):
+        """
+        Convert the detection dataset label_name to the desired format for KVP annnotation as defined by the DETECTION_SCHEMA.
+        E.g. {"fields": {"objectClassNames": {"value": [{"value": "class1"}, {"value": "class2"}]}}
+        """
+        
+        label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
+
+        return {
+            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
+                f"{self.OBJECTS_KEY}": {
+                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [{f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key} for key in label_wise_bboxes.keys()]
+                }
+            }
+        }
