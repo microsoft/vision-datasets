@@ -34,9 +34,9 @@ class VQAAsKeyValuePairDataset(VisionDataset):
 
     def __init__(self, vqa_dataset: VisionDataset):
         """
-        Initializes an instance of the ClassificationAsKeyValuePairDataset class.
+        Initializes an instance of the VQAAsKeyValuePairDataset class.
         Args:
-            classification_dataset (VisionDataset): The classification dataset to convert to key-value pair dataset.
+            vqa_dataset (VisionDataset): The VQA dataset to convert to key-value pair dataset.
         """
 
         if vqa_dataset is None or vqa_dataset.dataset_info.type is not DatasetTypes.VISUAL_QUESTION_ANSWERING:
@@ -77,7 +77,7 @@ class VQAAsKeyValuePairDataset(VisionDataset):
 
     def construct_kvp_label_data(self, label: Dict[str, str]) -> Dict[str, Dict[str, str]]:
         """
-        Convert the classification dataset label_name to the desired format for KVP annotation as defined by the SCHEMA_BASE.
+        Convert the VQA dataset label to the desired format for KVP annotation as defined by the SCHEMA_BASE.
         E.g. {"fields":
                     {"answer": {"value": "yes"}},
                     {"rationale": {"value": "I see a dog."}}
