@@ -15,7 +15,7 @@ class VQAAsKeyValuePairDataset(VisionDataset):
     """Dataset class that access Visual Question Answering (VQA) datset as KeyValuePair dataset."""
 
     ANSWER_KEY = "answer"
-    RATIONAL_KEY = "rationale"
+    RATIONALE_KEY = "rationale"
     QUESTION_KEY = "question"
     SCHEMA_BASE = {
         "name": "Visual Question Answering",
@@ -25,7 +25,7 @@ class VQAAsKeyValuePairDataset(VisionDataset):
                 "type": "string",
                 "description": "Answer to the question.",
             },
-            RATIONAL_KEY: {
+            RATIONALE_KEY: {
                 "type": "string",
                 "description": "Rationale for the answer.",
             },
@@ -93,7 +93,7 @@ class VQAAsKeyValuePairDataset(VisionDataset):
         return {
             KeyValuePairLabelManifest.LABEL_KEY: {
                 self.ANSWER_KEY: {KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.ANSWER_KEY]},
-                self.RATIONAL_KEY: {KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.RATIONAL_KEY] if self.RATIONAL_KEY in label else ""}
+                self.RATIONALE_KEY: {KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.RATIONALE_KEY] if self.RATIONALE_KEY in label else ""}
             },
             KeyValuePairLabelManifest.TEXT_INPUT_KEY: {"question": label[self.QUESTION_KEY]},
         }
