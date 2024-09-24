@@ -2,6 +2,7 @@ import copy
 import json
 import pathlib
 import tempfile
+
 from PIL import Image
 
 from vision_datasets.common import (
@@ -137,3 +138,45 @@ class MultilabelClassificationTestFixtures:
         coco_path = pathlib.Path(root_dir) / 'coco.json'
         coco_path.write_text(json.dumps(coco_dict))
         return CocoManifestAdaptorFactory.create(DatasetTypes.IMAGE_CLASSIFICATION_MULTILABEL).create_dataset_manifest(coco_path.name, root_dir)
+
+
+class VQATestFixtures:
+    DATASET_INFO_DICT = {
+        "name": "dummy",
+        "version": 1,
+        "type": "visual_question_answering",
+        "root_folder": "dummy",
+        "format": "coco",
+        "test": {
+            "index_path": "train.json",
+            "files_for_local_usage": [
+                "train.zip"
+            ]
+        },
+    }
+
+    @staticmethod
+    def create_a_vqa_dataset(n_images=2):
+        dataset_dict = copy.deepcopy(VQATestFixtures.DATASET_INFO_DICT)
+        tempdir = tempfile.TemporaryDirectory()
+        dataset_dict['root_folder'] = tempdir.name
+        for i in range(n_images):
+            Image.new('RGB', (min(1000, (i+1) * 100), min(1000, (i+1) * 100))).save(pathlib.Path(tempdir.name) / f'{i + 1}.jpg')
+
+        dataset_info = DatasetInfo(dataset_dict)
+        dataset_manifest = VQATestFixtures().create_a_vqa_manifest(tempdir.name, n_images)
+        dataset = VisionDataset(dataset_info, dataset_manifest)
+        return dataset, tempdir
+
+    @staticmethod
+    def create_a_vqa_manifest(root_dir='', n_images=2):
+        images = [{'id': i + 1, 'file_name': f'{i + 1}.jpg', 'width': min(1000, (i+1)*100), 'height': min(1000, (i+1)*100)} for i in range(n_images)]
+        annotations = [{'id': i + 1, 'image_id': i + 1, 'question': f'question {i+1}', 'answer': f'answer {i+1}'} for i in range(n_images)]
+
+        # Add a second question for the last image
+        annotations.append({'id': n_images + 1, 'image_id': n_images, 'question': 'question 3', 'answer': 'answer 3'})
+
+        coco_dict = {'images': images, 'annotations': annotations}
+        coco_path = pathlib.Path(root_dir) / 'coco.json'
+        coco_path.write_text(json.dumps(coco_dict))
+        return CocoManifestAdaptorFactory.create(DatasetTypes.VISUAL_QUESTION_ANSWERING).create_dataset_manifest(coco_path.name, root_dir)
