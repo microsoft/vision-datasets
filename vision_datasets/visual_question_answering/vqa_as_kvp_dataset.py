@@ -80,7 +80,7 @@ class VQAAsKeyValuePairDataset(VisionDataset):
         Convert the VQA dataset label to the desired format for KVP annotation as defined by the SCHEMA_BASE.
         E.g. {"fields":
                     {"answer": {"value": "yes"}},
-                    {"rationale": {"value": "I see a dog."}}
+                    {"rationale": {"value": "I see a dog."}} # Optional if present in the label
              "text": {"question": "Is there a dog in the image?"}
             }
         """
