@@ -25,7 +25,7 @@ class TestVQAAsKeyValuePairDataset(unittest.TestCase):
             _, target, _ = kvp_dataset[0]
             self.assertIsInstance(target, KeyValuePairLabelManifest)
             self.assertEqual(target.label_data,
-                             {'fields': {'answer': {'value': 'answer 1'}, 'rationale': {'value': ''}}, 'text': {'question': 'question 1'}})
+                             {'fields': {'answer': {'value': 'answer 1'}}, 'text': {'question': 'question 1'}})
 
             self.assertEqual(len(kvp_dataset), 3)
             self.assertEqual(len(kvp_dataset.dataset_manifest.images), 2)
