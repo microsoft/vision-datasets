@@ -90,10 +90,18 @@ class VQAAsKeyValuePairDataset(VisionDataset):
         if self.ANSWER_KEY not in label:
             raise KeyError(f"Answer key '{self.ANSWER_KEY}' not found in label.")
 
-        return {
+        kvp_label_data = {
             KeyValuePairLabelManifest.LABEL_KEY: {
                 self.ANSWER_KEY: {KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.ANSWER_KEY]},
-                self.RATIONALE_KEY: {KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.RATIONALE_KEY] if self.RATIONALE_KEY in label else ""}
             },
-            KeyValuePairLabelManifest.TEXT_INPUT_KEY: {"question": label[self.QUESTION_KEY]},
+            KeyValuePairLabelManifest.TEXT_INPUT_KEY: {self.QUESTION_KEY: label[self.QUESTION_KEY]},
         }
+
+        if self.RATIONALE_KEY in label:
+            kvp_label_data[KeyValuePairLabelManifest.LABEL_KEY][self.RATIONALE_KEY] = {
+                KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.RATIONALE_KEY]
+            }
+        else:
+            logger.warning(f"Rationale key '{self.RATIONALE_KEY}' not found in label.")
+
+        return kvp_label_data
