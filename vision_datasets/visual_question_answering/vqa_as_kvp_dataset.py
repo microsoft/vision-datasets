@@ -1,5 +1,5 @@
-import logging
 from copy import deepcopy
+import logging
 from typing import Any, Dict
 
 from vision_datasets.common import DatasetTypes, KeyValuePairDatasetInfo, VisionDataset
@@ -79,9 +79,8 @@ class VQAAsKeyValuePairDataset(VisionDataset):
         """
         Convert the VQA dataset label to the desired format for KVP annotation as defined by the SCHEMA_BASE.
         E.g. {"fields":
-                    {"answer": {"value": "yes"}},
-                    {"rationale": {"value": "I see a dog."}} # Optional if present in the label
-             "text": {"question": "Is there a dog in the image?"}
+                      {"answer": {"value": "yes"}},
+              "text": {"question": "Is there a dog in the image?"}
             }
         """
 
@@ -96,12 +95,5 @@ class VQAAsKeyValuePairDataset(VisionDataset):
             },
             KeyValuePairLabelManifest.TEXT_INPUT_KEY: {self.QUESTION_KEY: label[self.QUESTION_KEY]},
         }
-
-        if self.RATIONALE_KEY in label:
-            kvp_label_data[KeyValuePairLabelManifest.LABEL_KEY][self.RATIONALE_KEY] = {
-                KeyValuePairLabelManifest.LABEL_VALUE_KEY: label[self.RATIONALE_KEY]
-            }
-        else:
-            logger.warning(f"Rationale key '{self.RATIONALE_KEY}' not found in label.")
 
         return kvp_label_data
