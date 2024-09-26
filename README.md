@@ -92,7 +92,7 @@ print(imgs)
 print(target)
 ```
 
-### Loading IC/OD Datasets in KeyValuePair (KVP) Format:
+### Loading IC/OD/VQA Datasets in KeyValuePair (KVP) Format:
 You can convert an existing IC/OD VisionDataset to the generalized KVP format using the following adapter:
 
 ```{python}
@@ -109,6 +109,11 @@ from vision_datasets.image_object_detection import DetectionAsKeyValuePairDatase
 sample_od_dataset = VisionDataset(dataset_info, dataset_manifest)
 kvp_dataset = DetectionAsKeyValuePairDataset(sample_od_dataset)
 kvp_dataset_for_multilabel_classification = DetectionAsKeyValuePairDatasetForMultilabelClassification(sample_od_dataset)
+
+# For VQA dataset
+from vision_datasets.visual_question_answering import VQAAsKeyValuePairDataset
+sample_vqa_dataset = VisionDataset(dataset_info, dataset_manifest)
+kvp_dataset = VQAAsKeyValuePairDataset(sample_vqa_dataset)
 ```
 
 
