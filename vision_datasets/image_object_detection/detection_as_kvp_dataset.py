@@ -82,18 +82,18 @@ class DetectionAsKeyValuePairDatasetBase(VisionDataset):
         )
 
     def construct_schema(
-        self, include_class_names: bool, custom_schema_description: Union[str, None]
+        self, include_class_names: bool, custom_schema_description: Optional[str]
     ) -> Dict[str, Any]:
         schema: Dict[str, Any] = self.DETECTION_SCHEMA  # initialize with base schema
         if include_class_names:
-            schema["fieldSchema"][f"{self.OBJECTS_KEY}"]["items"]["classes"] = {
+            schema["fieldSchema"][self.OBJECTS_KEY]["items"]["classes"] = {
                 c: {"description": f"Always output {c} as the class."}
                 if len(self.class_names) == 1
                 else {}
                 for c in self.class_names
             }
         else:
-            del schema["fieldSchema"][f"{self.OBJECTS_KEY}"]["items"]["classes"]
+            del schema["fieldSchema"][self.OBJECTS_KEY]["items"]["classes"]
 
         if custom_schema_description is not None:
             schema["description"] = custom_schema_description
@@ -101,7 +101,7 @@ class DetectionAsKeyValuePairDatasetBase(VisionDataset):
         return schema
 
     def construct_kvp_label_data(self, bboxes: List[List[int]]):
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def sort_bboxes_label_wise(
         self, bboxes: List[List[int]]
@@ -152,12 +152,12 @@ class DetectionAsKeyValuePairDataset(DetectionAsKeyValuePairDatasetBase):
         label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
 
         return {
-            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{self.OBJECTS_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [
+            KeyValuePairLabelManifest.LABEL_KEY: {
+                self.OBJECTS_KEY: {
+                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: [
                         {
-                            f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key,
-                            f"{KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY}": value,
+                            KeyValuePairLabelManifest.LABEL_VALUE_KEY: key,
+                            KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY: value,
                         }
                         for key, value in label_wise_bboxes.items()
                     ]
@@ -195,10 +195,10 @@ class DetectionAsKeyValuePairDatasetForMultilabelClassification(
         label_wise_bboxes = self.sort_bboxes_label_wise(bboxes)
 
         return {
-            f"{KeyValuePairLabelManifest.LABEL_KEY}": {
-                f"{self.OBJECTS_KEY}": {
-                    f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": [
-                        {f"{KeyValuePairLabelManifest.LABEL_VALUE_KEY}": key}
+            KeyValuePairLabelManifest.LABEL_KEY: {
+                self.OBJECTS_KEY: {
+                    KeyValuePairLabelManifest.LABEL_VALUE_KEY: [
+                        {KeyValuePairLabelManifest.LABEL_VALUE_KEY: key}
                         for key in label_wise_bboxes.keys()
                     ]
                 }
