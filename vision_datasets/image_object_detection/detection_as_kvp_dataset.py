@@ -24,7 +24,7 @@ class DetectionAsKeyValuePairDatasetBase(VisionDataset):
         Initializes an instance of the DetectionAsKeyValuePairDataset class.
         Args:
             detection_dataset (VisionDataset): The detection dataset to convert to key-value pair dataset.
-            include_class_nams (bool): If True, include class names in the schema. If False, exclude class names in the schema. When class names are excluded, the task becomes open-vocabulary and the model can output any class name.
+            include_class_nams (bool): If True, include class names in the schema. When class names are excluded, the task becomes open-vocabulary. 
             custom_schema_description (str): Custom description for the schema. If None, the default description is used.
         """
 
