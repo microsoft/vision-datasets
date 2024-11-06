@@ -1,6 +1,7 @@
+import copy
 import logging
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from vision_datasets.common import DatasetTypes, KeyValuePairDatasetInfo, VisionDataset
 from vision_datasets.key_value_pair import (
@@ -84,7 +85,7 @@ class DetectionAsKeyValuePairDatasetBase(VisionDataset):
     def construct_schema(
         self, include_class_names: bool, custom_schema_description: Optional[str]
     ) -> Dict[str, Any]:
-        schema: Dict[str, Any] = self.DETECTION_SCHEMA  # initialize with base schema
+        schema: Dict[str, Any] = copy.deepcopy(self.DETECTION_SCHEMA)  # initialize with base schema
         if include_class_names:
             schema["fieldSchema"][self.OBJECTS_KEY]["items"]["classes"] = {
                 c: {"description": f"Always output {c} as the class."}
