@@ -178,7 +178,7 @@ stanford_cars = dataset_hub.create_vision_dataset('stanford-cars', version=1, us
 # note that you can pass multiple datasets.json to DatasetHub, it can combine them all
 # example: DatasetHub([ds_json1, ds_json2, ...])
 # note that you can specify multiple usages in create_manifest_dataset call
-# example dataset_hub.create_manifest_dataset('stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
+# example dataset_hub.create_vision_dataset('stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
 
 for img, targets, sample_idx_str in stanford_cars:
     if isinstance(img, list):  # for key_value_pair dataset, the first item is a list of images
@@ -186,6 +186,7 @@ for img, targets, sample_idx_str in stanford_cars:
     img.show()
     img.close()
     print(targets)
+    input()
 ```
 
 Note that this hub class works with data saved in both Azure Blob container and on local disk.
