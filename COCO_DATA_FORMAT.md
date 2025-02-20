@@ -226,8 +226,7 @@ people_dataset/
 
 ## KeyValuePair dataset
 
-It is a generic datase format, that is annotation-oriented, where data entity of each annotation could involve multiple images and texts. The labeling of each annotation is represented as a dictionary, where keys are the fields of interests related to the data.
-
+It is a generic dataset format, that is annotation-oriented, where data entity of each annotation could involve multiple images and texts. The labeling of each annotation is represented as a dictionary, where keys are the fields of interests related to the data.
 Each dataset is associated with a schema to define the task, fields of interests and format of those fields. The schema format follows JSON Schema stype, and is defined below:
 
 | Property    | Type                                       | Details                                                                                                                      | Required?                               |

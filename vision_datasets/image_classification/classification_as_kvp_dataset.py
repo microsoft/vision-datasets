@@ -79,7 +79,7 @@ class MulticlassClassificationAsKeyValuePairDataset(ClassificationAsKeyValuePair
 
     def construct_kvp_label_data(self, label_names: typing.List[str]) -> typing.Dict[str, typing.Union[typing.Dict[str, typing.Dict[str, str]], None]]:
         """
-        Convert the classification dataset label_name to the desired format for KVP annnotation as defined by the self.schema.
+        Convert the classification dataset label_name to the desired format for KVP annotation as defined by the self.schema.
         E.g. {"fields": {"className": {"value": <label_name>}}}
 
         """
