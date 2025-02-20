@@ -11,7 +11,7 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
         self.schema_dict = schema
         self.schema = KeyValuePairSchema(schema['name'], schema['fieldSchema'], schema.get('description', None))
         super().__init__(DatasetTypes.KEY_VALUE_PAIR)
-    
+
     def _construct_label_manifest(self, img_ids, ann, coco_manifest):
         label_data = self.process_label(ann, coco_manifest)
         return KeyValuePairLabelManifest(ann['id'], img_ids, label_data, self._get_additional_info(ann, {'id', KeyValuePairLabelManifest.IMAGES_INPUT_KEY, KeyValuePairLabelManifest.LABEL_KEY,
@@ -39,14 +39,14 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
                 self.check_no_groundings_for_multi_image_annotation(v)
         elif isinstance(value, dict):
             if KeyValuePairLabelManifest.LABEL_GROUNDINGS_KEY in value:
-                raise ValueError('Groundings are not allowed for multi-image annotations')            
+                raise ValueError('Groundings are not allowed for multi-image annotations')
             for v in value.values():
                 self.check_no_groundings_for_multi_image_annotation(v)
-                
+
     def process_label(self, annotation: dict, coco_manifest: dict):
         if KeyValuePairLabelManifest.LABEL_KEY not in annotation:
-            raise ValueError(f'{KeyValuePairLabelManifest.LABEL_KEY} not found in annotation {annotation}')            
-        
+            raise ValueError(f'{KeyValuePairLabelManifest.LABEL_KEY} not found in annotation {annotation}')
+
         bbox_format = coco_manifest.get('bbox_format')
         bbox_format = BBoxFormat[bbox_format.upper()] if bbox_format else BBoxFormat.LTWH
         if bbox_format == BBoxFormat.LTWH:
@@ -59,7 +59,7 @@ class KeyValuePairCocoManifestAdaptor(CocoManifestWithMultiImageLabelAdaptor):
             for field in annotation[KeyValuePairLabelManifest.LABEL_KEY].values():
                 self.check_no_groundings_for_multi_image_annotation(field)
 
-        label_data = {KeyValuePairLabelManifest.LABEL_KEY: annotation[KeyValuePairLabelManifest.LABEL_KEY], 
+        label_data = {KeyValuePairLabelManifest.LABEL_KEY: annotation[KeyValuePairLabelManifest.LABEL_KEY],
                       KeyValuePairLabelManifest.TEXT_INPUT_KEY: annotation.get(KeyValuePairLabelManifest.TEXT_INPUT_KEY, None)}
         KeyValuePairLabelManifest.check_schema_match(label_data[KeyValuePairLabelManifest.LABEL_KEY], self.schema)
         return label_data

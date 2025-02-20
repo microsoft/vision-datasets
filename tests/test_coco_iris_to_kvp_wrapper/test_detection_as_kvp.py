@@ -5,6 +5,7 @@ from vision_datasets.common.constants import DatasetTypes
 from vision_datasets.image_object_detection import (
     DetectionAsKeyValuePairDataset,
     DetectionAsKeyValuePairDatasetForMultilabelClassification,
+    DetectionAsKeyValuePairDatasetForObjectCounting,
 )
 from vision_datasets.key_value_pair.manifest import KeyValuePairLabelManifest
 
@@ -94,7 +95,7 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
                     }
                 },
             )
-    
+
     def test_custom_schema_description(self):
         sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
         with tempdir:
@@ -106,7 +107,6 @@ class TestDetectionAsKeyValuePairDataset(unittest.TestCase):
             self.assertEqual(
                 kvp_dataset.dataset_info.schema["description"], "Custom description"
             )
-
 
 
 class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.TestCase):
@@ -125,7 +125,6 @@ class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.Tes
             self.assertIn("description", kvp_dataset.dataset_info.schema)
             self.assertIn("fieldSchema", kvp_dataset.dataset_info.schema)
 
-            print(kvp_dataset.dataset_info.schema["fieldSchema"])
             self.assertEqual(
                 kvp_dataset.dataset_info.schema["fieldSchema"],
                 {
@@ -146,7 +145,6 @@ class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.Tes
                 },
             )
             _, target, _ = kvp_dataset[0]
-            print(target.label_data)
             self.assertIsInstance(target, KeyValuePairLabelManifest)
             self.assertEqual(
                 target.label_data,
@@ -184,6 +182,7 @@ class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.Tes
                     }
                 },
             )
+
     def test_custom_schema_description(self):
         sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
         with tempdir:
@@ -195,6 +194,64 @@ class TestDetectionAsKeyValuePairDatasetForMultilabelClassification(unittest.Tes
             self.assertEqual(
                 kvp_dataset.dataset_info.schema["description"], "Custom description"
             )
+
+
+class TestDetectionAsKeyValuePairDatasetForObjectCounting(unittest.TestCase):
+    def test_detection_to_kvp(self):
+        sample_detection_dataset, tempdir = DetectionTestFixtures.create_an_od_dataset()
+        with tempdir:
+            kvp_dataset = DetectionAsKeyValuePairDatasetForObjectCounting(
+                sample_detection_dataset
+            )
+
+            self.assertIsInstance(
+                kvp_dataset, DetectionAsKeyValuePairDatasetForObjectCounting
+            )
+            self.assertEqual(kvp_dataset.dataset_info.type, DatasetTypes.KEY_VALUE_PAIR)
+            self.assertIn("name", kvp_dataset.dataset_info.schema)
+            self.assertIn("description", kvp_dataset.dataset_info.schema)
+            self.assertIn("fieldSchema", kvp_dataset.dataset_info.schema)
+
+            self.assertEqual(
+                kvp_dataset.dataset_info.schema["fieldSchema"],
+                {
+                    DetectionAsKeyValuePairDatasetForObjectCounting._DEFAULT_FIELD_NAME:
+                    {
+                        "type": "array",
+                        "description": "Count of objects of each class in the image.",
+                        "items": {
+                            "type": "object",
+                            "description": "Class name of the object.",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Class name.",
+                                },
+                                "count": {
+                                    "type": "integer",
+                                    "description": "Count of the objects of the class.",
+                                }
+                            },
+                        },
+                    }
+                },
+            )
+            _, target, _ = kvp_dataset[0]
+            self.assertIsInstance(target, KeyValuePairLabelManifest)
+            expected = {
+                "fields":
+                    {
+                        DetectionAsKeyValuePairDatasetForObjectCounting._DEFAULT_FIELD_NAME:
+                        {
+                            "value": [
+                                {"name": {"value": "1-class"}, "count": {"value": 1}},
+                                {"name": {"value": "2-class"}, "count": {"value": 1}}
+                            ]
+                        }
+                    }
+            }
+
+            self.assertEqual(target.label_data, expected)
 
 
 if __name__ == "__main__":

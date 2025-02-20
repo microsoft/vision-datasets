@@ -46,11 +46,11 @@ class CocoManifestAdaptorBase(ABC):
                                                      img.get('height'), [], self._get_additional_info(img, {'id', 'file_name', 'width', 'height', 'zip_file'})) for img in coco_manifest['images']}
 
         return self._construct_manifest(images_by_id, coco_manifest, self.data_type, self._get_additional_info(coco_manifest, {'images', 'categories', 'annotations'}))
-    
+
     def _construct_manifest(self, images_by_id, coco_manifest, data_type, additional_info):
         images, categories = self.get_images_and_categories(images_by_id, coco_manifest)
         return DatasetManifest(images, categories, data_type, additional_info)
-    
+
     @abstractmethod
     def get_images_and_categories(self, images_by_id, coco_manifest):
         pass
@@ -128,16 +128,16 @@ class CocoManifestWithMultiImageLabelAdaptor(CocoManifestAdaptorBase):
     """
     Adaptor for generating multi-image label dataset manifest from adapted coco format.
     """
-    
+
     def get_images_and_categories(self, images_by_id, coco_manifest):
         NotImplementedError("This method should not be called for multi-image annotation datasets")
-    
+
     def get_images_and_annotations(self, images_by_id, coco_manifest):
         images = [x for x in images_by_id.values()]
         images.sort(key=lambda x: x.id)
         img_id_to_pos = {x.id: i for i, x in enumerate(images)}
         annotations = []
-        
+
         for ann in coco_manifest['annotations']:
             img_ids = ann['image_ids']
             img_positions = [img_id_to_pos[img_id] for img_id in img_ids]

@@ -80,7 +80,7 @@ class TestTorchDataset:
                 pass
 
             td[0:-1]
-            
+
     def test_picklable(self):
         dataset = TorchDataset(FakeDataset())
         serialized = pickle.dumps(dataset)

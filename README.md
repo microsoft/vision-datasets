@@ -177,7 +177,7 @@ stanford_cars = dataset_hub.create_vision_dataset('stanford-cars', version=1, us
 
 # note that you can pass multiple datasets.json to DatasetHub, it can combine them all
 # example: DatasetHub([ds_json1, ds_json2, ...])
-# note that you can specify multiple usages in create_manifest_dataset call
+# note that you can specify multiple usages in create_vision_dataset call
 # example dataset_hub.create_vision_dataset('stanford-cars', version=1, usage=[Usages.TRAIN, Usages.VAL])
 
 for img, targets, sample_idx_str in stanford_cars:

@@ -94,10 +94,10 @@ class KeyValuePairDatasetInfo(DatasetInfo):
     def __init__(self, dataset_info_dict):
         if 'schema' not in dataset_info_dict:
             raise ValueError('schema must be provided for key_value_pair dataset!')
-        
+
         schema = dataset_info_dict['schema']
         self._check_schema(schema)
-        
+
         super(KeyValuePairDatasetInfo, self).__init__(dataset_info_dict)
         self.schema = schema
 

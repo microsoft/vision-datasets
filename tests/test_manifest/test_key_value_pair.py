@@ -17,7 +17,7 @@ class TestKeyValuePair(unittest.TestCase):
     def test_missing_key_value_pair(self):
         with self.assertRaises(ValueError):
             KeyValuePairLabelManifest(self.id, self.img_ids, {'text': {'query': 'what fields are there?'}})
-            
+
     def test_missing_text(self):
         manifest = KeyValuePairLabelManifest(self.id, self.img_ids, {'fields': {'key1': 'val1'}})
         self.assertIsNone(manifest.text)
