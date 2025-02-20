@@ -364,7 +364,7 @@ class VisualObjectGroundingTestCases:
             ]
         }
     ]
- 
+
 
 class KeyValuePairTestCases:
     schema_dicts = [

@@ -7,8 +7,7 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from vision_datasets.common import CocoManifestAdaptorFactory, DatasetManifest, DatasetTypes
-from vision_datasets.common.data_reader import FileReader
+from vision_datasets.common import CocoManifestAdaptorFactory, DatasetManifest, DatasetTypes, FileReader
 from vision_datasets.image_classification import ImageClassificationLabelManifest
 from vision_datasets.multi_task.coco_manifest_adaptor import MultiTaskCocoManifestAdaptor
 

@@ -5,8 +5,8 @@ from .operations import MultiImageDatasetSingleTaskMerge, BalancedInstanceWeight
     Spawn, SpawnConfig, Split, SplitConfig, SplitWithCategories, WeightsGenerationConfig
 from .coco_manifest_adaptor import CocoManifestWithCategoriesAdaptor, CocoManifestWithoutCategoriesAdaptor, CocoManifestAdaptorBase, CocoManifestWithMultiImageLabelAdaptor
 
-__all__ = ["ImageLabelManifest", "ImageLabelWithCategoryManifest", "MultiImageLabelManifest", "ImageDataManifest", "CategoryManifest", "DatasetManifest", "DatasetManifestWithMultiImageLabel", 
-           "BalancedInstanceWeightsGenerator", "WeightsGenerationConfig", "DatasetFilter", "ImageFilter", "ImageNoAnnotationFilter", "GenerateCocoDictBase", "MultiImageCocoDictGenerator", 
+__all__ = ["ImageLabelManifest", "ImageLabelWithCategoryManifest", "MultiImageLabelManifest", "ImageDataManifest", "CategoryManifest", "DatasetManifest", "DatasetManifestWithMultiImageLabel",
+           "BalancedInstanceWeightsGenerator", "WeightsGenerationConfig", "DatasetFilter", "ImageFilter", "ImageNoAnnotationFilter", "GenerateCocoDictBase", "MultiImageCocoDictGenerator",
            "GenerateStandAloneImageListBase", "ManifestMerger", "MergeStrategy", "SingleTaskMerge", "MultiImageDatasetSingleTaskMerge", "Operation",
            "RemoveCategories",
            "RemoveCategoriesConfig", "ManifestSampler", "SampleBaseConfig", "SampleByFewShotConfig", "SampleByNumSamples", "SampleByNumSamplesConfig", "SampleFewShot", "SampleStrategy",

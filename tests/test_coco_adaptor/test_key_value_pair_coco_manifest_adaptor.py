@@ -46,7 +46,7 @@ class TestKeyValuePair(BaseCocoAdaptor):
         assert ann_1.img_ids == [1, 0]
         assert ann_1.fields == coco_dict['annotations'][1]['fields']
         assert ann_1.text == coco_dict['annotations'][1]['text']
-        
+
     def test_schema_mismatch_key_value_pair(self):
         schema, coco_dict = self.prepare_schema_and_coco_dict()
         # remove a field that defined in schema
@@ -64,7 +64,7 @@ class TestKeyValuePair(BaseCocoAdaptor):
         coco_dict = copy.deepcopy(coco_database[TestKeyValuePair.TASK][2])
         # change one annotation to multi-image annotation
         coco_dict['annotations'][0]['image_ids'] = [1, 2]
-        
+
         adaptor = CocoManifestAdaptorFactory.create(TestKeyValuePair.TASK, schema=schema)
         with tempfile.TemporaryDirectory() as temp_dir:
             dm1_path = pathlib.Path(temp_dir) / 'coco.json'

@@ -89,7 +89,7 @@ Here is one example of the json file for image text matching task. `match` is a 
 
 ## Image matting
 
-Here is one example of the json file for image matting task. The "label" in the "annotations" can be one of the following formats: 
+Here is one example of the json file for image matting task. The "label" in the "annotations" can be one of the following formats:
 
 - a local path to the label file
 - a local path in a non-compressed zip file (`c:\foo.zip@bar.png`)
@@ -108,7 +108,6 @@ Specifically, **only** image files are supported for the label files. The ground
 }
 ```
 
-
 ## Visual Question Answering
 
 VQA represents the problem where one asks a question about an image and a ground truth answer is associated.
@@ -126,16 +125,15 @@ VQA represents the problem where one asks a question about an image and a ground
 }
 ```
 
-
 ## Visual Object Grounding
 
 Visual Object Grounding is a problem where a text query/question about an image is provided, and an answer/caption about the image along with the most relevant grounding(s) are returned.
 
 A grounding is composed of three parts:
+
 - `bbox`: bounding box around the region of interest, same with object detection task. Similarly, you can specify `ltrb` or `ltwh` (default) in the Coco json. Regardlessly, the label manifest will store the bbox in [left, top, right, bottom] format like object detection.
 - `text`: description about the region
 - `text_span`: two ints (start-inclusive, end-exclusive), indicating the section of text that the region is relevant to in the answer/caption
-
 
 ```json
 {
@@ -167,7 +165,6 @@ A grounding is composed of three parts:
     ]
 }
 ```
-
 
 ## Image regression
 
@@ -201,7 +198,6 @@ This task will be a pure representation of the data of images retrieved by text 
 }
 ```
 
-
 ## MultiTask dataset
 
 Multitask dataset represents the kind of dataset, where a single set of images possesses multiple sets of annotations for different tasks of single/mutiple tasks mentioned above.
@@ -230,31 +226,35 @@ people_dataset/
 
 ## KeyValuePair dataset
 
-It is a generic image-text datase. For each sample, the input consists of one or more images and a text. The output is represented as a dictionary, where keys are the fields of interests. Each dataset is associated with a schema to define the task, fields of interests and format of those fields. The schema format follows JSON Schema stype, and is defined below:
-| Property    | Type                      | Details                                                                                                                      | Required?                                  |
-| :---------- | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- |
-| name        | string                    | schema name                                                                                                                  | yes                                       |
-| description | string                    | detailed description of the schema. e.g. Extract defect location and type from an image of metal screws on an assembly line. | no, but strongly recommended to provide |
-| fieldSchema | dict[string\|number\|integer, FieldSchema] | schemas of fields                                                                                                            | yes                                       |
+It is a generic dataset format, that is annotation-oriented, where data entity of each annotation could involve multiple images and texts. The labeling of each annotation is represented as a dictionary, where keys are the fields of interests related to the data.
+Each dataset is associated with a schema to define the task, fields of interests and format of those fields. The schema format follows JSON Schema stype, and is defined below:
+
+| Property    | Type                                       | Details                                                                                                                      | Required?                               |
+| :---------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
+| name        | string                                     | schema name                                                                                                                  | yes                                     |
+| description | string                                     | detailed description of the schema. e.g. Extract defect location and type from an image of metal screws on an assembly line. | no, but strongly recommended to provide |
+| fieldSchema | dict[string\|number\|integer, FieldSchema] | schemas of fields                                                                                                            | yes                                     |
 
 The schema of each field is defined by `FieldSchema`, recursively:
 
-| Property         | Type                      | Details                                                                                                                                                                                                                   | Required?               |
-| :--------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------- |
-| type             | FieldValueType            | JSON type: string, number, integer, boolean, array, object.                                                                                                                                                               | yes                     |
-| description      | string                    | describes the field in more detail,                                                                                                                                                                                       | no                      |
-| examples         | list[string]              | examples of field content,                                                                                                                                                                                                | no                      |
-| classes          | dict[str, ClassSchema]    | dictionary that maps each class name to `ClassSchema`.                                                                                                                                                                    | no                      |
-| properties       | dict[string, FieldSchema] | defines FieldSchema of each subfield,                                                                                                                                                                                     | yes when type is object |
-| items            | FieldSchema               | defines the FieldSchema for all items in array,                                                                                                                                                                           | yes when type is array  |
-| includeGrounding | boolean                   | whether annotation of this field has bbox groundings associated; if true, bboxes are stored in the `groundings` field of the annotation. bboxes follow [BBox Format](#bbox-format). Only support single-image annotation. | No, default false       |
+| Property         | Type                        | Details                                                                                                                                                                                                                   | Required?               |
+| :--------------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------- |
+| type             | `FieldValueType`            | JSON type: string, number, integer, boolean, array, object.                                                                                                                                                               | yes                     |
+| description      | string                      | describes the field in more detail,                                                                                                                                                                                       | no                      |
+| examples         | list[string]                | examples of field content,                                                                                                                                                                                                | no                      |
+| classes          | dict[str, `ClassSchema`]    | [string-only] dictionary that maps each class name to `ClassSchema`.                                                                                                                                                      | no                      |
+| properties       | dict[string, `FieldSchema`] | [object-only] defines FieldSchema of each subfield,                                                                                                                                                                       | yes when type is object |
+| items            | `FieldSchema`               | [array-only] defines the FieldSchema for all items in array,                                                                                                                                                              | yes when type is array  |
+| includeGrounding | boolean                     | whether annotation of this field has bbox groundings associated; if true, bboxes are stored in the `groundings` field of the annotation. bboxes follow [BBox Format](#bbox-format). Only support single-image annotation. | No, default false       |
 
 Definition of `ClassSchema`:
-| Property    | Type   | Details                                                                    | Required?         |
-| :---------- | :----- | :------------------------------------------------------------------------- | :---------------- |
-| description | string | describes the class in more detail, e.g., "long, thin, surface-level mark" | no. Default: null |
 
-For example, a visual question answering task schema is:
+| Property    | Type   | Details                                                          | Required?         |
+| :---------- | :----- | :--------------------------------------------------------------- | :---------------- |
+| description | string | description of the class, e.g., "long, thin, surface-level mark" | no. Default: null |
+
+For example, a visual question answering task labeling schema is:
+
 ```json
 {
   "name": "Visual question answering",
@@ -271,9 +271,11 @@ For example, a visual question answering task schema is:
   }
 }
 ```
-The fields or interests are `answer` and `rationale`.
+
+The fields of interests are `answer` and `rationale`.
 
 In addition, a defect detection schema can be defined as
+
 ```json
 {
   "name": "Defect detection - screws",
@@ -293,23 +295,25 @@ In addition, a defect detection schema can be defined as
         },
         "includeGrounding": true
       }
-    }        
+    }
   }
 }
-``` 
+```
+
 We can see it is an object detection task with four classes: scratch, dent, discoloration, crack.
 
 More examples can be found at [DATA_PREPARATION.md](DATA_PREPARATION.md). More details can be found at [`vision-datasets/vision_datasets/key_value_pair/manifest.py`](vision_datasets/key_value_pair/manifest.py).
 
 Once schema is defined, we can construct the dataset. In details, each sample consists of:
-- input:
+
+- data entities:
   - images, image is optionally associated with a metadata dictionary which stores the text attributes of interest for the image. For example, image is a product catalog image: `{'metadata': {'catalog': true}}`, capture location of an image: `{'metadata': {'location': 'street'}}`, information of the assembly component captured in image of a defect detection dataset: `{'metadata': {'name': 'Hex Head Lag Screw', 'type': '3/8-inch x 4-inch'}}`  
   - text (optional), a dictionary with keys being field names e.g. `{'text': {'question': 'a specific question related to the images input'}}`
-- output:
-  - fields, a dictionary with keys being the fields of interest, values being dictionaries that store the actual field value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format). The format of each field should comply to the defined `fieldSchema`.
+- labeling involving fields of interests:
+  - fields, a dictionary with keys being the **fields of interest**, values being dictionaries that store the actual field value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format). The format of each field should comply to the defined `fieldSchema`.
 
 The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation.
-In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional. Below is an example of multi-image question answering.
+In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional, for additional image-specific information. Below is an example of multi-image question answering.
 
 ```json
 {
@@ -319,7 +323,8 @@ In each annotation entry, `fields` is required, `text` is optional. In each imag
     ],
     "annotations": [
         {
-            "id": 1, "image_ids": [1, 2],
+            "id": 1,
+            "image_ids": [1, 2],
             "text": {"question": "What objects are unique in the first image compared to the second image?"},
             "fields": {
                 "answer": {"value": "car"}, 
@@ -327,7 +332,8 @@ In each annotation entry, `fields` is required, `text` is optional. In each imag
             }
         },
         {
-            "id": 2, "image_ids": [2, 1],
+            "id": 2,
+            "image_ids": [2, 1],
             "text": {"question": "Does the first image have more cars?"}, 
             "fields": {
                 "answer": {"value": "yes"}, 
@@ -339,6 +345,7 @@ In each annotation entry, `fields` is required, `text` is optional. In each imag
 ```
 
 Another example for object detection:
+
 ```json
 {
     "images": [

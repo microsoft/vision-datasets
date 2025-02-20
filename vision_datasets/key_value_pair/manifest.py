@@ -24,7 +24,7 @@ def _valid_ltrb_bbox(bbox: List) -> bool:
 class KeyValuePairClassSchema:
     def __init__(self, description: str = None, examples: List = None) -> None:
         self.description = description
-        
+
     def __eq__(self, other) -> bool:
         if not isinstance(other, KeyValuePairClassSchema):
             return False

@@ -17,20 +17,6 @@ class VQAAsKeyValuePairDataset(VisionDataset):
     ANSWER_KEY = "answer"
     RATIONALE_KEY = "rationale"
     QUESTION_KEY = "question"
-    SCHEMA_BASE = {
-        "name": "Visual Question Answering",
-        "description": "Answer questions on given images and provide rationale for the answer.",
-        "fieldSchema": {
-            ANSWER_KEY: {
-                "type": "string",
-                "description": "Answer to the question.",
-            },
-            RATIONALE_KEY: {
-                "type": "string",
-                "description": "Rationale for the answer.",
-            },
-        }
-    }
 
     def __init__(self, vqa_dataset: VisionDataset):
         """
@@ -45,18 +31,20 @@ class VQAAsKeyValuePairDataset(VisionDataset):
         # Generate schema and update dataset info
         vqa_dataset = deepcopy(vqa_dataset)
 
-        dataset_info_dict = vqa_dataset.dataset_info.__dict__
+        dataset_info_dict = deepcopy(vqa_dataset.dataset_info.__dict__)
         dataset_info_dict["type"] = DatasetTypes.KEY_VALUE_PAIR.name.lower()
-        self.img_id_to_pos = {x.id: i for i, x in enumerate(vqa_dataset.dataset_manifest.images)}
 
-        schema = self.construct_schema()
+        schema = self._schema
         # Update dataset_info with schema
         dataset_info = KeyValuePairDatasetInfo({**dataset_info_dict, "schema": schema})
+
+        dataset_manifest = vqa_dataset.dataset_manifest
+        self.img_id_to_pos = {x.id: i for i, x in enumerate(dataset_manifest.images)}
 
         # Construct KeyValuePairDatasetManifest
         annotations = []
         id = 1
-        for _, img in enumerate(vqa_dataset.dataset_manifest.images, 1):
+        for _, img in enumerate(dataset_manifest.images, 1):
             label_data = [label.label_data for label in img.labels]
 
             for label in label_data:
@@ -69,11 +57,25 @@ class VQAAsKeyValuePairDataset(VisionDataset):
                 img.labels = []
                 annotations.append(kvp_annotation)
 
-        dataset_manifest = KeyValuePairDatasetManifest(vqa_dataset.dataset_manifest.images, annotations, schema, additional_info=vqa_dataset.dataset_manifest.additional_info)
+        dataset_manifest = KeyValuePairDatasetManifest(deepcopy(dataset_manifest.images), annotations, schema, additional_info=deepcopy(vqa_dataset.dataset_manifest.additional_info))
         super().__init__(dataset_info, dataset_manifest, dataset_resources=vqa_dataset.dataset_resources)
 
-    def construct_schema(self) -> Dict[str, Any]:
-        return self.SCHEMA_BASE
+    @property
+    def _schema(self) -> Dict[str, Any]:
+        return {
+            "name": "Visual Question Answering",
+            "description": "Answer questions on given images and provide rationale for the answer.",
+            "fieldSchema": {
+                self.ANSWER_KEY: {
+                    "type": "string",
+                    "description": "Answer to the question.",
+                },
+                self.RATIONALE_KEY: {
+                    "type": "string",
+                    "description": "Rationale for the answer.",
+                },
+            }
+        }
 
     def construct_kvp_label_data(self, label: Dict[str, str]) -> Dict[str, Dict[str, str]]:
         """

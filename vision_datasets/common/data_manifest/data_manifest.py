@@ -87,15 +87,16 @@ class ImageLabelWithCategoryManifest(ImageLabelManifest):
 
 class MultiImageLabelManifest(ImageLabelManifest, abc.ABC):
     """
-    Encapsulates information of an multi-image label. The label can be associated with a single image, or multi-image jointly. 
+    Encapsulates information of an multi-image label. The label can be associated with a single image, or multi-image jointly.
     """
+
     def __init__(self,
                  id: int,
                  img_ids: List[int],
                  label_data,
                  additional_info: Dict = {}):
         """
-        Annotation manifest organized by img_ids, each set of images can have multiple labels. 
+        Annotation manifest organized by img_ids, each set of images can have multiple labels.
         Args:
             id (int): annotation id
             img_ids (list of integers): image ids
@@ -238,7 +239,7 @@ class DatasetManifest(ManifestBase):
 
 class DatasetManifestWithMultiImageLabel(ManifestBase):
     """
-    Multi-image dataset manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in MultiImageLabelManifest, 
+    Multi-image dataset manifest supporting multi-image sample. Image information except label is encapsulated in ImageDataManifest. Annotation information is encapsulated in MultiImageLabelManifest,
     including field 'img_ids' to capture indices in images list, and label_data to capture the label.
     """
 

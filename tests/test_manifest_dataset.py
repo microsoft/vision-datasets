@@ -143,7 +143,7 @@ class TestCocoVisionDataset(unittest.TestCase):
 class TestCocoKeyValuePairDataset(unittest.TestCase):
     key_value_pair_coco = coco_database[DatasetTypes.KEY_VALUE_PAIR][1]
     schema = schema_database[DatasetTypes.KEY_VALUE_PAIR][1]
-    
+
     DATASET_INFO_DICT = {
         "name": "dummy",
         "version": 1,
@@ -175,7 +175,7 @@ class TestCocoKeyValuePairDataset(unittest.TestCase):
 
         with open(pathlib.Path(tempdir) / 'test.json', 'w') as f:
             json.dump(TestCocoKeyValuePairDataset.key_value_pair_coco, f)
-        
+
         dataset_info = DatasetInfoFactory.create(dataset_dict)
         schema = dataset_info.schema
         # Alternatively, provide schema dictionary directly:
@@ -194,7 +194,7 @@ class TestCocoKeyValuePairDataset(unittest.TestCase):
             self.assertEqual(list(images_0[1].getdata()), list(images[1].getdata()))
             self.assertEqual(target0.fields, self.key_value_pair_coco['annotations'][0]['fields'])
             self.assertEqual(target0.text, None)
-            
+
             images_1, target1, _ = dataset[1]
             self.assertEqual(list(images_1[0].getdata()), list(images[1].getdata()))
             self.assertEqual(list(images_1[1].getdata()), list(images[0].getdata()))

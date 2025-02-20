@@ -43,7 +43,7 @@ class TestDatasetRegistry(unittest.TestCase):
             ]
         }
     }
-    
+
     DUMMY_DATA_KEY_VALUE_PAIR = {
         "name": "dummykey_value_pair",
         "version": 1,
