@@ -313,7 +313,7 @@ Once schema is defined, we can construct the dataset. In details, each sample co
   - fields, a dictionary with keys being the **fields of interest**, values being dictionaries that store the actual field value in "value" and optionally a list of grounded bboxes in "groundings". "groundings" are for single-image annotation only. Each bbox follows [BBox Format](#bbox-format). The format of each field should comply to the defined `fieldSchema`.
 
 The dataset format is a simple variation of COCO, where `image_id` of an annotation entry is replaced with `image_ids` to support multi-image annotation.
-In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional, for additonal image-specific information. Below is an example of multi-image question answering.
+In each annotation entry, `fields` is required, `text` is optional. In each image entry, `metadata` is optional, for additional image-specific information. Below is an example of multi-image question answering.
 
 ```json
 {
