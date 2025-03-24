@@ -6,32 +6,28 @@ import pytest
 
 from vision_datasets.common import DatasetTypes, CocoManifestAdaptorFactory
 from .coco_adaptor_base import BaseCocoAdaptor
-from ..resources.util import coco_database, schema_database
+from ..resources.util import coco_database, schema_database, coco_dict_to_manifest
 
 
 class TestKeyValuePair(BaseCocoAdaptor):
     TASK = DatasetTypes.KEY_VALUE_PAIR
 
-    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database))
     def test_create_data_manifest(self, coco_dict, schema):
         super().test_create_data_manifest(coco_dict, schema)
 
-    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database[TASK]))
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[TASK], schema_database))
     def test_create_data_manifest_with_additional_info(self, coco_dict, schema):
         super().test_create_data_manifest_with_additional_info(coco_dict, schema)
 
     def prepare_schema_and_coco_dict(self):
-        schema = copy.deepcopy(schema_database[TestKeyValuePair.TASK][1])
+        schema = copy.deepcopy(schema_database[1])
         coco_dict = copy.deepcopy(coco_database[TestKeyValuePair.TASK][1])
         return schema, coco_dict
 
     def test_create_data_manifest_example(self):
         schema, coco_dict = self.prepare_schema_and_coco_dict()
-        adaptor = CocoManifestAdaptorFactory.create(TestKeyValuePair.TASK, schema=schema)
-        with tempfile.TemporaryDirectory() as temp_dir:
-            dm1_path = pathlib.Path(temp_dir) / 'coco.json'
-            dm1_path.write_text(json.dumps(coco_dict))
-            key_value_pair_manifest = adaptor.create_dataset_manifest(str(dm1_path))
+        key_value_pair_manifest = coco_dict_to_manifest(TestKeyValuePair.TASK, coco_dict, schema=schema)
 
         key_value_pair_manifest.images[0].additional_info['meta_data'] = coco_dict['images'][0]['metadata']
 
@@ -60,7 +56,7 @@ class TestKeyValuePair(BaseCocoAdaptor):
                 adaptor.create_dataset_manifest(str(dm1_path))
 
     def test_grounding_error_for_multi_image_annotation(self):
-        schema = copy.deepcopy(schema_database[TestKeyValuePair.TASK][2])
+        schema = copy.deepcopy(schema_database[2])
         coco_dict = copy.deepcopy(coco_database[TestKeyValuePair.TASK][2])
         # change one annotation to multi-image annotation
         coco_dict['annotations'][0]['image_ids'] = [1, 2]

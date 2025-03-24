@@ -52,7 +52,7 @@ class TestTorchDataset:
 
             td[0:-1]
 
-    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KEY_VALUE_PAIR], schema_database[DatasetTypes.KEY_VALUE_PAIR]))
+    @pytest.mark.parametrize("coco_dict, schema", zip(coco_database[DatasetTypes.KEY_VALUE_PAIR], schema_database))
     def test_create_key_value_pair_torch_dataset(self, coco_dict, schema):
         manifest = coco_dict_to_manifest(DatasetTypes.KEY_VALUE_PAIR, coco_dict, schema)
         with tempfile.TemporaryDirectory() as temp_dir:

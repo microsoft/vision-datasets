@@ -29,9 +29,9 @@ class TestVisualObjectGrounding(BaseCocoAdaptor):
 
         for i, image in enumerate(manifest.images):
             image_anns = ann_by_image[i]
-            for j, l in enumerate(image.labels):
-                l: VisualObjectGroundingLabelManifest
-                for k, g in enumerate(l.groundings):
+            for j, label in enumerate(image.labels):
+                label: VisualObjectGroundingLabelManifest
+                for k, g in enumerate(label.groundings):
                     for t, bbox in enumerate(g.bboxes):
                         gt = image_anns[j]["groundings"][k]['bboxes'][t]
                         gt_ltwh = gt if format == "ltwh" else [gt[0], gt[1], gt[2]-gt[0], gt[3]-gt[1]]
