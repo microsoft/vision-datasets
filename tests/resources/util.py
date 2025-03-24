@@ -341,8 +341,8 @@ class VisualObjectGroundingTestCases:
                     "question": "Describe the image",
                     "answer": "many books",
                     "groundings": [
-                            {"id": 1, "text": "20 books", "text_span": [0, 1], "bboxes": [[0, 10, 10, 10], [0, 5, 10, 10]]},
-                            {"id": 2, "text": "10 books", "text_span": [2, 4], "bboxes": [[90, 90, 10, 10], [0, 10, 10, 10]]}
+                        {"id": 1, "text": "20 books", "text_span": [0, 1], "bboxes": [[0, 10, 10, 10], [0, 5, 10, 10]]},
+                        {"id": 2, "text": "10 books", "text_span": [2, 4], "bboxes": [[90, 90, 10, 10], [0, 10, 10, 10]]}
                     ]
                 },
                 {
@@ -565,9 +565,7 @@ coco_database = {
     DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.manifest_dicts
 }
 
-schema_database = {
-    DatasetTypes.KEY_VALUE_PAIR: KeyValuePairTestCases.schema_dicts
-}
+schema_database = KeyValuePairTestCases.schema_dicts
 
 
 def two_tasks_test_cases(coco_database):

@@ -190,11 +190,11 @@ class KeyValuePairDatasetManifest(DatasetManifestWithMultiImageLabel):
     """Manifest that has schema in additional_info which defines the structure of the key-value pairs in the annotations."""
 
     def __init__(self, images, annotations, schema, additional_info):
-        self.schema = KeyValuePairSchema(schema['name'], schema['fieldSchema'], schema.get('description'))
+        self.schema = schema if isinstance(schema, KeyValuePairSchema) else KeyValuePairSchema(schema['name'], schema['fieldSchema'], schema.get('description'))
         super().__init__(images, annotations, DatasetTypes.KEY_VALUE_PAIR, additional_info)
         self._check_annotations()
 
     def _check_annotations(self):
         for ann in self.annotations:
             if not isinstance(ann, KeyValuePairLabelManifest):
-                raise ValueError(f'label must be of type {KeyValuePairLabelManifest.__name__}')
+                raise ValueError(f'label must be of type {KeyValuePairLabelManifest.__name__}, but found {type(ann).__name__}')

@@ -142,7 +142,7 @@ class TestCocoVisionDataset(unittest.TestCase):
 
 class TestCocoKeyValuePairDataset(unittest.TestCase):
     key_value_pair_coco = coco_database[DatasetTypes.KEY_VALUE_PAIR][1]
-    schema = schema_database[DatasetTypes.KEY_VALUE_PAIR][1]
+    schema = schema_database[1]
 
     DATASET_INFO_DICT = {
         "name": "dummy",
