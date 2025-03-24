@@ -25,11 +25,11 @@ class TestSampleManifestNumSamples:
         assert n_samples == len(sampled_manifest.images)
 
     @pytest.mark.parametrize("test_case_index, with_replacement", [x for x in itertools.product(range(len(coco_database[DatasetTypes.KEY_VALUE_PAIR])), [True, False])])
-    def test_sample_data_manifest_by_n_samples_kvp_no_replacement(self, test_case_index):
+    def test_sample_data_manifest_by_n_samples_kvp(self, test_case_index, with_replacement):
         task = DatasetTypes.KEY_VALUE_PAIR
         manifest = coco_dict_to_manifest(task, coco_database[task][test_case_index], schema_database[test_case_index])
         n_samples = max(len(manifest.annotations) // 2, 1)
-        sampler_strategy = SampleStrategyFactory.create(task, SampleStrategyType.NumSamples, SampleByNumSamplesConfig(0, with_replacement=False, n_samples=n_samples))
+        sampler_strategy = SampleStrategyFactory.create(task, SampleStrategyType.NumSamples, SampleByNumSamplesConfig(0, with_replacement=with_replacement, n_samples=n_samples))
         sampler = ManifestSampler(sampler_strategy)
         sampled_manifest = sampler.run(manifest)
         assert n_samples == len(sampled_manifest.annotations)
