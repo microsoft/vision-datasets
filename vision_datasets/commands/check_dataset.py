@@ -59,10 +59,7 @@ def check_images(dataset: VisionDataset):
         except (KeyError, FileNotFoundError) as e:
             file_not_found_list.append(str(e))
 
-    if file_not_found_list:
-        return ['Files not accessible: ' + (', '.join(file_not_found_list))]
-
-    return []
+    return file_not_found_list
 
 
 def _is_integer(bbox):
@@ -92,9 +89,11 @@ def classification_detection_check(dataset: VisionDataset):
                 errors.append(f'Image {sample_idx} has invalid width or height: {w}, {h}')
                 continue
 
-            for box_id, box in enumerate(labels):
-                if not check_box(box[1:], w, h):
-                    errors.append(f'Image {sample_idx}, box {box_id} is invalid: {box}\n')
+            for box_id, label in enumerate(labels):
+                box = label[1:]
+                category_id = label[0]
+                if not check_box(label[1:], w, h):
+                    errors.append(f'Image {sample_idx} with width, height being {(w, h)}, box {box_id} is invalid: {box}, category id: {category_id} \n')
 
     c_id_with_max_images = max(n_imgs_by_class, key=n_imgs_by_class.get)
     c_id_with_min_images = min(n_imgs_by_class, key=n_imgs_by_class.get)
@@ -157,7 +156,10 @@ def main():
                 quick_check_images(dataset)
             else:
                 errors.extend(check_images(dataset))
-            err_msg_file.write_text('\n'.join(errors), encoding='utf-8')
+            if errors:
+                logger.info(f'Errors found. Writing errors into {err_msg_file.as_posix()}')
+                errors = ["### All indexes here are zero-based. Please add 1 to map back to Coco annotation index which is one-base. Box in LTRB format. ###"] + errors
+                err_msg_file.write_text('\n'.join(errors), encoding='utf-8')
         else:
             logger.info(f'{prefix} No split for {usage} available.')
 
